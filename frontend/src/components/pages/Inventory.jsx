@@ -2,6 +2,8 @@ import Button from "../Button";
 import FilterDropdown from "../FilterButton";
 import SearchBar from "../SearchBar";
 import BadgeStatus from "../BadgeStatus";
+import InventoryRow from "../InventoryRow";
+
 
 const stockStatuses = ["Low stock", "Good", "Out of Stock", "Low stock"];
 
@@ -41,23 +43,23 @@ export default function Inventory(){
         </div>
       </div>
 
-      <div className=" w-100% overflow-y-auto">
-            <table className="table-auto w-full text-left border-collapse font-nunito font-thin">
-              <thead>
-                <tr>
-                  <th className="px-4 py-2 font-medium">Code</th>
-                  <th className="px-4 py-2 font-medium">Name</th>
-                  <th className="px-4 py-2 font-medium">Category</th>
-                  <th className="px-4 py-2 font-medium">Quantity</th>
-                  <th className="px-4 py-2 font-medium">Last Updated</th>
-                  <th className="px-4 py-2 font-medium">Status</th>
-                  <th className="px-4 py-2 font-medium">Action</th>
-                </tr>
-              </thead>
-              <tbody>
-                {/* Table rows go here */}
-              </tbody>
-            </table>
+      <div className="w-full overflow-y-auto">
+        <table className="table-auto w-full border-collapse font-nunito text-[14px]">
+          <thead className="text-gray-600 text-sm">
+            <tr>
+              <th className="w-1/6 px-6 py-3 font-bold text-center">Code</th>
+              <th className="w-1/6 px-6 py-3 font-bold text-center">Name</th>
+              <th className="w-1/6 px-6 py-3 font-bold text-center">Category</th>
+              <th className="w-1/6 px-6 py-3 font-bold text-center">Quantity</th>
+              <th className="w-1/6 px-6 py-3 font-bold text-center">Last Updated</th>
+              <th className="w-1/6 px-6 py-3 font-bold text-center">Status</th>
+              <th className="w-1/6 px-6 py-3 font-bold text-center">Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <InventoryRow />
+          </tbody>
+        </table>
       </div>
     </div>
   );
