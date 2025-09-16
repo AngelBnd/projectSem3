@@ -1,68 +1,83 @@
 // server.js
+const http = require("http");
+const fs = require("fs");
+const path = require("path");
 
-const http = require('http');
-const url = require('url');
-const { v4: uuidv4 } = require('uuid'); // Example for a unique ID
-require('dotenv').config();
+const PORT = 3000;
+const DATA_FILE = path.join(__dirname, "sales.json");
 
-const PORT = process.env.PORT || 3000;
-
-// Example in-memory database for development
-const inventory = [];
+// Make sure sales.json exists
+if (!fs.existsSync(DATA_FILE)) {
+  fs.writeFileSync(DATA_FILE, "[]");
+}
 
 const server = http.createServer((req, res) => {
-    const parsedUrl = url.parse(req.url, true);
-    const pathname = parsedUrl.pathname;
-    const method = req.method.toUpperCase();
+  // Enable CORS
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
 
-    // Set CORS headers for all responses to allow frontend to access
-    res.setHeader('Access-Control-Allow-Origin', '*'); // Allows any origin, for development
-    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  if (req.method === "OPTIONS") {
+    res.writeHead(204);
+    return res.end();
+  }
 
-    // Handle preflight requests for CORS
-    if (method === 'OPTIONS') {
-        res.writeHead(204);
-        res.end();
-        return;
-    }
+  // GET sales
+  if (req.url === "/api/sales" && req.method === "GET") {
+    fs.readFile(DATA_FILE, "utf8", (err, data) => {
+      if (err) {
+        res.writeHead(500, { "Content-Type": "application/json" });
+        return res.end(JSON.stringify({ error: "Failed to read sales file" }));
+      }
+      res.writeHead(200, { "Content-Type": "application/json" });
+      res.end(data);
+    });
+  }
 
-    // API Routes
-    if (pathname === '/api/inventory') {
-        if (method === 'POST') {
-            let body = '';
-            req.on('data', chunk => {
-                body += chunk.toString();
-            });
-            req.on('end', () => {
-                try {
-                    const newItem = JSON.parse(body);
-                    newItem.id = uuidv4();
-                    inventory.push(newItem);
-                    console.log('New item added:', newItem);
-                    console.log(inventory);
-                     console.log("ini beneran bisa ga sih");
+  // POST new sale
+  else if (req.url === "/api/sales" && req.method === "POST") {
+    let body = "";
+    req.on("data", (chunk) => {
+      body += chunk.toString();
+    });
 
-                    res.writeHead(201, { 'Content-Type': 'application/json' });
-                    res.end(JSON.stringify({ message: 'Item created successfully', item: newItem }));
-                } catch (error) {
-                    res.writeHead(400, { 'Content-Type': 'application/json' });
-                    res.end(JSON.stringify({ error: 'Invalid JSON' }));
-                }
-            });
-        } else if (method === 'GET') {
-            res.writeHead(200, { 'Content-Type': 'application/json' });
-            res.end(JSON.stringify(inventory));
-        } else {
-            res.writeHead(405, { 'Content-Type': 'application/json' });
-            res.end(JSON.stringify({ error: 'Method Not Allowed' }));
-        }
-    } else {
-        res.writeHead(404, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({ error: 'API endpoint not found' }));
-    }
+    req.on("end", () => {
+      try {
+        const newSale = JSON.parse(body);
+
+        fs.readFile(DATA_FILE, "utf8", (err, data) => {
+          if (err) {
+            res.writeHead(500, { "Content-Type": "application/json" });
+            return res.end(JSON.stringify({ error: "Failed to read sales file" }));
+          }
+
+          let sales = JSON.parse(data);
+          sales.push(newSale);
+
+          fs.writeFile(DATA_FILE, JSON.stringify(sales, null, 2), (err) => {
+            if (err) {
+              res.writeHead(500, { "Content-Type": "application/json" });
+              return res.end(JSON.stringify({ error: "Failed to save sale" }));
+            }
+
+            res.writeHead(200, { "Content-Type": "application/json" });
+            res.end(JSON.stringify({ success: true, sale: newSale }));
+          });
+        });
+      } catch (e) {
+        res.writeHead(400, { "Content-Type": "application/json" });
+        res.end(JSON.stringify({ error: "Invalid JSON format" }));
+      }
+    });
+  }
+
+  // Not found
+  else {
+    res.writeHead(404, { "Content-Type": "application/json" });
+    res.end(JSON.stringify({ error: "Not found" }));
+  }
 });
 
 server.listen(PORT, () => {
-    console.log(`Backend server running on http://localhost:${PORT}`);
+  console.log(`Server running at http://localhost:${PORT}`);
 });
