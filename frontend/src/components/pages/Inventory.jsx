@@ -3,11 +3,19 @@ import FilterDropdown from "../FilterButton";
 import SearchBar from "../SearchBar";
 import BadgeStatus from "../BadgeStatus";
 import InventoryRow from "../InventoryRow";
-
+import { Link } from "react-router-dom";
 
 const stockStatuses = ["Low stock", "Good", "Out of Stock", "Low stock"];
 
 export default function Inventory(){
+
+  
+  const placeHolderValue = [
+    { number: 27, label: "Total Items" },
+    { number: 27, label: "Low Stock Items" },
+    { number: 27, label: "Out of Stock Items" },
+  ];
+
   const boxes = new Array(3).fill(null);
   const testRows = new Array(12).fill(null);
 
@@ -19,12 +27,17 @@ export default function Inventory(){
       </div>
 
       <div className="w-full h-[140px] flex gap-3 mb-[40px]">
-        {boxes.map((box, index) => (
+        {placeHolderValue.map((box, index) => (
           <div
             key={index}
-            className="bg-white w-full h-full rounded-lg shadow flex items-center justify-center"
+            className="bg-white w-full h-full rounded-lg shadow flex flex-col items-start justify-center px-5"
           >
-            
+            {/* Big number */}
+            <span className="text-3xl font-bold font-nunito text-black">
+              {box.number}
+            </span>
+            {/* Label text */}
+            <span className="text-sm text-gray-600">{box.label}</span>
           </div>
         ))}
       </div>
@@ -41,12 +54,14 @@ export default function Inventory(){
             onSelect={(value) => console.log("Selected:", value)}
           />
 
-          <Button>Add item</Button>
+           <Link to="/inventory/input">
+            <Button>Add item</Button>
+          </Link>
         </div>
       </div>
 
       <div className="w-full overflow-y-auto h-[374px] custom-scrollbar">
-        <table className="table-auto w-full border-separate border-spacing-y-2 font-nunito text-[14px]">
+        <table className="table-auto w-full border-separate border-spacing-y-3 font-nunito text-[14px]">
           <thead className="text-gray-600 text-sm">
             <tr>
               <th className="w-1/6 px-6 py-2 font-bold text-center">Code</th>

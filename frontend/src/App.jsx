@@ -1,4 +1,4 @@
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import Sidebar from './components/Sidebar';
 import Inventory from './components/pages/Inventory';
 import Sales from './components/pages/Sales';
@@ -14,6 +14,9 @@ function App() {
       {/* Main content column */}
       <main className="col-span-10 bg-[#F5F7FA] px-[180px] mt-[52px]">
         <Routes>  
+          {/* Redirect from root to /inventory */}
+          <Route path="/" element={<Navigate to="/inventory" replace />} />  
+
           <Route path="/inventory" element={<Inventory />} /> 
           <Route path="/sales" element={<Sales />} /> 
           <Route path="/sales/input" element={<InputSales />} />
@@ -23,6 +26,5 @@ function App() {
     </div>
   );
 }
-
 
 export default App;

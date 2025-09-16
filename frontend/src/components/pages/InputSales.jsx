@@ -1,95 +1,82 @@
 import { useState } from "react";
+import InputTransactionForm from "../InputTransactionForm";
+import Button from "..//Button"; // adjust import path if needed
 
 export default function InputSales() {
-  const [formData, setFormData] = useState({
-    id: "",
-    name: "",
-    amount: "",
-    quantity: "",
-  });
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-
-    const response = await fetch("http://localhost:3000/api/sales", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(formData),
-    });
-
-    const result = await response.json();
-    console.log("Submitted:", result);
-
-    // Clear form after submit
-    setFormData({ id: "", name: "", amount: "", quantity: "" });
-  };
-
   return (
-    <form
-      onSubmit={handleSubmit}
-      className="max-w-md mx-auto p-6 bg-white shadow-lg rounded-xl space-y-4"
-    >
-      <h2 className="text-xl font-bold text-black">Add New Sale</h2>
-
-      <div>
-        <label className="block text-sm font-medium bold text-black">Product ID</label>
-        <input
-          type="text"
-          name="id"
-          value={formData.id}
-          onChange={handleChange}
-          className="w-full border rounded-lg p-2 mt-1"
-          required
-        />
+    <div>
+      <div className="text-nunito font-bold text-4xl mb-[16px] text-black mb-10 font-nunito">
+        Add a Transaction
       </div>
 
-      <div>
-        <label className="block text-sm font-medium bold text-black">Product Name</label>
-        <input
-          type="text"
-          name="name"
-          value={formData.name}
-          onChange={handleChange}
-          className="w-full border rounded-lg p-2 mt-1"
-          required
-        />
-      </div>
+      <div className=" w-full h-[560px] flex gap-12">
+        <div className="w-full h-full ">
+          <InputTransactionForm />
+        </div>
 
-      <div>
-        <label className="block text-sm font-medium bold text-black">Amount ($)</label>
-        <input
-          type="number"
-          name="amount"
-          value={formData.amount}
-          onChange={handleChange}
-          className="w-full border rounded-lg p-2 mt-1"
-          required
-        />
-      </div>
+        <div className="w-full h-full ">
+          <div className="bg-white rounded-lg shadow text-black px-6 py-6 w-full">
+            <div className="font-bold text-xl mb-1">Invoice</div>
+            <div className="text-gray-500 text-sm mb-3">#TransactionID</div>
+            <hr className="my-3" />
 
-      <div>
-        <label className="block text-sm font-medium bold text-black">Quantity</label>
-        <input
-          type="number"
-          name="quantity"
-          value={formData.quantity}
-          onChange={handleChange}
-          className="w-full border rounded-lg p-2 mt-1"
-          required
-        />
-      </div>
+            <div className="font-bold">King-Motor</div>
+            <div className="text-sm mb-3">
+              Ruko Pd. Lestari, Jl. HOS Cokroaminoto No.19 blok a1,<br />
+              Karang Tengah, Kec. Ciledug, Tangerang Kota, Banten 15157
+            </div>
+            <hr className="my-3" />
 
-      <button
-        type="submit"
-        className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700"
-      >
-        Submit Sale
-      </button>
-    </form>
+            <div className="flex justify-between text-sm mb-3">
+              <span className="font-medium">Invoice Date</span>
+              <span>DD/MM/YYYY</span>
+            </div>
+            <hr className="my-3" />
+
+            <div className="text-sm space-y-2">
+              <div className="flex justify-between">
+                <span>Product Code</span>
+                <span>XXXXX</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Product Name</span>
+                <span>Lorem Ipsum</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Quantity Sold</span>
+                <span>2</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Unit Price</span>
+                <span>Rp 20.000,-</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Discount</span>
+                <span>0%</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Tax</span>
+                <span>10%</span>
+              </div>
+              <div className="flex justify-between">
+                <span>SubTotal</span>
+                <span>Rp 40.000,-</span>
+              </div>
+            </div>
+
+            <hr className="my-3" />
+
+            <div className="flex justify-between text-lg font-bold mb-6">
+              <span>Total</span>
+              <span className="text-black">Rp 44.000,-</span>
+            </div>
+
+            <div className="flex justify-center">
+              <Button className="px-6">Download invoice</Button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }
