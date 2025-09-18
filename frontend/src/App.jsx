@@ -12,7 +12,7 @@ function App() {
       <Sidebar />
 
       {/* Main content column */}
-      <main className="col-span-10 bg-[#F5F7FA] px-[180px] mt-[52px]">
+      <main className="col-span-10 bg-[#F5F7FA] px-[180px] pt-[52px]">
         <Routes>  
           {/* Redirect from root to /inventory */}
           <Route path="/" element={<Navigate to="/inventory" replace />} />  

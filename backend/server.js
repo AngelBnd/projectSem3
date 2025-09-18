@@ -4,8 +4,11 @@ const fs = require("fs");
 const path = require("path");
 const cors = require("cors");
 
+
 const app = express();
 const PORT = 3000;
+
+// import data
 
 // File paths
 const INVENTORY_FILE = path.resolve(__dirname, "data/inventoryItems.json");
@@ -88,26 +91,71 @@ app.post("/api/sales", (req, res) => {
   }
 
   // CALCULATIONS FOR SUBTOTAL, TOTALAMOUNT
-  const unitPrice = newSale.unitPrice || 100; // 100 for PLACEHOLDER
-  const subtotal = unitPrice * newSale.quantitySold;
-  const discounted = subtotal - (subtotal*(newSale.discount/100));
-  const totalAmount = discounted + (newSale.discount*(newSale.tax/100));
-  newSale.subtotal = subtotal;
-  newSale.totalAmount = totalAmount;
- 
-  fs.readFile(SALES_FILE, "utf8", (err, data) => {
-    if (err) return res.status(500).json({ error: "Failed to read sales file" });
+  fs.readFile(INVENTORY_FILE, "utf8", (err, inventoryData) => {
+    if (err) return res.status(500).json({ error: "Failed to read inventory file" });
 
-    const sales = JSON.parse(data);
+    const inventory = JSON.parse(inventoryData);
 
-    sales.push(newSale);
+    // Find the product in inventory
+    const product = inventory.find(
+      (item) => item.productCode === newSale.productCode
+    );
 
-    fs.writeFile(SALES_FILE, JSON.stringify(sales, null, 2), (err) => {
-      if (err) return res.status(500).json({ error: "Failed to save sale" });
-      res.json({ success: true, sale: newSale });
+    if (!product) {
+      return res.status(400).json({ error: "Product not found in inventory" });
+    }
+
+    // 2️⃣ Calculations using product data
+    const unitPrice = parseFloat(product.sellingPrice); // Use selling price
+    const quantity = parseInt(newSale.quantitySold, 10);
+    const subtotal = unitPrice * quantity;
+    const discounted = subtotal - (subtotal * (newSale.discount / 100));
+    const totalAmount = discounted + (discounted * (newSale.tax / 100));
+
+    newSale.unitCost = parseFloat(product.unitCost); // optional
+    newSale.sellingPrice = unitPrice;
+    newSale.subtotal = subtotal;
+    newSale.totalAmount = totalAmount;
+
+    // 3️⃣ Save to sales file
+    fs.readFile(SALES_FILE, "utf8", (err, salesData) => {
+      if (err) return res.status(500).json({ error: "Failed to read sales file" });
+
+      const sales = JSON.parse(salesData);
+      sales.push(newSale);
+
+      fs.writeFile(SALES_FILE, JSON.stringify(sales, null, 2), (err) => {
+        if (err) return res.status(500).json({ error: "Failed to save sale" });
+        res.json({ success: true, sale: newSale });
+      });
     });
   });
+
 });
+
+/* -------------------- DATA INVENTORY STUFF -------------------- */
+
+app.get("/inventory", (req, res) => {
+  fs.readFile(INVENTORY_FILE, "utf-8", (err, data) => {
+    if (err) {
+      return res.status(500).json({ error: "Failed to read data file" });
+    }
+    res.json(JSON.parse(data));
+  });
+});
+
+
+/* -------------------- DATA TRANSACTIONS STUFF -------------------- */
+
+app.get("/transactions", (req, res) => {
+  fs.readFile(SALES_FILE, "utf-8", (err, data) => {
+    if (err) {
+      return res.status(500).json({ error: "Failed to read data file" });
+    }
+    res.json(JSON.parse(data));
+  });
+});
+
 
 /* -------------------- START SERVER -------------------- */
 app.listen(PORT, () => {

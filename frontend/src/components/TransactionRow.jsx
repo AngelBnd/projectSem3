@@ -2,7 +2,23 @@ import { useState, useEffect, useRef } from 'react';
 import BadgeStatus from './BadgeStatus';
 import Dropdown from "./Dropdown";
 
-export default function TransactionRow() {
+export default function TransactionRow({sale, products}) {
+  const {
+    productCode,
+    date,
+    quantitySold,
+    discount,
+    tax,
+    subtotal,
+    totalAmount,
+  } = sale;
+
+  const matchedProduct = products.find(
+    (item) => item.productCode === sale.productCode
+  );
+  console.log(matchedProduct)
+
+
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [dropdownPosition, setDropdownPosition] = useState(null);
   const dropdownRef = useRef(null);
@@ -44,12 +60,12 @@ export default function TransactionRow() {
 
   return (
     <tr className="bg-white rounded-md shadow text-sm ">
-      <td className="w-1/6 text-center py-2">P001</td>
-      <td className="w-1/6 text-center py-2">Laptop</td>
-      <td className="w-1/6 text-center py-2">Electronics</td>
-      <td className="w-1/6 text-center py-2">10</td>
-      <td className="w-1/6 text-center py-2">2</td>
-      <td className="w-1/6 text-center py-2">DD/MM/YYYY</td>
+      <td className="w-1/6 text-center py-2">{productCode}</td>
+      <td className="w-1/6 text-center py-2">{matchedProduct?.productName || "Unknown"}</td>
+      <td className="w-1/6 text-center py-2">{matchedProduct?.productCategory || "N/A"}</td>
+      <td className="w-1/6 text-center py-2">{quantitySold}</td>
+      <td className="w-1/6 text-center py-2">{totalAmount}</td>
+      <td className="w-1/6 text-center py-2">{date}</td>
 <td className="w-1/6 text-center py-2">
         <div className="flex justify-center space-x-4">
           {/* Details button */}
