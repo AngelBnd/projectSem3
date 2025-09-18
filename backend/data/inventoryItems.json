@@ -1,3 +1,122 @@
 [
-
+  {
+    "productCode": "ELC001",
+    "productName": "Wireless Mouse",
+    "productBrand": "Logitech",
+    "productCategory": "Electronics",
+    "unitCost": "120000",
+    "sellingPrice": "175000",
+    "initialStock": "0",
+    "thresholdStock": "10",
+    "lastUpdated": "2025-09-10"
+  },
+  {
+    "productCode": "ELC002",
+    "productName": "Mechanical Keyboard",
+    "productBrand": "Razer",
+    "productCategory": "Electronics",
+    "unitCost": "900000",
+    "sellingPrice": "1200000",
+    "initialStock": "2",
+    "thresholdStock": "5",
+    "lastUpdated": "2025-09-11"
+  },
+  {
+    "productCode": "FOD001",
+    "productName": "Mineral Water 600ml",
+    "productBrand": "Aqua",
+    "productCategory": "Beverages",
+    "unitCost": "2500",
+    "sellingPrice": "4000",
+    "initialStock": "200",
+    "thresholdStock": "50",
+    "lastUpdated": "2025-09-12"
+  },
+  {
+    "productCode": "FOD002",
+    "productName": "Potato Chips 75g",
+    "productBrand": "Lays",
+    "productCategory": "Snacks",
+    "unitCost": "9000",
+    "sellingPrice": "15000",
+    "initialStock": "2",
+    "thresholdStock": "20",
+    "lastUpdated": "2025-09-13"
+  },
+  {
+    "productCode": "CLT001",
+    "productName": "Men's T-Shirt",
+    "productBrand": "Uniqlo",
+    "productCategory": "Clothing",
+    "unitCost": "120000",
+    "sellingPrice": "199000",
+    "initialStock": "40",
+    "thresholdStock": "8",
+    "lastUpdated": "2025-09-14"
+  },
+  {
+    "productCode": "CLT002",
+    "productName": "Running Shoes",
+    "productBrand": "Nike",
+    "productCategory": "Footwear",
+    "unitCost": "700000",
+    "sellingPrice": "1200000",
+    "initialStock": "25",
+    "thresholdStock": "5",
+    "lastUpdated": "2025-09-15"
+  },
+  {
+    "productCode": "HOM001",
+    "productName": "Laundry Detergent 1.8L",
+    "productBrand": "Rinso",
+    "productCategory": "Household",
+    "unitCost": "28000",
+    "sellingPrice": "45000",
+    "initialStock": "60",
+    "thresholdStock": "10",
+    "lastUpdated": "2025-09-15"
+  },
+  {
+    "productCode": "HOM002",
+    "productName": "Toilet Paper 12 Roll",
+    "productBrand": "Kleenex",
+    "productCategory": "Household",
+    "unitCost": "40000",
+    "sellingPrice": "65000",
+    "initialStock": "50",
+    "thresholdStock": "12",
+    "lastUpdated": "2025-09-16"
+  },
+  {
+    "productCode": "MED001",
+    "productName": "Paracetamol 500mg (Box of 10)",
+    "productBrand": "Bodrex",
+    "productCategory": "Medicine",
+    "unitCost": "7000",
+    "sellingPrice": "12000",
+    "initialStock": "80",
+    "thresholdStock": "20",
+    "lastUpdated": "2025-09-17"
+  },
+  {
+    "productCode": "MED002",
+    "productName": "Vitamin C 1000mg (Bottle 30 Tabs)",
+    "productBrand": "Redoxon",
+    "productCategory": "Medicine",
+    "unitCost": "35000",
+    "sellingPrice": "60000",
+    "initialStock": "45",
+    "thresholdStock": "10",
+    "lastUpdated": "2025-09-18"
+  },
+  {
+    "productCode": "asd",
+    "productName": "ssd",
+    "productBrand": "2",
+    "productCategory": "sd",
+    "unitCost": "2",
+    "sellingPrice": "2",
+    "initialStock": "2",
+    "thresholdStock": "3"
+  }
 ]

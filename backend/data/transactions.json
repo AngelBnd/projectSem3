@@ -1,3 +1,54 @@
 [
-  
+  {
+    "productCode": "ELC001",
+    "date": "2025-09-01",
+    "quantitySold": 5,
+    "discount": 10,
+    "tax": 5,
+    "subtotal": 500,
+    "totalAmount": 477.5
+  },
+  {
+    "productCode": "ELC002",
+    "date": "2025-09-02",
+    "quantitySold": 2,
+    "discount": 2,
+    "tax": 2,
+    "subtotal": 200,
+    "totalAmount": 196.04
+  },
+  {
+    "productCode": "FOD001",
+    "date": "2025-09-05",
+    "quantitySold": 10,
+    "discount": 15,
+    "tax": 8,
+    "subtotal": 1000,
+    "totalAmount": 985.6
+  },
+  {
+    "productCode": "FOD001",
+    "date": "2025-09-10",
+    "quantitySold": 3,
+    "discount": 5,
+    "tax": 3,
+    "subtotal": 300,
+    "totalAmount": 292.1
+  },
+  {
+    "productCode": "CLT001",
+    "date": "2025-09-12",
+    "quantitySold": 7,
+    "discount": 8,
+    "tax": 4,
+    "subtotal": 700,
+    "totalAmount": 688.8
+  },
+  {
+    "productCode": "sdsd",
+    "date": "2025-09-18",
+    "quantitySold": 2,
+    "discount": 2,
+    "tax": 2
+  }
 ]

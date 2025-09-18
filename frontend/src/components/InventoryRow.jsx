@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import BadgeStatus from "./BadgeStatus";
 import Dropdown from "./Dropdown";
 
-export default function InventoryRow() {
+export default function InventoryRow({ item }) {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [dropdownPosition, setDropdownPosition] = useState(null);
   const dropdownRef = useRef(null);
@@ -42,15 +42,22 @@ export default function InventoryRow() {
     }, [isDropdownOpen]);
 
 
+    const status =
+    parseInt(item.initialStock) === 0
+      ? "Out of Stock"
+      : parseInt(item.initialStock) <= parseInt(item.thresholdStock)
+      ? "Low stock"
+      : "Good";
+
   return (
     <tr className="bg-white rounded-md shadow text-sm">
-      <td className="w-1/6 text-center py-2">123123</td>
-      <td className="w-1/6 text-center py-2">ProductName</td>
-      <td className="w-1/6 text-center py-2">IdontKnow</td>
-      <td className="w-1/6 text-center py-2">200</td>
-      <td className="w-1/6 text-center py-2">DD/MM/YYYY</td>
+      <td className="w-1/6 text-center py-2">{item.productCode}</td>
+      <td className="w-1/6 text-center py-2">{item.productName}</td>
+      <td className="w-1/6 text-center py-2">{item.productCategory}</td>
+      <td className="w-1/6 text-center py-2">{item.initialStock}</td>
+      <td className="w-1/6 text-center py-2">{item.lastUpdated}</td>
       <td className="w-1/6 text-center py-2">
-        <BadgeStatus status={"Good"}/>
+        <BadgeStatus status={status}/>
       </td>
       <td className="w-1/6 text-center py-2">
         <div className="flex justify-center space-x-4">

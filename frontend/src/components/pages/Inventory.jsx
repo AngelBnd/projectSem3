@@ -4,20 +4,37 @@ import SearchBar from "../SearchBar";
 import BadgeStatus from "../BadgeStatus";
 import InventoryRow from "../InventoryRow";
 import { Link } from "react-router-dom";
+import { useEffect, useState } from "react";
 
 const stockStatuses = ["Low stock", "Good", "Out of Stock", "Low stock"];
 
 export default function Inventory(){
+  const [items, setItems] = useState([]);
 
   
-  const placeHolderValue = [
-    { number: 27, label: "Total Items" },
-    { number: 27, label: "Low Stock Items" },
-    { number: 27, label: "Out of Stock Items" },
+  const theBoxValues = [
+    { number: items.length, label: "Total Items" },
+    {
+      number: items.filter(
+        (item) => parseInt(item.initialStock) <= parseInt(item.thresholdStock)
+      ).length,
+      label: "Low Stock Items",
+    },
+    {
+      number: items.filter((item) => parseInt(item.initialStock) === 0).length,
+      label: "Out of Stock Items",
+    },
   ];
 
   const boxes = new Array(3).fill(null);
   const testRows = new Array(12).fill(null);
+
+  useEffect(()=>{
+    fetch("http://localhost:3000/inventory")
+      .then((res) => res.json())
+      .then((data) => setItems(data))
+      .catch((err) => console.error("Error fetching inventory:", err));
+  },[]);
 
 
   return (
@@ -27,7 +44,7 @@ export default function Inventory(){
       </div>
 
       <div className="w-full h-[140px] flex gap-3 mb-[40px]">
-        {placeHolderValue.map((box, index) => (
+        {theBoxValues.map((box, index) => (
           <div
             key={index}
             className="bg-white w-full h-full rounded-lg shadow flex flex-col items-start justify-center px-5"
@@ -74,9 +91,9 @@ export default function Inventory(){
             </tr>
           </thead>
           <tbody>
-              {testRows.map((index) =>(
-                <InventoryRow />
-              ))}
+            {items.map((item, index) => (
+              <InventoryRow key={index} item={item} />
+            ))}
             
           </tbody>
         </table>

@@ -5,7 +5,7 @@ import Button from "..//Button"; // adjust import path if needed
 export default function InputSales() {
   return (
     <div>
-      <div className="text-nunito font-bold text-4xl mb-[16px] text-black mb-10 font-nunito">
+      <div className="text-nunito font-bold text-4xl mb-[16px] text-black pb-10 font-nunito">
         Add a Transaction
       </div>
 
