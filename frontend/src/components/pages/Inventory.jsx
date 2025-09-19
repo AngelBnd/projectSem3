@@ -42,6 +42,7 @@ export default function Inventory(){
       <div className="text-nunito font-bold text-4xl mb-[16px]">
         Inventory Management
       </div>
+      
 
       <div className="w-full h-[140px] flex gap-3 mb-[40px]">
         {theBoxValues.map((box, index) => (

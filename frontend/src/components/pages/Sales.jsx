@@ -10,10 +10,12 @@ export default function Sales(){
 const [sales, setSales] = useState([]);
 const [products, setProducts] = useState([]);
 
+
   const { profitTotal, orderTotal, expenseTotal } = useMemo(() => {
     let profit = 0;
     let orders = 0;
     let expense = 0;
+    let totalSale = 0;
 
     sales.forEach((sale) => {
       // Find the product info from inventory
@@ -27,11 +29,11 @@ const [products, setProducts] = useState([]);
 
       orders += quantity;
       expense += cost * quantity;
-      profit += sale.totalAmount;
+      totalSale += sale.totalAmount;
     });
 
     return {
-      profitTotal: profit,
+      profitTotal: totalSale - expense,
       orderTotal: orders,
       expenseTotal: expense,
     };
@@ -86,7 +88,7 @@ const [products, setProducts] = useState([]);
         </div>
       ))}
     </div>
-    
+
       <div className="w-full  h-[35px] font-bold mb-[32px] flex">
         <div className="text-nunito text-2xl">Transactions</div>
      

@@ -1,11 +1,15 @@
 import { useState, useEffect, useRef } from "react";
 import BadgeStatus from "./BadgeStatus";
 import Dropdown from "./Dropdown";
+import { useNavigate } from "react-router-dom";
 
 export default function InventoryRow({ item }) {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [dropdownPosition, setDropdownPosition] = useState(null);
   const dropdownRef = useRef(null);
+  const navigate = useNavigate();
+  const dropdownMenuRef = useRef(null);
+  const dropdownTriggerRef = useRef(null);
 
   const handleToggleDropdown = (event) => {
     const rect = event.currentTarget.getBoundingClientRect();
@@ -15,10 +19,15 @@ export default function InventoryRow({ item }) {
     });
     setIsDropdownOpen((prev) => !prev);
   };
-
-    useEffect(() => {
+  useEffect(() => {
       function handleClickOutside(event) {
-        if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        // Check if click is outside both trigger and dropdown menu
+        if (
+          dropdownTriggerRef.current && 
+          !dropdownTriggerRef.current.contains(event.target) &&
+          dropdownMenuRef.current && 
+          !dropdownMenuRef.current.contains(event.target)
+        ) {
           setIsDropdownOpen(false);
         }
       }
@@ -29,7 +38,7 @@ export default function InventoryRow({ item }) {
 
       if (isDropdownOpen) {
         document.addEventListener("mousedown", handleClickOutside);
-        window.addEventListener("scroll", handleScroll, true); // listen for any scroll
+        window.addEventListener("scroll", handleScroll, true);
       } else {
         document.removeEventListener("mousedown", handleClickOutside);
         window.removeEventListener("scroll", handleScroll, true);
@@ -48,6 +57,10 @@ export default function InventoryRow({ item }) {
       : parseInt(item.initialStock) <= parseInt(item.thresholdStock)
       ? "Low stock"
       : "Good";
+
+    const handleEdit = () => {
+      navigate("/sales/input", { state: { mode: "edit", item } });
+    };
 
   return (
     <tr className="bg-white rounded-md shadow text-sm">
@@ -104,6 +117,9 @@ export default function InventoryRow({ item }) {
               isOpen={isDropdownOpen}
               position={dropdownPosition}
               onClose={() => setIsDropdownOpen(false)}
+              item={item}
+              type="product" // Explicitly set type (optional since product is default)
+              ref={dropdownMenuRef}
             />
           </div>
         </div>
