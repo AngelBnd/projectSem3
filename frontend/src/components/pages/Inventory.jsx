@@ -10,6 +10,7 @@ const stockStatuses = ["Low stock", "Good", "Out of Stock", "Low stock"];
 
 export default function Inventory(){
   const [items, setItems] = useState([]);
+  const [searchItem, setSearchItem] = useState(''); // Search item filter
 
   
   const theBoxValues = [
@@ -36,6 +37,16 @@ export default function Inventory(){
       .catch((err) => console.error("Error fetching inventory:", err));
   },[]);
 
+
+  // Search Change component
+  const handleSearchChange = (findItem) => {
+    setSearchItem(findItem);
+  };
+
+  const updateItems = items.filter(item => 
+    item.productName.toLowerCase().includes(searchItem.toLowerCase()) || 
+    item.productCode.toLowerCase().includes(searchItem.toLowerCase())
+  );
 
   return (
     <div className="w-full text-black  ">
@@ -64,7 +75,7 @@ export default function Inventory(){
         <div className="text-nunito text-2xl">Inventory Overview</div>
      
         <div className="ml-auto flex gap-4  ">
-          <SearchBar/>
+          <SearchBar onSearchChange={handleSearchChange}/>
 
           <FilterDropdown
             label="Filter"
@@ -92,7 +103,7 @@ export default function Inventory(){
             </tr>
           </thead>
           <tbody>
-            {items.map((item, index) => (
+            {updateItems.map((item, index) => (
               <InventoryRow key={index} item={item} />
             ))}
             
