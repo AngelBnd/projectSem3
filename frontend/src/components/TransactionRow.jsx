@@ -22,6 +22,8 @@ export default function TransactionRow({sale, products}) {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [dropdownPosition, setDropdownPosition] = useState(null);
   const dropdownRef = useRef(null);
+  const dropdownMenuRef = useRef(null);
+  const dropdownTriggerRef = useRef(null);
 
   const handleToggleDropdown = (event) => {
     const rect = event.currentTarget.getBoundingClientRect();
@@ -31,10 +33,15 @@ export default function TransactionRow({sale, products}) {
     });
     setIsDropdownOpen((prev) => !prev);
   };
-
-    useEffect(() => {
+  useEffect(() => {
       function handleClickOutside(event) {
-        if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        // Check if click is outside both trigger and dropdown menu
+        if (
+          dropdownTriggerRef.current && 
+          !dropdownTriggerRef.current.contains(event.target) &&
+          dropdownMenuRef.current && 
+          !dropdownMenuRef.current.contains(event.target)
+        ) {
           setIsDropdownOpen(false);
         }
       }
@@ -45,7 +52,7 @@ export default function TransactionRow({sale, products}) {
 
       if (isDropdownOpen) {
         document.addEventListener("mousedown", handleClickOutside);
-        window.addEventListener("scroll", handleScroll, true); // listen for any scroll
+        window.addEventListener("scroll", handleScroll, true);
       } else {
         document.removeEventListener("mousedown", handleClickOutside);
         window.removeEventListener("scroll", handleScroll, true);
@@ -111,6 +118,9 @@ export default function TransactionRow({sale, products}) {
               isOpen={isDropdownOpen}
               position={dropdownPosition}
               onClose={() => setIsDropdownOpen(false)}
+              item={sale}
+              type="transaction" // Set type to transaction
+              ref={dropdownMenuRef}
             />
           </div>
         </div>

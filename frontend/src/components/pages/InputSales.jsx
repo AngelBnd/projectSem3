@@ -1,17 +1,28 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import InputTransactionForm from "../InputTransactionForm";
 import Button from "..//Button"; // adjust import path if needed
+import { useLocation, useNavigate } from "react-router-dom";
 
 export default function InputSales() {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const { mode, item } = location.state || { mode: "add", item: null };
+  const isEditMode = mode === "edit";  
+
+
   return (
     <div>
       <div className="text-nunito font-bold text-4xl mb-[16px] text-black pb-10 font-nunito">
-        Add a Transaction
+        {isEditMode ? "Edit Transaction" : "Add a Transaction"}
       </div>
 
       <div className=" w-full h-[560px] flex gap-12">
         <div className="w-full h-full ">
-          <InputTransactionForm />
+          <InputTransactionForm 
+            mode={mode} 
+            item={item} 
+            isEditMode={isEditMode} 
+          />
         </div>
 
         <div className="w-full h-full ">
