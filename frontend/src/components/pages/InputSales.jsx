@@ -2,6 +2,8 @@ import { useState, useEffect } from "react";
 import InputTransactionForm from "../InputTransactionForm";
 import Button from "..//Button";
 import { useLocation, useNavigate } from "react-router-dom";
+import { jsPDF } from "jspdf";
+import { handleDownloadPdf } from "../../functions/savepdf";
 
 export default function InputSales() {
   const location = useLocation();
@@ -163,7 +165,7 @@ export default function InputSales() {
               <span className="text-black">Rp {formatCurrency(totalAmount)}</span>
             </div>
             <div className="flex justify-center">
-              <Button className="px-6">Download invoice</Button>
+              <Button className="px-6" onClick={handleDownloadPdf}>Download invoice</Button>
             </div>
           </div>
         </div>
