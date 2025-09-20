@@ -4,13 +4,15 @@ import SearchBar from "../SearchBar";
 import BadgeStatus from "../BadgeStatus";
 import InventoryRow from "../InventoryRow";
 import { Link } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 
 const stockStatuses = ["Low stock", "Good", "Out of Stock", "Low stock"];
 
 export default function Inventory(){
   const [items, setItems] = useState([]);
   const [searchItem, setSearchItem] = useState(''); // Search item filter
+  const [filter, setFilter] = useState('All'); // Filter category button
+  const categoryFilters = ['All', ...new Set(items.map(item => item.productCategory))]; // Array list of categories for filter
 
   
   const theBoxValues = [
@@ -37,16 +39,28 @@ export default function Inventory(){
       .catch((err) => console.error("Error fetching inventory:", err));
   },[]);
 
-
   // Search Change component
   const handleSearchChange = (findItem) => {
     setSearchItem(findItem);
   };
 
-  const updateItems = items.filter(item => 
-    item.productName.toLowerCase().includes(searchItem.toLowerCase()) || 
-    item.productCode.toLowerCase().includes(searchItem.toLowerCase())
-  );
+  // Update items list based on search and/or filter
+  const updateItems = items.filter(item => {
+    if(filter != 'All' && item.productCategory !== filter) {
+      return false;
+    }
+
+    if (searchItem) {
+      const searchTerm = searchItem.toLowerCase();
+      const matchesName = item.productName.toLowerCase().includes(searchTerm);
+      const matchesCode = item.productCode.toLowerCase().includes(searchTerm);
+      if (!matchesName && !matchesCode) {
+        return false;
+      }
+    }
+
+    return true;
+  });
 
   return (
     <div className="w-full text-black  ">
@@ -74,13 +88,13 @@ export default function Inventory(){
       <div className="w-full  h-[35px] font-bold mb-[32px] flex">
         <div className="text-nunito text-2xl">Inventory Overview</div>
      
-        <div className="ml-auto flex gap-4  ">
+        <div className="ml-auto flex gap-4">
           <SearchBar onSearchChange={handleSearchChange}/>
 
           <FilterDropdown
             label="Filter"
-            options={["Category", "What else", "Among"]}
-            onSelect={(value) => console.log("Selected:", value)}
+            options={categoryFilters}
+            onSelect={(selectedOption) => setFilter(selectedOption)}
           />
 
            <Link to="/inventory/input">
