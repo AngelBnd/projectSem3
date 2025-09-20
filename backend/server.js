@@ -36,6 +36,17 @@ app.get("/api/inventory", (req, res) => {
   });
 });
 
+// Search specific item in inventory
+app.get("/search", (req, res) => {
+  const query = req.query.q?.toLowerCase() || "";
+  const results = data.filter(row =>
+    Object.values(row).some(val =>
+      String(val).toLowerCase().includes(query)
+    )
+  );
+  res.json(results);
+});
+
 // POST new inventory item
 app.post("/api/inventory", (req, res) => {
   const newItem = req.body;

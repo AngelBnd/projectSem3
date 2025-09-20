@@ -3,14 +3,21 @@ import FilterDropdown from "../FilterButton";
 import SearchBar from "../SearchBar";
 import BadgeStatus from "../BadgeStatus";
 import InventoryRow from "../InventoryRow";
+import NotFound from "../NotFound";
 import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 
 const stockStatuses = ["Low stock", "Good", "Out of Stock", "Low stock"];
 
 export default function Inventory(){
+  const [query, setQuery] = useState("");
   const [items, setItems] = useState([]);
 
+  const filteredItems = items.filter(item => 
+    item.productCode.toLowerCase().includes(query.toLowerCase()) ||
+    item.productName.toLowerCase().includes(query.toLowerCase()
+    )
+  );
   
   const theBoxValues = [
     { number: items.length, label: "Total Items" },
@@ -64,7 +71,7 @@ export default function Inventory(){
         <div className="text-nunito text-2xl">Inventory Overview</div>
      
         <div className="ml-auto flex gap-4  ">
-          <SearchBar/>
+          <SearchBar onSearch = {setQuery}/>
 
           <FilterDropdown
             label="Filter"
@@ -92,9 +99,17 @@ export default function Inventory(){
             </tr>
           </thead>
           <tbody>
-            {items.map((item, index) => (
+
+            {filteredItems.length === 0 ? (
+              <NotFound/>
+            ) : 
+            filteredItems.map((item, index) => (
               <InventoryRow key={index} item={item} />
             ))}
+
+            {/* {filteredItems.map((item, index) => (
+              <InventoryRow key={index} item={item} />
+            ))} */}
             
           </tbody>
         </table>
