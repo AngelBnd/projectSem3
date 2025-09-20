@@ -5,7 +5,7 @@ import Dropdown from "./Dropdown";
 export default function TransactionRow({sale, products}) {
   const {
     productCode,
-    date,
+    invoiceDate,
     quantitySold,
     discount,
     tax,
@@ -71,8 +71,10 @@ export default function TransactionRow({sale, products}) {
       <td className="w-1/6 text-center py-2">{matchedProduct?.productName || "Unknown"}</td>
       <td className="w-1/6 text-center py-2">{matchedProduct?.productCategory || "N/A"}</td>
       <td className="w-1/6 text-center py-2">{quantitySold}</td>
-      <td className="w-1/6 text-center py-2">{totalAmount}</td>
-      <td className="w-1/6 text-center py-2">{date}</td>
+      <td className="w-1/6 text-center py-2">
+        Rp {parseFloat(totalAmount).toLocaleString('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+      </td>
+      <td className="w-1/6 text-center py-2">{invoiceDate}</td>
 <td className="w-1/6 text-center py-2">
         <div className="flex justify-center space-x-4">
           {/* Details button */}

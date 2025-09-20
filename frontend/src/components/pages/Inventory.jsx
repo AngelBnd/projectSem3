@@ -32,9 +32,12 @@ export default function Inventory(){
   const boxes = new Array(3).fill(null);
   const testRows = new Array(12).fill(null);
 
-  useEffect(()=>{
-    fetch("http://localhost:3000/inventory")
-      .then((res) => res.json())
+  useEffect(() => {
+    fetch("http://localhost:3000/api/inventory")
+      .then((res) => {
+        if (!res.ok) throw new Error("Failed to fetch inventory");
+        return res.json();
+      })
       .then((data) => setItems(data))
       .catch((err) => console.error("Error fetching inventory:", err));
   },[]);
@@ -117,18 +120,32 @@ export default function Inventory(){
             </tr>
           </thead>
           <tbody>
-
             {updateItems.length === 0 ? (
-              <NotFound/>
-            ) : 
-            updateItems.map((item, index) => (
-              <InventoryRow key={index} item={item} />
+                <NotFound/>
+              ) : 
+              updateItems.map((item, index) => (
+              <InventoryRow
+                key={item.productCode}
+                item={item}
+                onDelete={(code) => {
+                  // call backend DELETE and update state
+                  fetch(`http://localhost:3000/api/inventory/${encodeURIComponent(code)}`, {
+                    method: "DELETE",
+                  })
+                    .then((res) => {
+                      if (!res.ok) throw new Error("Delete failed");
+                      return res.json();
+                    })
+                    .then(() => {
+                      setItems((prev) => prev.filter((i) => String(i.productCode) !== String(code)));
+                    })
+                    .catch((err) => {
+                      console.error("Delete failed:", err);
+                      alert("Failed to delete item. Check console/server logs.");
+                    });
+                }}
+              />
             ))}
-
-            {/* {filteredItems.map((item, index) => (
-              <InventoryRow key={index} item={item} />
-            ))} */}
-            
           </tbody>
         </table>
       </div>
