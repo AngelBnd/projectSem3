@@ -28,6 +28,37 @@ app.get("/api/inventory", (req, res) => {
   });
 });
 
+app.get('/api/inventory/:productCode', (req, res) => {
+  const productCode = req.params.productCode;
+
+  // Use the callback version of fs.readFile
+  fs.readFile(INVENTORY_FILE, 'utf8', (err, data) => {
+    if (err) {
+      console.error('Error fetching inventory:', err);
+      // It's good practice to send a 500 status on a server-side error
+      return res.status(500).json({ error: 'Failed to read inventory file' });
+    }
+
+    try {
+      const inventory = JSON.parse(data);
+      const product = inventory.find(item => item.productCode === productCode);
+
+      if (product) {
+        res.status(200).json(product);
+      } else {
+        res.status(404).json({ error: 'Product not found' });
+      }
+    } catch (parseError) {
+      console.error('Error parsing JSON data:', parseError);
+      res.status(500).json({ error: 'Error parsing inventory data' });
+    }
+  });
+});
+
+app.listen(PORT, () => {
+  console.log(`Server is running on http://localhost:${PORT}`);
+});
+
 // POST new inventory item
 app.post("/api/inventory", (req, res) => {
   const newItem = req.body;
