@@ -3,19 +3,9 @@ import Button from "./Button";
 import { useNavigate, useLocation } from "react-router-dom";
 
 
-export default function InputTransactionForm() {
+export default function InputTransactionForm({ mode, item, isEditMode, formData, setFormData, setProductDetails }) {
   const navigate = useNavigate();
-  const location = useLocation();
-  const { mode, item } = location.state || {};
-  const isEditMode = mode === "edit";
 
-  const [formData, setFormData] = useState({
-    productCode: "",
-    quantitySold: "",
-    lastUpdated: "",
-    status: "",
-    invoiceDate: new Date().toISOString().split('T')[0]
-  });
 
    useEffect(() => {
     if (mode === "edit" && item) {
@@ -27,7 +17,7 @@ export default function InputTransactionForm() {
         quantitySold: item.quantitySold || ""
       });
     }
-  }, [mode, item]);
+  }, [mode, item, setFormData]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -37,9 +27,36 @@ export default function InputTransactionForm() {
     }));
   };
 
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
+  useEffect(() => {
+    const fetchProductDetails = async (productCode) => {
+      // Don't fetch if productCode is empty
+      if (!productCode) {
+        setProductDetails(null);
+        return;
+      }
+      try {
+        const response = await fetch(`http://localhost:3000/api/inventory/${productCode}`);
+        if (response.ok) {
+          const data = await response.json();
+          setProductDetails(data);
+        } else {
+          setProductDetails(null);
+        }
+      } catch (error) {
+        console.error("Error fetching product details:", error);
+        setProductDetails(null);
+      }
+    };
+    
+    // Call the function whenever formData.productCode changes
+    const debounceTimeout = setTimeout(() => {
+      fetchProductDetails(formData.productCode);
+    }, 500); // Debounce to prevent fetching on every keystroke
+    
+    // Cleanup function to clear the timeout
+    return () => clearTimeout(debounceTimeout);
+    
+  }, [formData.productCode]);
   
 
   const handleSubmit = async (e) => {
@@ -68,13 +85,7 @@ export default function InputTransactionForm() {
 
     if (response.status === 200 || response.status === 204) {
       alert("Inventory item saved!");
-      setFormData({
-        productCode: "",
-        quantitySold: "",
-        lastUpdated: "",
-        status: "",
-        invoiceDate: new Date().toISOString().split('T')[0]
-      });
+      
     } else {
       // Handle server-side errors
       const errorData = await response.json();
