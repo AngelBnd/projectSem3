@@ -11,32 +11,37 @@ const [sales, setSales] = useState([]);
 const [products, setProducts] = useState([]);
 
 
-  const { profitTotal, orderTotal, expenseTotal } = useMemo(() => {
+const { profitTotal, orderTotal, expenseTotal } = useMemo(() => {
     let profit = 0;
     let orders = 0;
     let expense = 0;
     let totalSale = 0;
 
+    // Filter for valid sales and calculate
     sales.forEach((sale) => {
-      // Find the product info from inventory
-      const product = products.find(p => p.productCode === sale.productCode);
+        const product = products.find(p => p.productCode === sale.productCode);
 
-      if (!product) return; // skip if product not found
+        // Check if the product exists before doing any calculations
+        if (product) {
+            const quantity = parseInt(sale.quantitySold || 0, 10);
+            const cost = parseFloat(product.unitCost || 0);
+            const saleAmount = parseFloat(sale.totalAmount || 0);
 
-      const quantity = parseInt(sale.quantitySold || 0, 10);
-      const cost = parseFloat(product.unitCost || 0);
-
-      orders += quantity;
-      expense += cost * quantity;
-      totalSale += sale.totalAmount;
+            // Check if values are valid numbers before adding them to totals
+            if (!isNaN(quantity) && !isNaN(cost) && !isNaN(saleAmount)) {
+                orders += quantity;
+                expense += cost * quantity;
+                totalSale += saleAmount;
+            }
+        }
     });
 
     return {
-      profitTotal: totalSale - expense,
-      orderTotal: orders,
-      expenseTotal: expense,
+        profitTotal: totalSale - expense,
+        orderTotal: orders,
+        expenseTotal: expense,
     };
-  }, [sales]);
+  }, [sales, products]);
 
   const totals = [
     { number: profitTotal, label: "Profit Total" },
