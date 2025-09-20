@@ -250,6 +250,40 @@ app.put('/api/inventory/:id', (req, res) => {
   });
 });
 
+// DELETE (remove an inventory item)
+app.delete("/api/inventory/:id", (req, res) => {
+  const id = req.params.id;
+
+  fs.readFile(INVENTORY_FILE, "utf8", (err, data) => {
+    if (err) {
+      console.error("Failed to read inventory file:", err);
+      return res.status(500).json({ error: "Failed to read inventory file" });
+    }
+
+    let inventory = [];
+    try {
+      inventory = JSON.parse(data || "[]");
+    } catch (parseErr) {
+      console.error("Failed to parse inventory JSON:", parseErr);
+      return res.status(500).json({ error: "Invalid inventory data" });
+    }
+
+    const newInventory = inventory.filter((item) => String(item.productCode) !== String(id));
+
+    if (newInventory.length === inventory.length) {
+      // nothing removed
+      return res.status(404).json({ error: "Item not found" });
+    }
+
+    fs.writeFile(INVENTORY_FILE, JSON.stringify(newInventory, null, 2), (writeErr) => {
+      if (writeErr) {
+        console.error("Failed to write inventory file:", writeErr);
+        return res.status(500).json({ error: "Failed to save inventory file" });
+      }
+      res.json({ success: true });
+    });
+  });
+});
 
 /* -------------------- DATA TRANSACTIONS STUFF -------------------- */
 
