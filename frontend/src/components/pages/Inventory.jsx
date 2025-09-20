@@ -3,6 +3,7 @@ import FilterDropdown from "../FilterButton";
 import SearchBar from "../SearchBar";
 import BadgeStatus from "../BadgeStatus";
 import InventoryRow from "../InventoryRow";
+import NotFound from "../NotFound";
 import { Link } from "react-router-dom";
 import { useEffect, useState, useSyncExternalStore } from "react";
 
@@ -10,10 +11,9 @@ const stockStatuses = ["Low stock", "Good", "Out of Stock", "Low stock"];
 
 export default function Inventory(){
   const [items, setItems] = useState([]);
-  const [searchItem, setSearchItem] = useState(''); // Search item filter
+  const [query, setQuery] = useState(""); // Search items state
   const [filter, setFilter] = useState('All'); // Filter category button
   const categoryFilters = ['All', ...new Set(items.map(item => item.productCategory))]; // Array list of categories for filter
-
   
   const theBoxValues = [
     { number: items.length, label: "Total Items" },
@@ -50,8 +50,8 @@ export default function Inventory(){
       return false;
     }
 
-    if (searchItem) {
-      const searchTerm = searchItem.toLowerCase();
+    if (query) {
+      const searchTerm = query.toLowerCase();
       const matchesName = item.productName.toLowerCase().includes(searchTerm);
       const matchesCode = item.productCode.toLowerCase().includes(searchTerm);
       if (!matchesName && !matchesCode) {
@@ -88,8 +88,8 @@ export default function Inventory(){
       <div className="w-full  h-[35px] font-bold mb-[32px] flex">
         <div className="text-nunito text-2xl">Inventory Overview</div>
      
-        <div className="ml-auto flex gap-4">
-          <SearchBar onSearchChange={handleSearchChange}/>
+        <div className="ml-auto flex gap-4  ">
+          <SearchBar onSearch = {setQuery}/>
 
           <FilterDropdown
             label="Filter"
@@ -117,9 +117,17 @@ export default function Inventory(){
             </tr>
           </thead>
           <tbody>
-            {updateItems.map((item, index) => (
+
+            {updateItems.length === 0 ? (
+              <NotFound/>
+            ) : 
+            updateItems.map((item, index) => (
               <InventoryRow key={index} item={item} />
             ))}
+
+            {/* {filteredItems.map((item, index) => (
+              <InventoryRow key={index} item={item} />
+            ))} */}
             
           </tbody>
         </table>
