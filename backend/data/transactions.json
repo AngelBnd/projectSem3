@@ -1,54 +1,54 @@
 [
   {
-    "productCode": "ELC001",
-    "date": "2025-09-01",
+    "productCode": "AMP-JL-MONO",
+    "invoiceDate": "2025-09-20",
     "quantitySold": 5,
-    "discount": 10,
-    "tax": 5,
-    "subtotal": 500,
-    "totalAmount": 477.5
-  },
-  {
-    "productCode": "ELC002",
-    "date": "2025-09-02",
-    "quantitySold": 2,
-    "discount": 2,
-    "tax": 2,
-    "subtotal": 200,
-    "totalAmount": 196.04
-  },
-  {
-    "productCode": "FOD001",
-    "date": "2025-09-05",
-    "quantitySold": 10,
-    "discount": 15,
-    "tax": 8,
-    "subtotal": 1000,
-    "totalAmount": 985.6
-  },
-  {
-    "productCode": "FOD001",
-    "date": "2025-09-10",
-    "quantitySold": 3,
     "discount": 5,
-    "tax": 3,
-    "subtotal": 300,
-    "totalAmount": 292.1
+    "tax": 5,
+    "invoiceId": "INV-1758349580374-3448",
+    "unitCost": 225,
+    "sellingPrice": 399.99,
+    "subtotal": 1999.95,
+    "totalAmount": 1994.95,
+    "lastUpdated": "2025-09-20"
   },
   {
-    "productCode": "CLT001",
-    "date": "2025-09-12",
-    "quantitySold": 7,
-    "discount": 8,
-    "tax": 4,
-    "subtotal": 700,
-    "totalAmount": 688.8
-  },
-  {
-    "productCode": "sdsd",
-    "date": "2025-09-18",
+    "productCode": "AMP-JL-MONO",
+    "invoiceDate": "2025-09-20",
     "quantitySold": 2,
-    "discount": 2,
-    "tax": 2
+    "discount": 3,
+    "tax": 4,
+    "invoiceId": "INV-1758350248231-9313",
+    "unitCost": 225,
+    "sellingPrice": 399.99,
+    "subtotal": "799.98",
+    "totalAmount": "807.02",
+    "lastUpdated": "2025-09-20"
+  },
+  {
+    "productCode": "AMP-JL-MONO",
+    "invoiceDate": "2025-09-20",
+    "quantitySold": 2,
+    "discount": 3,
+    "tax": 4,
+    "invoiceId": "INV-1758350257399-4389",
+    "unitCost": 225,
+    "sellingPrice": 399.99,
+    "subtotal": "799.98",
+    "totalAmount": "807.02",
+    "lastUpdated": "2025-09-20"
+  },
+  {
+    "productCode": "SW-KICKER-COMPC",
+    "invoiceDate": "2025-09-20",
+    "quantitySold": 3,
+    "discount": 4,
+    "tax": 5,
+    "invoiceId": "INV-1758350338035-8613",
+    "unitCost": 65,
+    "sellingPrice": 129.99,
+    "subtotal": "389.97",
+    "totalAmount": "393.09",
+    "lastUpdated": "2025-09-20"
   }
 ]

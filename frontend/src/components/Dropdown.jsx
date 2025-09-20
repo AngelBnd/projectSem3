@@ -16,14 +16,14 @@ const Dropdown = forwardRef(({
     product: {
       editLink: "/inventory/input",
       editState: { mode: "edit", item },
-      editText: "Edit Product",
-      deleteText: "Delete Product"
+      editText: "Edit",
+      deleteText: "Delete"
     },
     transaction: {
       editLink: "/sales/input", // Adjust path as needed
       editState: { mode: "edit", item },
-      editText: "Edit Transaction",
-      deleteText: "Delete Transaction"
+      editText: "Edit",
+      deleteText: "Delete"
     }
   };
 

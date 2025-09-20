@@ -1,8 +1,14 @@
 import { useState } from "react";
 import Button from "./Button";
-import { Link } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom"; 
+import { useEffect } from "react";
 
 export default function InputInventoryForm() {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { mode, item } = location.state || {};
+
+
   const [formData, setFormData] = useState({
     productCode: "",
     productName: "",
@@ -12,39 +18,75 @@ export default function InputInventoryForm() {
     sellingPrice: "",
     initialStock: "",
     thresholdStock: "",
+    lastUpdated: ""
   });
+
+    // Use useEffect to set form data when item exists in state
+  useEffect(() => {
+    if (mode === "edit" && item) {
+      setFormData({
+        productCode: item.productCode || "",
+        productName: item.productName || "",
+        productBrand: item.productBrand || "",
+        productCategory: item.productCategory || "",
+        unitCost: item.unitCost || "",
+        sellingPrice: item.sellingPrice || "",
+        initialStock: item.initialStock || "",
+        thresholdStock: item.thresholdStock || "",
+        lastUpdated: item.lastUpdated || new Date().toISOString().split('T')[0]
+      });
+    }
+  }, [mode, item]);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      const response = await fetch("http://localhost:3000/api/inventory", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  try {
+    const url =
+      mode === "edit"
+        ? `http://localhost:3000/api/inventory/${item.productCode}`
+        : "http://localhost:3000/api/inventory";
+
+    const method = mode === "edit" ? "PUT" : "POST";
+    const response = await fetch(url, {
+      method: method,
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(formData),
+    });
+
+    // Check for success status codes.
+    // 200 OK (for POST) or 204 No Content (for PUT)
+    if (response.status === 200 || response.status === 204) {
+      alert("Inventory item saved!");
+      setFormData({
+        productCode: "",
+        productName: "",
+        productBrand: "",
+        productCategory: "",
+        unitCost: "",
+        sellingPrice: "",
+        initialStock: "",
+        thresholdStock: "",
+        lastUpdated: ""
       });
-      if (response.ok) {
-        alert("Inventory item saved!");
-        setFormData({
-            productCode: "",
-            productName: "",
-            productBrand: "",
-            productCategory: "",
-            unitCost: "",
-            sellingPrice: "",
-            initialStock: "",
-            thresholdStock: "",
-        });
-      } else {
-        alert("Failed to save item. a");
-      }
-    } catch (error) {
-      console.error("Error:", error);
+    } else {
+      // Handle server-side errors
+      const errorData = await response.json();
+      alert(`Failed to save item: ${errorData.error}`);
     }
-  };
+  } catch (error) {
+    console.error("Error:", error);
+    alert("An error occurred. Please check the network connection.");
+  }
+  window.history.back();
+};
+
+const handleCancel = () => {
+  navigate(-1);
+};
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-4">
@@ -57,7 +99,7 @@ export default function InputInventoryForm() {
           <input
             type="text"
             name="productCode"
-            value={formData.code}
+            value={formData.productCode}
             onChange={handleChange}
             placeholder="Product code"
             className="border p-2 rounded-2xl w-full bg-white text-black"
@@ -72,7 +114,7 @@ export default function InputInventoryForm() {
           <input
             type="text"
             name="productName"
-            value={formData.name}
+            value={formData.productName}
             onChange={handleChange}
             placeholder="Product name"
             className="border p-2 rounded-2xl w-full bg-white text-black"
@@ -90,7 +132,7 @@ export default function InputInventoryForm() {
           <input
             type="text"
             name="productBrand"
-            value={formData.brand}
+            value={formData.productBrand}
             onChange={handleChange}
             placeholder="Brand"
             className="border p-2 rounded-2xl w-full bg-white text-black"
@@ -105,7 +147,7 @@ export default function InputInventoryForm() {
           <input
             type="text"
             name="productCategory"
-            value={formData.category}
+            value={formData.productCategory}
             onChange={handleChange}
             placeholder="Category"
             className="border p-2 rounded-2xl w-full bg-white text-black"
@@ -127,7 +169,7 @@ export default function InputInventoryForm() {
             <input
               type="number"
               name="unitCost"
-              value={formData.unit_cost}
+              value={formData.unitCost}
               onChange={handleChange}
               placeholder="0"
               className="border p-2 pl-10 rounded-2xl w-full bg-white text-black"
@@ -147,7 +189,7 @@ export default function InputInventoryForm() {
             <input
               type="number"
               name="sellingPrice"
-              value={formData.selling_price}
+              value={formData.sellingPrice}
               onChange={handleChange}
               placeholder="0"
               className="border p-2 pl-10 rounded-2xl w-full bg-white text-black"
@@ -167,7 +209,7 @@ export default function InputInventoryForm() {
             <input
                 type="number"
                 name="initialStock"
-                value={formData.initial_stock}
+                value={formData.initialStock}
                 onChange={handleChange}
                 placeholder="Initial Stock Level"
                 className="border p-2 rounded-2xl w-full bg-white text-black"
@@ -182,7 +224,7 @@ export default function InputInventoryForm() {
             <input
                 type="number"
                 name="thresholdStock"
-                value={formData.threshold_stock}
+                value={formData.thresholdStock}
                 onChange={handleChange}
                 placeholder="Threshold Stock Level"
                 className="border p-2 rounded-2xl w-full bg-white text-black"
@@ -197,11 +239,12 @@ export default function InputInventoryForm() {
       <div className="flex justify-start mt-8">
         <div className="w-[200px] flex gap-2">
           <Button>Save</Button>
-          <Link to="/inventory" className="flex items-center">
-            <div className="underline text-[13px] px-3 text-black cursor-pointer">
-              Cancel
-            </div>
-          </Link>
+          <div 
+            onClick={handleCancel}
+            className="underline flex items-center text-[13px] px-3 text-black cursor-pointer hover:text-gray-600 transition-colors"
+          >
+            Cancel
+          </div>
         </div>
       </div>
     </form>

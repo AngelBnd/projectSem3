@@ -25,7 +25,6 @@ const [products, setProducts] = useState([]);
 
       const quantity = parseInt(sale.quantitySold || 0, 10);
       const cost = parseFloat(product.unitCost || 0);
-      const price = parseFloat(product.sellingPrice || 0);
 
       orders += quantity;
       expense += cost * quantity;

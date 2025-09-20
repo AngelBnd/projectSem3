@@ -1,31 +1,33 @@
 import { useState, useEffect } from "react";
 import Button from "./Button";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 
 
-export default function InputTransactionForm({ mode, item, isEditMode }) {
+export default function InputTransactionForm() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const { mode, item } = location.state || {};
+  const isEditMode = mode === "edit";
+
   const [formData, setFormData] = useState({
     productCode: "",
-    productName: "",
-    productCategory: "",
     quantitySold: "",
     lastUpdated: "",
     status: "",
+    invoiceDate: new Date().toISOString().split('T')[0]
   });
 
    useEffect(() => {
-    if (isEditMode && item) {
+    if (mode === "edit" && item) {
       setFormData({
         productCode: item.productCode || "",
-        productName: item.productName || "",
-        productCategory: item.productCategory || "",
-        initialStock: item.initialStock || "",
-        thresholdStock: item.thresholdStock || "",
-        lastUpdated: item.lastUpdated || new Date().toISOString().split('T')[0]
+        invoiceDate: item.invoiceDate || new Date().toISOString().split('T')[0],
+        discount: item.discount || "",
+        tax: item.tax || "",
+        quantitySold: item.quantitySold || ""
       });
     }
-  }, [isEditMode, item]);
+  }, [mode, item]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -41,7 +43,6 @@ export default function InputTransactionForm({ mode, item, isEditMode }) {
   
 
   const handleSubmit = async (e) => {
-
     const formData = new FormData(e.target);
     const saleData = Object.fromEntries(formData.entries());
 
@@ -51,36 +52,40 @@ export default function InputTransactionForm({ mode, item, isEditMode }) {
     saleData.tax = Number(saleData.tax);
     e.preventDefault();
 
-    if (isEditMode) {
-      // Handle update logic
-      console.log("Updating item:", formData);
-      // Add your update API call here
-    } else {
+    try {
+      const url =
+      mode === "edit"
+        ? `http://localhost:3000/api/sales/${item.invoiceId}`
+        : "http://localhost:3000/api/sales";
 
-      try {
-        const res = await fetch("http://localhost:3000/api/sales", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(saleData),
+        
+      const method = mode === "edit" ? "PUT" : "POST";
+      const response = await fetch(url, {
+        method: method,
+        headers: {"Content-Type": "application/json",},
+        body: JSON.stringify(saleData),
       });
 
-      const result = await res.json();
-      if (result.success) {
-        alert("Sale saved!");
-        e.target.reset();
-      } else {
-        alert("Failed to save sale: " + result.error);
-      }
-      
-      } catch (err) {
-        console.error("Error submitting sale:", err);
-        alert("Something went wrong");
-      }
-    
+    if (response.status === 200 || response.status === 204) {
+      alert("Inventory item saved!");
+      setFormData({
+        productCode: "",
+        quantitySold: "",
+        lastUpdated: "",
+        status: "",
+        invoiceDate: new Date().toISOString().split('T')[0]
+      });
+    } else {
+      // Handle server-side errors
+      const errorData = await response.json();
+      alert(`Failed to save item: ${errorData.error}`);
     }
-    
+  } catch (error) {
+    console.error("Error:", error);
+    alert("An error occurred. Please check the network connection.");
+  } 
+
+    window.history.back();
     
   };
   const handleCancel = () => {
@@ -98,6 +103,7 @@ export default function InputTransactionForm({ mode, item, isEditMode }) {
         name="productCode"
         value={formData.productCode}
         onChange={handleInputChange}
+        placeholder="Product Code"
         className="border p-2 rounded-2xl w-full text-black bg-white focus:outline-none focus:ring-2 focus:ring-blue-400 shadow-sm"
         required
         disabled={isEditMode}
@@ -117,6 +123,39 @@ export default function InputTransactionForm({ mode, item, isEditMode }) {
         required
       />
     </div> */}
+
+    <div className="w-full">
+      <label className="block text-sm font-semibold text-black font-nunito mb-1">
+        Invoice date
+      </label>
+      <div className="relative">
+        <input
+          type="date"
+          name="invoiceDate"
+          value={formData.invoiceDate}
+          onChange={handleInputChange}
+          className="border p-2 rounded-2xl w-full text-black bg-white focus:outline-none focus:ring-2 focus:ring-blue-400 shadow-sm"
+          required
+          disabled={isEditMode}
+        />
+        {/* Calendar SVG overlapped */}
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          className="h-5 w-5 absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+          strokeWidth="2"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 
+            00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+          />
+        </svg>
+      </div>
+    </div>
 
     <div className="w-full">
       <label className="block text-sm font-semibold text-black font-nunito mb-1">
@@ -164,39 +203,6 @@ export default function InputTransactionForm({ mode, item, isEditMode }) {
         min="0"
         required
       />
-    </div>
-
-    <div className="w-full">
-      <label className="block text-sm font-semibold text-black font-nunito mb-1">
-        Last Updated
-      </label>
-      <div className="relative">
-        <input
-          type="date"
-          name="lastUpdated"
-          value={formData.lastUpdated}
-          onChange={handleInputChange}
-          className="border p-2 rounded-2xl w-full text-black bg-white focus:outline-none focus:ring-2 focus:ring-blue-400 shadow-sm"
-          required
-          disabled={isEditMode}
-        />
-        {/* Calendar SVG overlapped */}
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          className="h-5 w-5 absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-          strokeWidth="2"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 
-            00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-          />
-        </svg>
-      </div>
     </div>
 
     <div className="flex justify-self-end mt-[32px]">
