@@ -28,6 +28,72 @@ app.get("/api/inventory", (req, res) => {
   });
 });
 
+// DELETE (remove an inventory item)
+app.delete("/api/inventory/:id", (req, res) => {
+  const id = req.params.id;
+
+  fs.readFile(INVENTORY_FILE, "utf8", (err, data) => {
+    if (err) {
+      console.error("Failed to read inventory file:", err);
+      return res.status(500).json({ error: "Failed to read inventory file" });
+    }
+
+    let inventory = [];
+    try {
+      inventory = JSON.parse(data || "[]");
+    } catch (parseErr) {
+      console.error("Failed to parse inventory JSON:", parseErr);
+      return res.status(500).json({ error: "Invalid inventory data" });
+    }
+
+    const newInventory = inventory.filter((item) => String(item.productCode) !== String(id));
+
+    if (newInventory.length === inventory.length) {
+      // nothing removed
+      return res.status(404).json({ error: "Item not found" });
+    }
+
+    fs.writeFile(INVENTORY_FILE, JSON.stringify(newInventory, null, 2), (writeErr) => {
+      if (writeErr) {
+        console.error("Failed to write inventory file:", writeErr);
+        return res.status(500).json({ error: "Failed to save inventory file" });
+      }
+      res.json({ success: true });
+    });
+  });
+});
+
+app.get('/api/inventory/:productCode', (req, res) => {
+  const productCode = req.params.productCode;
+
+  // Use the callback version of fs.readFile
+  fs.readFile(INVENTORY_FILE, 'utf8', (err, data) => {
+    if (err) {
+      console.error('Error fetching inventory:', err);
+      // It's good practice to send a 500 status on a server-side error
+      return res.status(500).json({ error: 'Failed to read inventory file' });
+    }
+
+    try {
+      const inventory = JSON.parse(data);
+      const product = inventory.find(item => item.productCode === productCode);
+
+      if (product) {
+        res.status(200).json(product);
+      } else {
+        res.status(404).json({ error: 'Product not found' });
+      }
+    } catch (parseError) {
+      console.error('Error parsing JSON data:', parseError);
+      res.status(500).json({ error: 'Error parsing inventory data' });
+    }
+  });
+});
+
+app.listen(PORT, () => {
+  console.log(`Server is running on http://localhost:${PORT}`);
+});
+
 // POST new inventory item
 app.post("/api/inventory", (req, res) => {
   const newItem = req.body;
@@ -281,6 +347,49 @@ app.delete("/api/inventory/:id", (req, res) => {
         return res.status(500).json({ error: "Failed to save inventory file" });
       }
       res.json({ success: true });
+    });
+  });
+});
+
+// DELETE (remove a transaction item)
+app.delete("/api/sales/:id", (req, res) => {
+  const id = req.params.id;
+
+  fs.readFile(SALES_FILE, "utf8", (err, data) => {
+    if (err) {
+      console.error("Failed to read sales file:", err);
+      return res.status(500).json({ error: "Failed to read sales file" });
+    }
+
+    let sales = [];
+    try {
+      sales = JSON.parse(data || "[]");
+    } catch (parseErr) {
+      console.error("Failed to parse sales JSON:", parseErr);
+      return res.status(500).json({ error: "Invalid sales data" });
+    }
+
+    console.log("ID received from frontend:", id); // Log the ID from the URL
+    console.log("Invoice IDs in the sales data:", sales.map(s => s.invoiceId)); // Log all invoice IDs
+
+    // Filter out the transaction with the matching invoiceId
+    const newSales = sales.filter((sale) => String(sale.invoiceId) !== String(id));
+
+    console.log("Number of sales before filter:", sales.length);
+    console.log("Number of sales after filter:", newSales.length);
+
+    if (newSales.length === sales.length) {
+      // nothing removed
+      return res.status(404).json({ error: "Sale not found" });
+    }
+
+    fs.writeFile(SALES_FILE, JSON.stringify(newSales, null, 2), (writeErr) => {
+      if (writeErr) {
+        console.error("Failed to write sales file:", writeErr);
+        return res.status(500).json({ error: "Failed to save sales file" });
+      }
+      // Send a success response
+      res.json({ success: true, message: "Sale deleted successfully." });
     });
   });
 });

@@ -3,40 +3,78 @@ import SearchBar from "../SearchBar";
 import TransactionRow from "../TransactionRow";
 import { Link } from "react-router-dom";
 import Button from "../Button";
+import NotFound from "../NotFound";
 import { useEffect, useState, useMemo  } from "react";
 
 
 export default function Sales(){  
 const [sales, setSales] = useState([]);
 const [products, setProducts] = useState([]);
+const [query, setQuery] = useState(""); // Search items state
+const [filter, setFilter] = useState('All'); // Filter category button
+const timeFilters = ['This Year','This month','This Week']
 
+// Filter categories based on the transactions list shown
+const categoryFilters = ['All', ...new Set(
+  sales.map(sale => {
+    const product = products.find(p => p.productCode === sale.productCode);
+    return product ? product.productCategory : null;
+  }).filter(category => category !== null)
+)];
 
-  const { profitTotal, orderTotal, expenseTotal } = useMemo(() => {
+// Update list of sales based on filters / search
+const updateSales = sales.filter(sale => {
+  const matchProduct = products.find(p => p.productCode === sale.productCode);
+
+  if (!matchProduct) return false;
+
+  if(filter != 'All' && matchProduct.productCategory !== filter) {
+    return false;
+  }
+
+  if (query) {
+    const searchTerm = query.toLowerCase();
+    const matchesName = matchProduct.productName.toLowerCase().includes(searchTerm);
+    const matchesCode = matchProduct.productCode.toLowerCase().includes(searchTerm);
+    if (!matchesName && !matchesCode) {
+      return false;
+    }
+  }
+
+  return true;
+});
+
+const { profitTotal, orderTotal, expenseTotal } = useMemo(() => {
     let profit = 0;
     let orders = 0;
     let expense = 0;
     let totalSale = 0;
 
+    // Filter for valid sales and calculate
     sales.forEach((sale) => {
-      // Find the product info from inventory
-      const product = products.find(p => p.productCode === sale.productCode);
+        const product = products.find(p => p.productCode === sale.productCode);
 
-      if (!product) return; // skip if product not found
+        // Check if the product exists before doing any calculations
+        if (product) {
+            const quantity = parseInt(sale.quantitySold || 0, 10);
+            const cost = parseFloat(product.unitCost || 0);
+            const saleAmount = parseFloat(sale.totalAmount || 0);
 
-      const quantity = parseInt(sale.quantitySold || 0, 10);
-      const cost = parseFloat(product.unitCost || 0);
-
-      orders += quantity;
-      expense += cost * quantity;
-      totalSale += sale.totalAmount;
+            // Check if values are valid numbers before adding them to totals
+            if (!isNaN(quantity) && !isNaN(cost) && !isNaN(saleAmount)) {
+                orders += quantity;
+                expense += cost * quantity;
+                totalSale += saleAmount;
+            }
+        }
     });
 
     return {
-      profitTotal: totalSale - expense,
-      orderTotal: orders,
-      expenseTotal: expense,
+        profitTotal: totalSale - expense,
+        orderTotal: orders,
+        expenseTotal: expense,
     };
-  }, [sales]);
+  }, [sales, products]);
 
   const totals = [
     { number: profitTotal, label: "Profit Total" },
@@ -63,8 +101,15 @@ const [products, setProducts] = useState([]);
 
   return (
     <div className="w-full text-black  ">
-      <div className="text-nunito font-bold text-4xl mb-[16px]">
-        Sales
+      <div className="w-full flex justify-between">
+        <div className="text-nunito font-bold text-4xl mb-[16px]">
+          Sales
+        </div>
+        <FilterDropdown
+          label="Time"
+          options={timeFilters}
+          
+        />
       </div>
 
     <div className="w-full h-[140px] flex gap-3 mb-[40px]">
@@ -92,12 +137,12 @@ const [products, setProducts] = useState([]);
         <div className="text-nunito text-2xl">Transactions</div>
      
         <div className="ml-auto flex gap-4  ">
-          <SearchBar/>
+          <SearchBar onSearch = {setQuery}/>
 
           <FilterDropdown
             label="Filter"
-            options={["Category", "What else", "Among"]}
-            onSelect={(value) => console.log("Selected:", value)}
+            options={categoryFilters}
+            onSelect={(selectedOption) => setFilter(selectedOption)}
           />
 
            <Link to="/sales/input">
@@ -120,9 +165,39 @@ const [products, setProducts] = useState([]);
             </tr>
           </thead>
             <tbody>
-              {sales.map((sale, index, ) => (
-                <TransactionRow key={index} sale={sale} products={products}/>
-              ))}
+              {updateSales.length === 0 ? (
+                <NotFound />
+              ) : (
+                // MAIN PROBLEM, DELETE NOT WORKING - POSSIBLY FROM SERVER JS ??
+                updateSales.map((sale) => (
+                  <TransactionRow
+                    key={sale.invoiceId}
+                    sale={sale}
+                    products={products}
+                    onDelete={(id) => {
+                      // Use a template literal for a clean, readable string output
+                      console.log(`ID sent to backend: ${id}`);
+
+                      fetch(`http://localhost:3000/api/sales/${encodeURIComponent(id)}`, {
+                        method: "DELETE",
+                      })
+                        .then((res) => {
+                          if (!res.ok) throw new Error("Delete failed");
+                          return res.json();
+                        })
+                        .then(() => {
+                          setSales((prev) => {
+                            return prev.filter((s) => String(s.invoiceId) !== String(id));
+                          });
+                        })
+                        .catch((err) => {
+                          console.error("Delete failed:", err);
+                          alert("Failed to delete item. Check console/server logs.");
+                        });
+                    }}
+                  />
+                ))
+              )}
             </tbody>
         </table>
       </div>

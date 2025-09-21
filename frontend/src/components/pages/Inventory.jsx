@@ -3,14 +3,17 @@ import FilterDropdown from "../FilterButton";
 import SearchBar from "../SearchBar";
 import BadgeStatus from "../BadgeStatus";
 import InventoryRow from "../InventoryRow";
+import NotFound from "../NotFound";
 import { Link } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 
 const stockStatuses = ["Low stock", "Good", "Out of Stock", "Low stock"];
 
 export default function Inventory(){
   const [items, setItems] = useState([]);
-
+  const [query, setQuery] = useState(""); // Search items state
+  const [filter, setFilter] = useState('All'); // Filter category button
+  const categoryFilters = ['All', ...new Set(items.map(item => item.productCategory))]; // Array list of categories for filter
   
   const theBoxValues = [
     { number: items.length, label: "Total Items" },
@@ -39,6 +42,24 @@ export default function Inventory(){
       .catch((err) => console.error("Error fetching inventory:", err));
   }, []);
 
+  // Update items list based on search and/or filter
+  const updateItems = items.filter(item => {
+    if(filter != 'All' && item.productCategory !== filter) {
+      return false;
+    }
+
+    if (query) {
+      const searchTerm = query.toLowerCase();
+      const matchesName = item.productName.toLowerCase().includes(searchTerm);
+      const matchesCode = item.productCode.toLowerCase().includes(searchTerm);
+      if (!matchesName && !matchesCode) {
+        return false;
+      }
+    }
+
+    return true;
+  });
+
   return (
     <div className="w-full text-black  ">
       <div className="text-nunito font-bold text-4xl mb-[16px]">
@@ -66,12 +87,12 @@ export default function Inventory(){
         <div className="text-nunito text-2xl">Inventory Overview</div>
      
         <div className="ml-auto flex gap-4  ">
-          <SearchBar/>
+          <SearchBar onSearch = {setQuery}/>
 
           <FilterDropdown
             label="Filter"
-            options={["Category", "What else", "Among"]}
-            onSelect={(value) => console.log("Selected:", value)}
+            options={categoryFilters}
+            onSelect={(selectedOption) => setFilter(selectedOption)}
           />
 
            <Link to="/inventory/input">
@@ -94,7 +115,10 @@ export default function Inventory(){
             </tr>
           </thead>
           <tbody>
-            {items.map((item) => (
+            {updateItems.length === 0 ? (
+                <NotFound/>
+              ) : 
+              updateItems.map((item, index) => (
               <InventoryRow
                 key={item.productCode}
                 item={item}

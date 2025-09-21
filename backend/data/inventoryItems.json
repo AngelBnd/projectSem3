@@ -1,5 +1,16 @@
 [
   {
+    "productCode": "SW-KICKER-BALLS",
+    "productName": "CompC 12 Subwoofer",
+    "productBrand": "Kicker",
+    "productCategory": "Subwoofers",
+    "unitCost": 65,
+    "sellingPrice": "129.999",
+    "initialStock": 50,
+    "thresholdStock": 10,
+    "lastUpdated": "2025-09-20"
+  },
+  {
     "productCode": "AMP-JL-MONO",
     "productName": "JD500/1 Amp",
     "productBrand": "JL Audio",
@@ -42,5 +53,27 @@
     "initialStock": 10,
     "thresholdStock": 3,
     "lastUpdated": "2025-09-19"
+  },
+  {
+    "productCode": "AMP-JL-UNO",
+    "productName": "BallsAcks",
+    "productBrand": "Cello",
+    "productCategory": "Amplifiers",
+    "unitCost": "100000",
+    "sellingPrice": "1000000",
+    "initialStock": "41",
+    "thresholdStock": "4",
+    "lastUpdated": "2025-09-21"
+  },
+  {
+    "productCode": "SW-KICKER-COMPCHH",
+    "productName": "TEST",
+    "productBrand": "YAH",
+    "productCategory": "OKE",
+    "unitCost": "2000000",
+    "sellingPrice": "3000000",
+    "initialStock": "3",
+    "thresholdStock": "4",
+    "lastUpdated": "2025-09-21"
   }
 ]
