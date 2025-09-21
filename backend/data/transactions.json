@@ -115,5 +115,18 @@
     "subtotal": "799.98",
     "totalAmount": "1113.57",
     "lastUpdated": "2025-09-20"
+  },
+  {
+    "productCode": "SW-KICKER-BALLS",
+    "invoiceDate": "2025-09-20",
+    "quantitySold": 500,
+    "discount": 99,
+    "tax": 1,
+    "invoiceId": "INV-1758385108423-7160",
+    "unitCost": 65,
+    "sellingPrice": 129.999,
+    "subtotal": "64999.50",
+    "totalAmount": "656.49",
+    "lastUpdated": "2025-09-20"
   }
 ]

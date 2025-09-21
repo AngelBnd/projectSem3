@@ -7,7 +7,8 @@ const Dropdown = forwardRef(({
   position, 
   onClose, 
   item, 
-  type = "product" // Default to product type
+  type = "product", // Default to product type
+  onDelete
 }, ref) => {
   if (!isOpen) return null;
 
@@ -50,11 +51,12 @@ const Dropdown = forwardRef(({
         </Link>
 
         <button
-          className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100 hover:text-red-700"
+          className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100 hover:text-red-700 bg-white"
           onClick={() => {
-            console.log(`Delete ${type}:`, item);
-            onClose();
-            // Add your delete logic here
+            if (window.confirm(`Are you sure you want to delete this ${type}?`)) {
+              onDelete?.(item.productCode);   // call parent handler (Inventory.jsx) with code
+            }
+            onClose?.();
           }}
         >
           {deleteText}

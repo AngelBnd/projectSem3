@@ -3,7 +3,7 @@ import BadgeStatus from "./BadgeStatus";
 import Dropdown from "./Dropdown";
 import { useNavigate } from "react-router-dom";
 
-export default function InventoryRow({ item }) {
+export default function InventoryRow({ item, onDelete }) {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [dropdownPosition, setDropdownPosition] = useState(null);
   const dropdownRef = useRef(null);
@@ -119,6 +119,7 @@ export default function InventoryRow({ item }) {
               onClose={() => setIsDropdownOpen(false)}
               item={item}
               type="product" // Explicitly set type (optional since product is default)
+              onDelete={onDelete}
               ref={dropdownMenuRef}
             />
           </div>
