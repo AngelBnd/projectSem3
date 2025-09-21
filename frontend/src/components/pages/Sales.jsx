@@ -12,6 +12,7 @@ const [sales, setSales] = useState([]);
 const [products, setProducts] = useState([]);
 const [query, setQuery] = useState(""); // Search items state
 const [filter, setFilter] = useState('All'); // Filter category button
+const timeFilters = ['This Year','This month','This Week']
 
 // Filter categories based on the transactions list shown
 const categoryFilters = ['All', ...new Set(
@@ -100,8 +101,15 @@ const { profitTotal, orderTotal, expenseTotal } = useMemo(() => {
 
   return (
     <div className="w-full text-black  ">
-      <div className="text-nunito font-bold text-4xl mb-[16px]">
-        Sales
+      <div className="w-full flex justify-between">
+        <div className="text-nunito font-bold text-4xl mb-[16px]">
+          Sales
+        </div>
+        <FilterDropdown
+          label="Time"
+          options={timeFilters}
+          
+        />
       </div>
 
     <div className="w-full h-[140px] flex gap-3 mb-[40px]">

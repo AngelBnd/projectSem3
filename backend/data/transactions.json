@@ -66,19 +66,6 @@
   },
   {
     "productCode": "AMP-JL-MONO",
-    "invoiceDate": "2025-09-20",
-    "quantitySold": 2,
-    "discount": 4,
-    "tax": 45,
-    "invoiceId": "INV-1758353980524-8614",
-    "unitCost": 225,
-    "sellingPrice": 399.99,
-    "subtotal": "799.98",
-    "totalAmount": "1113.57",
-    "lastUpdated": "2025-09-20"
-  },
-  {
-    "productCode": "AMP-JL-MONO",
     "invoiceDate": "2025-09-21",
     "quantitySold": 3,
     "discount": 3,
@@ -101,6 +88,19 @@
     "sellingPrice": 1000000,
     "subtotal": "4000000.00",
     "totalAmount": "3999600.00",
+    "lastUpdated": "2025-09-21"
+  },
+  {
+    "productCode": "SW-KICKER-COMPCHH",
+    "invoiceDate": "2025-09-21",
+    "quantitySold": 2,
+    "discount": 23,
+    "tax": 2,
+    "invoiceId": "INV-1758452366211-148",
+    "unitCost": 2000000,
+    "sellingPrice": 3000000,
+    "subtotal": "6000000.00",
+    "totalAmount": "4712400.00",
     "lastUpdated": "2025-09-21"
   }
 ]
