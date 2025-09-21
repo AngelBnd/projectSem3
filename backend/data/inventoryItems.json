@@ -64,5 +64,16 @@
     "initialStock": "41",
     "thresholdStock": "4",
     "lastUpdated": "2025-09-21"
+  },
+  {
+    "productCode": "SW-KICKER-COMPCHH",
+    "productName": "TEST",
+    "productBrand": "YAH",
+    "productCategory": "OKE",
+    "unitCost": "2000000",
+    "sellingPrice": "3000000",
+    "initialStock": "3",
+    "thresholdStock": "4",
+    "lastUpdated": "2025-09-21"
   }
 ]
