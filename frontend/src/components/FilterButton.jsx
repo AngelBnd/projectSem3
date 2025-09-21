@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 
 
-function FilterDropdown({ label = "Filter", options = [], onSelect }) {
+function FilterDropdown({ label = "Filter",  options = [], onSelect }) {
   const [open, setOpen] = useState(false);
   const [selected, setSelected] = useState(null);
   const dropdownRef = useRef(null);
@@ -36,7 +36,7 @@ function FilterDropdown({ label = "Filter", options = [], onSelect }) {
 
       {/* Dropdown */}
       {open && (
-        <div className="absolute w-40 border rounded-lg shadow">
+        <div className="absolute w-40 border rounded-lg shadow max-h-48 overflow-y-auto overflow-x-hidden custom-scrollbar">
           {options.map((option, index) => (
             <button
               key={index}
