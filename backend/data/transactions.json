@@ -128,5 +128,31 @@
     "subtotal": "64999.50",
     "totalAmount": "656.49",
     "lastUpdated": "2025-09-20"
+  },
+  {
+    "productCode": "AMP-JL-MONO",
+    "invoiceDate": "2025-09-21",
+    "quantitySold": 3,
+    "discount": 3,
+    "tax": 3,
+    "invoiceId": "INV-1758442038810-1980",
+    "unitCost": 225,
+    "sellingPrice": 399.99,
+    "subtotal": "1199.97",
+    "totalAmount": "1198.89",
+    "lastUpdated": "2025-09-21"
+  },
+  {
+    "productCode": "AMP-JL-UNO",
+    "invoiceDate": "2025-09-21",
+    "quantitySold": 4,
+    "discount": 1,
+    "tax": 1,
+    "invoiceId": "INV-1758442106067-774",
+    "unitCost": 100000,
+    "sellingPrice": 1000000,
+    "subtotal": "4000000.00",
+    "totalAmount": "3999600.00",
+    "lastUpdated": "2025-09-21"
   }
 ]

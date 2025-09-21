@@ -351,6 +351,49 @@ app.delete("/api/inventory/:id", (req, res) => {
   });
 });
 
+// DELETE (remove a transaction item)
+app.delete("/api/sales/:id", (req, res) => {
+  const id = req.params.id;
+
+  fs.readFile(SALES_FILE, "utf8", (err, data) => {
+    if (err) {
+      console.error("Failed to read sales file:", err);
+      return res.status(500).json({ error: "Failed to read sales file" });
+    }
+
+    let sales = [];
+    try {
+      sales = JSON.parse(data || "[]");
+    } catch (parseErr) {
+      console.error("Failed to parse sales JSON:", parseErr);
+      return res.status(500).json({ error: "Invalid sales data" });
+    }
+
+    console.log("ID received from frontend:", id); // Log the ID from the URL
+    console.log("Invoice IDs in the sales data:", sales.map(s => s.invoiceId)); // Log all invoice IDs
+
+    // Filter out the transaction with the matching invoiceId
+    const newSales = sales.filter((sale) => String(sale.invoiceId) !== String(id));
+
+    console.log("Number of sales before filter:", sales.length);
+    console.log("Number of sales after filter:", newSales.length);
+
+    if (newSales.length === sales.length) {
+      // nothing removed
+      return res.status(404).json({ error: "Sale not found" });
+    }
+
+    fs.writeFile(SALES_FILE, JSON.stringify(newSales, null, 2), (writeErr) => {
+      if (writeErr) {
+        console.error("Failed to write sales file:", writeErr);
+        return res.status(500).json({ error: "Failed to save sales file" });
+      }
+      // Send a success response
+      res.json({ success: true, message: "Sale deleted successfully." });
+    });
+  });
+});
+
 /* -------------------- DATA TRANSACTIONS STUFF -------------------- */
 
 app.get("/transactions", (req, res) => {
