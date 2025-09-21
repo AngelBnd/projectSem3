@@ -55,7 +55,7 @@ const Dropdown = forwardRef(({
           onClick={() => {
             if (window.confirm(`Are you sure you want to delete this ${type}?`)) {
               const id = type === "transaction" ? item.invoiceId : item.productCode;
-              onDelete?.(id); // call parent handler (Inventory.jsx) with the right ID
+              onDelete?.(id);
             }
             onClose?.();
           }}
