@@ -1,44 +1,5 @@
 [
   {
-    "productCode": "AMP-JL-MONO",
-    "invoiceDate": "2025-09-20",
-    "quantitySold": 5,
-    "discount": 5,
-    "tax": 5,
-    "invoiceId": "INV-1758349580374-3448",
-    "unitCost": 225,
-    "sellingPrice": 399.99,
-    "subtotal": 1999.95,
-    "totalAmount": 1994.95,
-    "lastUpdated": "2025-09-20"
-  },
-  {
-    "productCode": "AMP-JL-MONO",
-    "invoiceDate": "2025-09-20",
-    "quantitySold": 2,
-    "discount": 3,
-    "tax": 4,
-    "invoiceId": "INV-1758350248231-9313",
-    "unitCost": 225,
-    "sellingPrice": 399.99,
-    "subtotal": "799.98",
-    "totalAmount": "807.02",
-    "lastUpdated": "2025-09-20"
-  },
-  {
-    "productCode": "AMP-JL-MONO",
-    "invoiceDate": "2025-09-20",
-    "quantitySold": 2,
-    "discount": 3,
-    "tax": 4,
-    "invoiceId": "INV-1758350257399-4389",
-    "unitCost": 225,
-    "sellingPrice": 399.99,
-    "subtotal": "799.98",
-    "totalAmount": "807.02",
-    "lastUpdated": "2025-09-20"
-  },
-  {
     "productCode": "SW-KICKER-COMPC",
     "invoiceDate": "2025-09-20",
     "quantitySold": 3,
@@ -114,19 +75,6 @@
     "sellingPrice": 399.99,
     "subtotal": "799.98",
     "totalAmount": "1113.57",
-    "lastUpdated": "2025-09-20"
-  },
-  {
-    "productCode": "SW-KICKER-BALLS",
-    "invoiceDate": "2025-09-20",
-    "quantitySold": 500,
-    "discount": 99,
-    "tax": 1,
-    "invoiceId": "INV-1758385108423-7160",
-    "unitCost": 65,
-    "sellingPrice": 129.999,
-    "subtotal": "64999.50",
-    "totalAmount": "656.49",
     "lastUpdated": "2025-09-20"
   },
   {
