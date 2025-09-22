@@ -3,6 +3,8 @@ const express = require("express");
 const fs = require('fs');
 const path = require('path');
 const cors = require("cors");
+const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
 
 
 const app = express();
@@ -13,15 +15,101 @@ const PORT = 3000;
 // File paths
 const INVENTORY_FILE = path.join(__dirname, "data", "inventoryItems.json");
 const SALES_FILE = path.join(__dirname, "data", "transactions.json");
+const USERS_FILE = path.join(__dirname, "data", "users.json");
 
 // Middleware
 app.use(cors());
 app.use(express.json());
 
+const JWT_SECRET = 'your_super_secret_jwt_key';
+
+/* -------------------- AUTHENTICATION ROUTES -------------------- */
+
+// Register a new user
+app.post("/api/register", async (req, res) => {
+  const { username, password } = req.body;
+
+  if (!username || !password) {
+    return res.status(400).json({ error: "Username and password are required" });
+  }
+
+  try {
+    const usersData = fs.readFileSync(USERS_FILE, 'utf8');
+    const users = JSON.parse(usersData);
+
+    const existingUser = users.find(user => user.username === username);
+    if (existingUser) {
+      return res.status(409).json({ error: "User already exists" });
+    }
+
+    const saltRounds = 10;
+    const hashedPassword = await bcrypt.hash(password, saltRounds);
+
+    const newUser = {
+      username,
+      password: hashedPassword,
+    };
+    users.push(newUser);
+
+    fs.writeFileSync(USERS_FILE, JSON.stringify(users, null, 2));
+
+    res.status(201).json({ message: "User registered successfully" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
+// Login a user and return a JWT
+app.post("/api/login", async (req, res) => {
+  const { username, password } = req.body;
+
+  try {
+    const usersData = fs.readFileSync(USERS_FILE, 'utf8');
+    const users = JSON.parse(usersData);
+
+    const user = users.find(u => u.username === username);
+    if (!user) {
+      return res.status(401).json({ error: "Invalid username or password" });
+    }
+
+    const passwordMatch = await bcrypt.compare(password, user.password);
+    if (!passwordMatch) {
+      return res.status(401).json({ error: "Invalid username or password" });
+    }
+
+    // Create a JWT
+    const token = jwt.sign({ username: user.username }, JWT_SECRET, { expiresIn: '1h' });
+
+    res.status(200).json({ success: true, token });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
+/* -------------------- Middleware to protect routes -------------------- */
+const authenticateToken = (req, res, next) => {
+  const authHeader = req.headers['authorization'];
+  const token = authHeader && authHeader.split(' ')[1];
+
+  if (token == null) {
+    return res.status(401).json({ error: "Authentication token missing" });
+  }
+
+  jwt.verify(token, JWT_SECRET, (err, user) => {
+    if (err) {
+      return res.status(403).json({ error: "Invalid or expired token" });
+    }
+    req.user = user;
+    next();
+  });
+};
+
 /* -------------------- INVENTORY ROUTES -------------------- */
 
 // GET all inventory items
-app.get("/api/inventory", (req, res) => {
+app.get("/api/inventory", authenticateToken, (req, res) => {
   fs.readFile(INVENTORY_FILE, "utf8", (err, data) => {
     if (err) return res.status(500).json({ error: "Failed to read inventory file" });
     res.json(JSON.parse(data));
@@ -29,7 +117,7 @@ app.get("/api/inventory", (req, res) => {
 });
 
 // DELETE (remove an inventory item)
-app.delete("/api/inventory/:id", (req, res) => {
+app.delete("/api/inventory/:id", authenticateToken, (req, res) => {
   const id = req.params.id;
 
   fs.readFile(INVENTORY_FILE, "utf8", (err, data) => {
@@ -63,7 +151,7 @@ app.delete("/api/inventory/:id", (req, res) => {
   });
 });
 
-app.get('/api/inventory/:productCode', (req, res) => {
+app.get('/api/inventory/:productCode', authenticateToken, (req, res) => {
   const productCode = req.params.productCode;
 
   // Use the callback version of fs.readFile
@@ -95,7 +183,7 @@ app.listen(PORT, () => {
 });
 
 // POST new inventory item
-app.post("/api/inventory", (req, res) => {
+app.post("/api/inventory", authenticateToken, (req, res) => {
   const newItem = req.body;
 
   const required = [
@@ -146,7 +234,7 @@ app.post("/api/inventory", (req, res) => {
 /* -------------------- SALES/TRANSACTIONS ROUTES -------------------- */
 
 // GET all sales
-app.get("/api/sales", (req, res) => {
+app.get("/api/sales", authenticateToken, (req, res) => {
   fs.readFile(SALES_FILE, "utf8", (err, data) => {
     if (err) return res.status(500).json({ error: "Failed to read sales file" });
     res.json(JSON.parse(data));
@@ -154,7 +242,7 @@ app.get("/api/sales", (req, res) => {
 });
 
 // POST new sale
-app.post("/api/sales", (req, res) => {
+app.post("/api/sales", authenticateToken, (req, res) => {
   const newSale = req.body;
 
   const required = ["productCode", "invoiceDate", "quantitySold", "discount", "tax"];
@@ -212,7 +300,7 @@ app.post("/api/sales", (req, res) => {
   });
 });
 
-app.put("/api/sales/:invoiceId", (req, res) => {
+app.put("/api/sales/:invoiceId", authenticateToken, (req, res) => {
   const invoiceIdToUpdate = req.params.invoiceId;
   const updatedSaleData = req.body;
 
@@ -263,7 +351,7 @@ app.put("/api/sales/:invoiceId", (req, res) => {
 
 /* -------------------- DATA INVENTORY STUFF -------------------- */
 
-app.get("/inventory", (req, res) => {
+app.get("/inventory", authenticateToken, (req, res) => {
   fs.readFile(INVENTORY_FILE, "utf-8", (err, data) => {
     if (err) {
       return res.status(500).json({ error: "Failed to read data file" });
@@ -272,7 +360,7 @@ app.get("/inventory", (req, res) => {
   });
 });
 
-app.put('/api/inventory/:id', (req, res) => {
+app.put('/api/inventory/:id', authenticateToken, (req, res) => {
   const selectedProductCode = req.params.id;
   const editedItem = req.body;
 
@@ -317,7 +405,7 @@ app.put('/api/inventory/:id', (req, res) => {
 });
 
 // DELETE (remove an inventory item)
-app.delete("/api/inventory/:id", (req, res) => {
+app.delete("/api/inventory/:id", authenticateToken, (req, res) => {
   const id = req.params.id;
 
   fs.readFile(INVENTORY_FILE, "utf8", (err, data) => {
@@ -352,7 +440,7 @@ app.delete("/api/inventory/:id", (req, res) => {
 });
 
 // DELETE (remove a transaction item)
-app.delete("/api/sales/:id", (req, res) => {
+app.delete("/api/sales/:id", authenticateToken, (req, res) => {
   const id = req.params.id;
 
   fs.readFile(SALES_FILE, "utf8", (err, data) => {
@@ -396,7 +484,7 @@ app.delete("/api/sales/:id", (req, res) => {
 
 /* -------------------- DATA TRANSACTIONS STUFF -------------------- */
 
-app.get("/transactions", (req, res) => {
+app.get("/transactions", authenticateToken, (req, res) => {
   fs.readFile(SALES_FILE, "utf-8", (err, data) => {
     if (err) {
       return res.status(500).json({ error: "Failed to read data file" });
