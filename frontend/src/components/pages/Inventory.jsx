@@ -14,7 +14,7 @@ export default function Inventory(){
   const [query, setQuery] = useState(""); // Search items state
   const [filter, setFilter] = useState('All'); // Filter category button
   const categoryFilters = ['All', ...new Set(items.map(item => item.productCategory))]; // Array list of categories for filter
-  
+
   const theBoxValues = [
     { number: items.length, label: "Total Items" },
     {
@@ -33,13 +33,23 @@ export default function Inventory(){
   const testRows = new Array(12).fill(null);
 
   useEffect(() => {
-    fetch("http://localhost:3000/api/inventory")
+    const token = localStorage.getItem('token');
+    const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
+
+    fetch("http://localhost:3000/api/inventory", { headers })
       .then((res) => {
-        if (!res.ok) throw new Error("Failed to fetch inventory");
+        if (!res.ok) {
+          throw new Error('Unauthorized access');
+        }
         return res.json();
       })
       .then((data) => setItems(data))
-      .catch((err) => console.error("Error fetching inventory:", err));
+      .catch((err) => {
+        console.error("Error fetching inventory:", err);
+        if (err.message === 'Unauthorized access') {
+          window.location.href = '/login';
+        }
+      });
   }, []);
 
   // Update items list based on search and/or filter
@@ -65,7 +75,6 @@ export default function Inventory(){
       <div className="text-nunito font-bold text-4xl mb-[16px]">
         Inventory Management
       </div>
-      
 
       <div className="w-full h-[140px] flex gap-3 mb-[40px]">
         {theBoxValues.map((box, index) => (
@@ -85,7 +94,7 @@ export default function Inventory(){
 
       <div className="w-full  h-[35px] font-bold mb-[32px] flex">
         <div className="text-nunito text-2xl">Inventory Overview</div>
-     
+
         <div className="ml-auto flex gap-4  ">
           <SearchBar onSearch = {setQuery}/>
 
@@ -95,7 +104,7 @@ export default function Inventory(){
             onSelect={(selectedOption) => setFilter(selectedOption)}
           />
 
-           <Link to="/inventory/input">
+          <Link to="/inventory/input">
             <Button>Add item</Button>
           </Link>
         </div>
@@ -117,15 +126,18 @@ export default function Inventory(){
           <tbody>
             {updateItems.length === 0 ? (
                 <NotFound/>
-              ) : 
+              ) :
               updateItems.map((item, index) => (
               <InventoryRow
                 key={item.productCode}
                 item={item}
                 onDelete={(code) => {
-                  // call backend DELETE and update state
+                  const token = localStorage.getItem('token');
+                  const headers = { 'Authorization': `Bearer ${token}` };
+
                   fetch(`http://localhost:3000/api/inventory/${encodeURIComponent(code)}`, {
                     method: "DELETE",
+                    headers: headers,
                   })
                     .then((res) => {
                       if (!res.ok) throw new Error("Delete failed");
