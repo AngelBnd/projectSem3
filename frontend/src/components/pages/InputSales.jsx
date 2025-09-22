@@ -4,6 +4,7 @@ import Button from "..//Button";
 import { useLocation, useNavigate } from "react-router-dom";
 import { jsPDF } from "jspdf";
 import { handleDownloadPdf } from "../../functions/savepdf";
+import Invoice from "../Invoice";
 
 export default function InputSales() {
   const location = useLocation();
@@ -146,8 +147,8 @@ export default function InputSales() {
         {isEditMode ? "Edit Transaction" : "Add a Transaction"}
       </div>
 
-      <div className=" w-full h-[560px] flex gap-12">
-        <div className="w-full h-full ">
+      <div className=" w-full h-[540px] flex gap-12">
+        <div className="w-[50em] h-full ">
           <InputTransactionForm 
             formData={formData} 
             setFormData={setFormData}
@@ -161,71 +162,21 @@ export default function InputSales() {
         </div>
 
         {/* INVOICE */}
-        <div className="w-full h-full "> 
-          <div className="bg-white rounded-lg shadow text-black px-6 py-6 w-full">
-            <div className="font-bold text-xl mb-1">Invoice</div>
-            <div className="text-gray-500 text-sm mb-3">
-              {/* 4. Display the ID from state */}
-              #{invoiceId || "Generating ID..."}
-            </div>
-            <hr className="my-3" />
-            <div className="font-bold">King-Motor</div>
-            <div className="text-sm mb-3">
-              Ruko Pd. Lestari, Jl. HOS Cokroaminoto No.19 blok a1,<br />
-              Karang Tengah, Kec. Ciledug, Tangerang Kota, Banten 15157
-            </div>
-            <hr className="my-3" />
-            <div className="flex justify-between text-sm mb-3">
-              <span className="font-medium">Invoice Date</span>
-              <span>
-                {new Date(formData.invoiceDate).toLocaleDateString('en-GB', {
-                  day: '2-digit',
-                  month: '2-digit',
-                  year: 'numeric'
-                })}
-              </span>
-            </div>
-            <hr className="my-3" />
-            <div className="text-sm space-y-2">
-              <div className="flex justify-between">
-                <span>Product Code</span>
-                <span>{formData.productCode || "XXXXX"}</span>
-              </div>
-              <div className="flex justify-between">
-                <span>Product Name</span>
-                <span>{productDetails?.productName || "Product not found"}</span>
-              </div>
-              <div className="flex justify-between">
-                <span>Quantity Sold</span>
-                <span>{formData.quantitySold || 0}</span>
-              </div>
-              <div className="flex justify-between">
-                <span>Unit Price</span>
-                <span>Rp {formatCurrency(unitPrice)}</span>
-              </div>
-              <div className="flex justify-between">
-                <span>Discount</span>
-                <span>{formData.discount || 0}%</span>
-              </div>
-              <div className="flex justify-between">
-                <span>Tax</span>
-                <span>{formData.tax || 0}%</span>
-              </div>
-              <div className="flex justify-between">
-                <span>SubTotal</span>
-                <span>Rp {formatCurrency(subtotal)}</span>
-              </div>
-            </div>
-            <hr className="my-3" />
-            <div className="flex justify-between text-lg font-bold mb-6">
-              <span>Total</span>
-              <span className="text-black">Rp {formatCurrency(totalAmount)}</span>
-            </div>
-            <div className="flex justify-center">
-              <Button className="px-6" onClick={handleDownloadPdf}>Download invoice</Button>
-            </div>
-          </div>
-        </div>
+      <Invoice
+        formData={{
+            invoiceId: "12345", // A dynamic ID
+            invoiceDate: "2025-09-22",
+            name: "John Doe",
+            subject: "Motorcycle repair",
+            paymentMethod: "Cash"
+        }}
+        products={[
+            { name: "Motor Oil", price: 50000, quantity: 2 },
+            { name: "Spark Plug", price: 25000, quantity: 1 }
+        ]}
+        useDiscount={true}
+        discountValue={10} // As a percentage
+    />
       </div>
     </div>
   );

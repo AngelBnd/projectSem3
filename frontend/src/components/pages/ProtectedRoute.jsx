@@ -9,7 +9,7 @@ const ProtectedRoute = ({ isAuthenticated, children }) => {
   }
 
   return (
-    <div className="bg-[#F5F7FA] px-[180px] pt-[52px]">
+    <div className="bg-[#F5F7FA] px-[130px] pt-[45px]">
       {children}
     </div>
   );
