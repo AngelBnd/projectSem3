@@ -1,4 +1,5 @@
 import FilterDropdown from "../FilterButton";
+import DeletePopup from "../DeletePopup";
 import SearchBar from "../SearchBar";
 import TransactionRow from "../TransactionRow";
 import { Link } from "react-router-dom";
@@ -7,7 +8,9 @@ import NotFound from "../NotFound";
 import { useEffect, useState, useMemo  } from "react";
 
 
-export default function Sales(){  
+export default function Sales(){
+const [openPopup, setOpenPopup] = useState(false);
+const [selectedItem, setSelectedItem] = useState(null);
 const [sales, setSales] = useState([]);
 const [products, setProducts] = useState([]);
 const [query, setQuery] = useState(""); // Search items state
@@ -174,32 +177,43 @@ const { profitTotal, orderTotal, expenseTotal } = useMemo(() => {
                     key={sale.invoiceId}
                     sale={sale}
                     products={products}
-                    onDelete={(id) => {
-                      // Use a template literal for a clean, readable string output
-                      console.log(`ID sent to backend: ${id}`);
-
-                      fetch(`http://localhost:3000/api/sales/${encodeURIComponent(id)}`, {
-                        method: "DELETE",
-                      })
-                        .then((res) => {
-                          if (!res.ok) throw new Error("Delete failed");
-                          return res.json();
-                        })
-                        .then(() => {
-                          setSales((prev) => {
-                            return prev.filter((s) => String(s.invoiceId) !== String(id));
-                          });
-                        })
-                        .catch((err) => {
-                          console.error("Delete failed:", err);
-                          alert("Failed to delete item. Check console/server logs.");
-                        });
+                    openDeletePopup={(item) => {
+                      setSelectedItem(item);
+                      setOpenPopup(true);
                     }}
                   />
                 ))
               )}
             </tbody>
         </table>
+        {openPopup && 
+          <DeletePopup 
+            item = {selectedItem}
+            closePopup = {() => setOpenPopup(false)}
+            onDelete={(items) => {
+              const id = items.invoiceId;
+              // Use a template literal for a clean, readable string output
+              console.log(`ID sent to backend: ${id}`);
+
+              fetch(`http://localhost:3000/api/sales/${encodeURIComponent(id)}`, {
+                method: "DELETE",
+              })
+                .then((res) => {
+                  if (!res.ok) throw new Error("Delete failed");
+                    return res.json();
+                })
+                .then(() => {
+                  setSales((prev) => {
+                    return prev.filter((s) => String(s.invoiceId) !== String(id));
+                  });
+                })
+                .catch((err) => {
+                  console.error("Delete failed:", err);
+                  alert("Failed to delete item. Check console/server logs.");
+                });
+              setOpenPopup(false);
+            }}
+        />}
       </div>
     </div>
   );

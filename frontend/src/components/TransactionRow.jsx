@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import BadgeStatus from './BadgeStatus';
 import Dropdown from "./Dropdown";
 
-export default function TransactionRow({sale, products, onDelete }) {
+export default function TransactionRow({sale, products, openDeletePopup}) {
   const {
     productCode,
     invoiceDate,
@@ -122,7 +122,9 @@ export default function TransactionRow({sale, products, onDelete }) {
               onClose={() => setIsDropdownOpen(false)}
               item={sale}
               type="transaction" // Set type to transaction
-              onDelete={onDelete}
+              openPopup={(item) => {
+                openDeletePopup(item);
+              }}
               ref={dropdownMenuRef}
             />
           </div>

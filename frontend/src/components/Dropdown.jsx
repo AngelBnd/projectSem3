@@ -1,6 +1,7 @@
 import { createPortal } from "react-dom";
 import { Link } from "react-router-dom";
-import { forwardRef } from "react";
+import { forwardRef, use } from "react";
+import { useState } from "react";
 
 const Dropdown = forwardRef(({ 
   isOpen, 
@@ -8,7 +9,7 @@ const Dropdown = forwardRef(({
   onClose, 
   item, 
   type = "product", // Default to product type
-  onDelete
+  openPopup
 }, ref) => {
   if (!isOpen) return null;
 
@@ -51,13 +52,10 @@ const Dropdown = forwardRef(({
         </Link>
 
         <button
+          type="button"
           className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100 bg-white"
           onClick={() => {
-            if (window.confirm(`Are you sure you want to delete this ${type}?`)) {
-              const id = type === "transaction" ? item.invoiceId : item.productCode;
-              onDelete?.(id);
-            }
-            onClose?.();
+            openPopup(item);
           }}
         >
           {deleteText}

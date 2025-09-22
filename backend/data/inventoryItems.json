@@ -1,27 +1,5 @@
 [
   {
-    "productCode": "SW-KICKER-BALLS",
-    "productName": "CompC 12 Subwoofer",
-    "productBrand": "Kicker",
-    "productCategory": "Subwoofers",
-    "unitCost": 65,
-    "sellingPrice": "129.999",
-    "initialStock": 50,
-    "thresholdStock": 10,
-    "lastUpdated": "2025-09-20"
-  },
-  {
-    "productCode": "AMP-JL-MONO",
-    "productName": "JD500/1 Amp",
-    "productBrand": "JL Audio",
-    "productCategory": "Amplifiers",
-    "unitCost": 225,
-    "sellingPrice": 399.99,
-    "initialStock": 25,
-    "thresholdStock": 5,
-    "lastUpdated": "2025-09-19"
-  },
-  {
     "productCode": "HU-PION-MVH-S2",
     "productName": "Pioneer MVH-S215BT",
     "productBrand": "Pioneer",

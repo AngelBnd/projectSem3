@@ -2,6 +2,7 @@ import Button from "../Button";
 import FilterDropdown from "../FilterButton";
 import SearchBar from "../SearchBar";
 import BadgeStatus from "../BadgeStatus";
+import DeletePopup from "../DeletePopup"
 import InventoryRow from "../InventoryRow";
 import NotFound from "../NotFound";
 import { Link } from "react-router-dom";
@@ -10,6 +11,8 @@ import { useEffect, useState, useSyncExternalStore } from "react";
 const stockStatuses = ["Low stock", "Good", "Out of Stock", "Low stock"];
 
 export default function Inventory(){
+  const [openPopup, setOpenPopup] = useState(false);
+  const [selectedItem, setSelectedItem] = useState(null);
   const [items, setItems] = useState([]);
   const [query, setQuery] = useState(""); // Search items state
   const [filter, setFilter] = useState('All'); // Filter category button
@@ -65,8 +68,6 @@ export default function Inventory(){
       <div className="text-nunito font-bold text-4xl mb-[16px]">
         Inventory Management
       </div>
-      
-
       <div className="w-full h-[140px] flex gap-3 mb-[40px]">
         {theBoxValues.map((box, index) => (
           <div
@@ -122,27 +123,38 @@ export default function Inventory(){
               <InventoryRow
                 key={item.productCode}
                 item={item}
-                onDelete={(code) => {
-                  // call backend DELETE and update state
-                  fetch(`http://localhost:3000/api/inventory/${encodeURIComponent(code)}`, {
-                    method: "DELETE",
-                  })
-                    .then((res) => {
-                      if (!res.ok) throw new Error("Delete failed");
-                      return res.json();
-                    })
-                    .then(() => {
-                      setItems((prev) => prev.filter((i) => String(i.productCode) !== String(code)));
-                    })
-                    .catch((err) => {
-                      console.error("Delete failed:", err);
-                      alert("Failed to delete item. Check console/server logs.");
-                    });
+                openDeletePopup = {(item) =>{ 
+                  setSelectedItem(item);
+                  setOpenPopup(true);
                 }}
               />
             ))}
           </tbody>
         </table>
+        {openPopup && 
+          <DeletePopup 
+          item = {selectedItem}
+          closePopup = {() => setOpenPopup(false)}
+          onDelete={(items) => {
+            // call backend DELETE and update state
+            const code = items.productCode;
+            fetch(`http://localhost:3000/api/inventory/${encodeURIComponent(code)}`, {
+              method: "DELETE",
+            })
+            .then((res) => {
+              if (!res.ok) throw new Error("Delete failed");
+                return res.json();
+            })
+            .then(() => {
+              setItems((prev) => prev.filter((i) => String(i.productCode) !== String(code)));
+            })
+              .catch((err) => {
+              console.error("Delete failed:", err);
+              alert("Failed to delete item. Check console/server logs.");
+            });
+            setOpenPopup(false);
+          }}
+        />}
       </div>
     </div>
   );
