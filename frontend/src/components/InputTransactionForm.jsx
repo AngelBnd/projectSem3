@@ -44,7 +44,7 @@ const ProductItem = ({ product, index, handleProductChange, handleDeleteProduct 
 };
 
 export default function InputTransactionForm({ mode, item, isEditMode, formData, setFormData, setProductDetails }) {
-    
+  const [hasAddedProduct, setHasAddedProduct] = useState(false);
   const bottomRef = useRef(null);
   const navigate = useNavigate();
     const [products, setProducts] = useState([
@@ -57,13 +57,18 @@ export default function InputTransactionForm({ mode, item, isEditMode, formData,
 
     const handleAddProduct = () => {
         setProducts(prev => [...prev, { id: prev.length + 1, name: "", price: 200000, quantity: 1, tax: 0 }]);
+        setHasAddedProduct(true);
     };
 
     useEffect(() => {
-    if (bottomRef.current) {
-        bottomRef.current.scrollIntoView({ behavior: 'smooth' });
-    }
-    }, [products]); 
+        // Only run the scroll effect if a product has been added
+        if (hasAddedProduct) {
+            if (bottomRef.current) {
+                bottomRef.current.scrollIntoView({ behavior: 'smooth' });
+            }
+            setHasAddedProduct(false); // Reset the state after scrolling
+        }
+    }, [products, hasAddedProduct]); // Add both dependencies
 
     const handleDeleteProduct = (index) => {
         setProducts(prev => prev.filter((_, i) => i !== index));
