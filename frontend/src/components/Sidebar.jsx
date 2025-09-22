@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 const Sidebar = () => {
   return (
     <div className="col-span-2 bg-white  flex flex-col h-screen p-[40px]">
-      <h1 className="text-2xl text-black font-bold mb-8 font-nunito">King-Motor</h1>
+      <h1 className="text-2xl text-black font-bold mb-8 font-nunito">StockWise</h1>
       <nav>
         <ul>
             <div className='text-[#838790] font-nunito text-[10px] mb-[8px]'>REPORT</div>

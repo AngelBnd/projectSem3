@@ -1,10 +1,13 @@
-// server.js
+
+require('dotenv').config(); 
+
 const express = require("express");
 const fs = require('fs');
 const path = require('path');
 const cors = require("cors");
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+
 
 const app = express();
 const PORT = 3000;
@@ -18,7 +21,7 @@ const USERS_FILE = path.join(__dirname, "data", "users.json");
 app.use(cors());
 app.use(express.json());
 
-const JWT_SECRET = 'your_super_secret_jwt_key';
+const JWT_SECRET = process.env.JWT_SECRET;
 
 /* -------------------- AUTHENTICATION ROUTES -------------------- */
 
