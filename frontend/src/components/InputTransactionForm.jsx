@@ -29,13 +29,27 @@ export default function InputTransactionForm({ mode, item, isEditMode, formData,
 
   useEffect(() => {
     const fetchProductDetails = async (productCode) => {
-      // Don't fetch if productCode is empty
+      
       if (!productCode) {
         setProductDetails(null);
         return;
       }
+
+      const token = localStorage.getItem('token');
+      if (!token) {
+        console.error("Authentication token missing. Cannot fetch product details.");
+        setProductDetails(null);
+        return;
+      }
+
       try {
-        const response = await fetch(`http://localhost:3000/api/inventory/${productCode}`);
+        const response = await fetch(`http://localhost:3000/api/inventory/${productCode}`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}` // Add the Authorization header
+        }
+      });
+      
         if (response.ok) {
           const data = await response.json();
           setProductDetails(data);
@@ -75,11 +89,22 @@ export default function InputTransactionForm({ mode, item, isEditMode, formData,
         ? `http://localhost:3000/api/sales/${item.invoiceId}`
         : "http://localhost:3000/api/sales";
 
+
+      const token = localStorage.getItem('token');
+      if (!token) {
+        alert("Authentication token missing. Please log in again.");
+        return navigate('/login');
+      }
+
+      const headers = {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}` 
+      };
         
       const method = mode === "edit" ? "PUT" : "POST";
       const response = await fetch(url, {
         method: method,
-        headers: {"Content-Type": "application/json",},
+        headers: headers, 
         body: JSON.stringify(saleData),
       });
 
