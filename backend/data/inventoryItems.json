@@ -8,7 +8,8 @@
     "sellingPrice": "129.999",
     "initialStock": 50,
     "thresholdStock": 10,
-    "lastUpdated": "2025-09-20"
+    "lastUpdated": "2025-09-20",
+    "userId": "1758541166203"
   },
   {
     "productCode": "AMP-JL-MONO",
@@ -19,7 +20,8 @@
     "sellingPrice": 399.99,
     "initialStock": 25,
     "thresholdStock": 5,
-    "lastUpdated": "2025-09-19"
+    "lastUpdated": "2025-09-19",
+    "userId": "1758541166203"
   },
   {
     "productCode": "HU-PION-MVH-S2",
@@ -30,7 +32,8 @@
     "sellingPrice": 119.99,
     "initialStock": 40,
     "thresholdStock": 15,
-    "lastUpdated": "2025-09-19"
+    "lastUpdated": "2025-09-19",
+    "userId": "1758541166203"
   },
   {
     "productCode": "SPKR-JBL-CLUB-6.5",
@@ -41,7 +44,8 @@
     "sellingPrice": 99.99,
     "initialStock": 60,
     "thresholdStock": 20,
-    "lastUpdated": "2025-09-19"
+    "lastUpdated": "2025-09-19",
+    "userId": "1758541166203"
   },
   {
     "productCode": "DSP-FOCAL-FPX-DSP",
@@ -52,7 +56,8 @@
     "sellingPrice": 499,
     "initialStock": 10,
     "thresholdStock": 3,
-    "lastUpdated": "2025-09-19"
+    "lastUpdated": "2025-09-19",
+    "userId": "1758541166203"
   },
   {
     "productCode": "AMP-JL-UNO",
@@ -63,17 +68,31 @@
     "sellingPrice": "1000000",
     "initialStock": "41",
     "thresholdStock": "4",
-    "lastUpdated": "2025-09-21"
+    "lastUpdated": "2025-09-21",
+    "userId": "1758541166203"
   },
   {
-    "productCode": "SW-KICKER-COMPCHH",
-    "productName": "TEST",
-    "productBrand": "YAH",
-    "productCategory": "OKE",
-    "unitCost": "2000000",
-    "sellingPrice": "3000000",
+    "productCode": "a",
+    "productName": "a",
+    "productBrand": "a",
+    "productCategory": "a",
+    "unitCost": "300000",
+    "sellingPrice": "300000",
     "initialStock": "3",
     "thresholdStock": "4",
-    "lastUpdated": "2025-09-21"
+    "lastUpdated": "2025-09-22",
+    "userId": "1758541166203"
+  },
+  {
+    "productCode": "aaa",
+    "productName": "aaa",
+    "productBrand": "aaa",
+    "productCategory": "aaa",
+    "unitCost": "2333",
+    "sellingPrice": "333333",
+    "initialStock": "3",
+    "thresholdStock": "4",
+    "lastUpdated": "2025-09-22",
+    "userId": "1758541166203"
   }
 ]

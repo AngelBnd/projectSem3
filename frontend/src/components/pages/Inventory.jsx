@@ -7,13 +7,14 @@ import NotFound from "../NotFound";
 import { Link } from "react-router-dom";
 import { useEffect, useState, useSyncExternalStore } from "react";
 
+// Assuming these are still valid based on your backend logic
 const stockStatuses = ["Low stock", "Good", "Out of Stock", "Low stock"];
 
-export default function Inventory(){
+export default function Inventory() {
   const [items, setItems] = useState([]);
-  const [query, setQuery] = useState(""); // Search items state
-  const [filter, setFilter] = useState('All'); // Filter category button
-  const categoryFilters = ['All', ...new Set(items.map(item => item.productCategory))]; // Array list of categories for filter
+  const [query, setQuery] = useState("");
+  const [filter, setFilter] = useState('All');
+  const categoryFilters = ['All', ...new Set(items.map(item => item.productCategory))];
 
   const theBoxValues = [
     { number: items.length, label: "Total Items" },
@@ -28,9 +29,6 @@ export default function Inventory(){
       label: "Out of Stock Items",
     },
   ];
-
-  const boxes = new Array(3).fill(null);
-  const testRows = new Array(12).fill(null);
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -52,9 +50,8 @@ export default function Inventory(){
       });
   }, []);
 
-  // Update items list based on search and/or filter
   const updateItems = items.filter(item => {
-    if(filter != 'All' && item.productCategory !== filter) {
+    if (filter != 'All' && item.productCategory !== filter) {
       return false;
     }
 
@@ -66,12 +63,11 @@ export default function Inventory(){
         return false;
       }
     }
-
     return true;
   });
 
   return (
-    <div className="w-full text-black  ">
+    <div className="w-full text-black">
       <div className="text-nunito font-bold text-4xl mb-[16px]">
         Inventory Management
       </div>
@@ -82,21 +78,19 @@ export default function Inventory(){
             key={index}
             className="bg-white w-full h-full rounded-lg shadow flex flex-col items-start justify-center px-5"
           >
-            {/* Big number */}
             <span className="text-3xl font-bold font-nunito text-black">
               {box.number}
             </span>
-            {/* Label text */}
             <span className="text-sm text-gray-600">{box.label}</span>
           </div>
         ))}
       </div>
 
-      <div className="w-full  h-[35px] font-bold mb-[32px] flex">
+      <div className="w-full h-[35px] font-bold mb-[32px] flex">
         <div className="text-nunito text-2xl">Inventory Overview</div>
 
-        <div className="ml-auto flex gap-4  ">
-          <SearchBar onSearch = {setQuery}/>
+        <div className="ml-auto flex gap-4">
+          <SearchBar onSearch={setQuery} />
 
           <FilterDropdown
             label="Filter"
@@ -125,34 +119,35 @@ export default function Inventory(){
           </thead>
           <tbody>
             {updateItems.length === 0 ? (
-                <NotFound/>
-              ) :
+              <NotFound />
+            ) :
               updateItems.map((item, index) => (
-              <InventoryRow
-                key={item.productCode}
-                item={item}
-                onDelete={(code) => {
-                  const token = localStorage.getItem('token');
-                  const headers = { 'Authorization': `Bearer ${token}` };
+                <InventoryRow
+                  key={item.productCode}
+                  item={item}
+                  onDelete={(code) => {
+                    const token = localStorage.getItem('token');
+                    const headers = { 'Authorization': `Bearer ${token}` };
 
-                  fetch(`http://localhost:3000/api/inventory/${encodeURIComponent(code)}`, {
-                    method: "DELETE",
-                    headers: headers,
-                  })
-                    .then((res) => {
-                      if (!res.ok) throw new Error("Delete failed");
-                      return res.json();
+                    fetch(`http://localhost:3000/api/inventory/${encodeURIComponent(code)}`, {
+                      method: "DELETE",
+                      headers: headers,
                     })
-                    .then(() => {
-                      setItems((prev) => prev.filter((i) => String(i.productCode) !== String(code)));
-                    })
-                    .catch((err) => {
-                      console.error("Delete failed:", err);
-                      alert("Failed to delete item. Check console/server logs.");
-                    });
-                }}
-              />
-            ))}
+                      .then((res) => {
+                        if (!res.ok) throw new Error("Delete failed");
+                        return res.json();
+                      })
+                      .then(() => {
+                        // The filter logic on the frontend is still correct
+                        setItems((prev) => prev.filter((i) => String(i.productCode) !== String(code)));
+                      })
+                      .catch((err) => {
+                        console.error("Delete failed:", err);
+                        alert("Failed to delete item. Check console/server logs.");
+                      });
+                  }}
+                />
+              ))}
           </tbody>
         </table>
       </div>

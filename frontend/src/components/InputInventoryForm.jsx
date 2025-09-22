@@ -1,13 +1,11 @@
-import { useState } from "react";
+import { useState,useEffect } from "react";
 import Button from "./Button";
 import { useLocation, useNavigate } from "react-router-dom"; 
-import { useEffect } from "react";
 
 export default function InputInventoryForm() {
   const navigate = useNavigate();
   const location = useLocation();
   const { mode, item } = location.state || {};
-
 
   const [formData, setFormData] = useState({
     productCode: "",
@@ -21,7 +19,6 @@ export default function InputInventoryForm() {
     lastUpdated: ""
   });
 
-    // Use useEffect to set form data when item exists in state
   useEffect(() => {
     if (mode === "edit" && item) {
       setFormData({
@@ -42,51 +39,61 @@ export default function InputInventoryForm() {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-const handleSubmit = async (e) => {
-  e.preventDefault();
-  try {
-    const url =
-      mode === "edit"
-        ? `http://localhost:3000/api/inventory/${item.productCode}`
-        : "http://localhost:3000/api/inventory";
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const url =
+        mode === "edit"
+          ? `http://localhost:3000/api/inventory/${item.productCode}`
+          : "http://localhost:3000/api/inventory";
 
-    const method = mode === "edit" ? "PUT" : "POST";
-    const response = await fetch(url, {
-      method: method,
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(formData),
-    });
+      const method = mode === "edit" ? "PUT" : "POST";
 
-    // Check for success status codes.
-    // 200 OK (for POST) or 204 No Content (for PUT)
-    if (response.status === 200 || response.status === 204) {
-      alert("Inventory item saved!");
-      setFormData({
-        productCode: "",
-        productName: "",
-        productBrand: "",
-        productCategory: "",
-        unitCost: "",
-        sellingPrice: "",
-        initialStock: "",
-        thresholdStock: "",
-        lastUpdated: ""
+
+      const token = localStorage.getItem('token');
+      if (!token) {
+        alert("Authentication token missing. Please log in again.");
+        return navigate('/login');
+      }
+
+      const headers = {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}` 
+      };
+
+      const response = await fetch(url, {
+        method: method,
+        headers: headers, 
+        body: JSON.stringify(formData),
       });
-    } else {
-      // Handle server-side errors
-      const errorData = await response.json();
-      alert(`Failed to save item: ${errorData.error}`);
-    }
-  } catch (error) {
-    console.error("Error:", error);
-    alert("An error occurred. Please check the network connection.");
-  }
-  window.history.back();
-};
 
-const handleCancel = () => {
-  navigate(-1);
-};
+      if (response.status === 200 || response.status === 204) {
+        alert("Inventory item saved!");
+        setFormData({
+          productCode: "",
+          productName: "",
+          productBrand: "",
+          productCategory: "",
+          unitCost: "",
+          sellingPrice: "",
+          initialStock: "",
+          thresholdStock: "",
+          lastUpdated: ""
+        });
+        navigate(-1);
+      } else {
+        const errorData = await response.json();
+        alert(`Failed to save item: ${errorData.error}`);
+      }
+    } catch (error) {
+      console.error("Error:", error);
+      alert("An error occurred. Please check the network connection.");
+    }
+  };
+
+  const handleCancel = () => {
+    navigate(-1);
+  };
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-4">
@@ -202,35 +209,35 @@ const handleCancel = () => {
       {/* Initial Stock + Threshold */}
       <div className="flex gap-4">
         <div className="w-full flex gap-4">
-            <div className="w-full">
+          <div className="w-full">
             <label className="block text-sm font-semibold text-black font-nunito">
-                Initial Stock Level
+              Initial Stock Level
             </label>
             <input
-                type="number"
-                name="initialStock"
-                value={formData.initialStock}
-                onChange={handleChange}
-                placeholder="Initial Stock Level"
-                className="border p-2 rounded-2xl w-full bg-white text-black"
-                required
+              type="number"
+              name="initialStock"
+              value={formData.initialStock}
+              onChange={handleChange}
+              placeholder="Initial Stock Level"
+              className="border p-2 rounded-2xl w-full bg-white text-black"
+              required
             />
-            </div>
+          </div>
 
-            <div className="w-full">
+          <div className="w-full">
             <label className="block text-sm font-semibold text-black font-nunito">
-                Threshold Stock Level
+              Threshold Stock Level
             </label>
             <input
-                type="number"
-                name="thresholdStock"
-                value={formData.thresholdStock}
-                onChange={handleChange}
-                placeholder="Threshold Stock Level"
-                className="border p-2 rounded-2xl w-full bg-white text-black"
-                required
+              type="number"
+              name="thresholdStock"
+              value={formData.thresholdStock}
+              onChange={handleChange}
+              placeholder="Threshold Stock Level"
+              className="border p-2 rounded-2xl w-full bg-white text-black"
+              required
             />
-            </div>
+          </div>
         </div>
         <div className="w-full"></div>
       </div>
