@@ -1,0 +1,86 @@
+datasource db {
+  provider = "mysql" 
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+
+// entities
+
+model Users {
+  id        Int   @id @default(autoincrement())
+  username  String   @unique
+  password  String
+
+  products  Products[] 
+  invoices  Invoices[] 
+}
+
+model Products {
+  productCode   String   @id
+
+  productName    String
+  productCategory  String
+  productBrand      String
+
+
+  sellingPrice  Decimal  @db.Decimal(10, 2) 
+  unitCost      Decimal  @db.Decimal(10, 2)
+
+
+  initialStock      Int      @default(0)
+  thresholdStock    Int      @default(0)
+
+  // DEFINING FK
+  userId        Int
+  user          Users     @relation(fields: [userId], references: [id])
+
+  lastUpdated   DateTime @updatedAt 
+  
+  lineItems  LineItems[] // Products can be on many LineItems
+  // stockAdjustments StockAdjustment[] 
+}
+
+model Invoices {
+  invoiceNumber   String     @id
+
+  invoiceDate     DateTime   @default(now())
+  
+  subject         String   
+  
+  paymentMethod   String
+  subtotal        Decimal    @db.Decimal(10, 2) 
+  totalAmount     Decimal    @db.Decimal(10, 2) 
+
+  // DEFINING FK
+  userId        Int
+  user          Users     @relation(fields: [userId], references: [id])
+  
+  lineItems    LineItems[] 
+}
+
+model LineItems {
+  id              Int        @id @default(autoincrement())
+
+  // DEFINING FK
+  invoiceNumber   String
+  invoice         Invoices    @relation(fields: [invoiceNumber], references: [invoiceNumber])
+  
+  productCode     String
+  product         Products    @relation(fields: [productCode], references: [productCode])
+
+  quantitySold    Int
+  
+
+  sellingPrice    Decimal    @db.Decimal(10, 2)
+  
+
+  lineSubtotal    Decimal    @db.Decimal(10, 2)
+  
+
+  discount        Decimal    @db.Decimal(10, 2) @default(0.00) // Assuming discount is a currency value or percentage 
+}
+
