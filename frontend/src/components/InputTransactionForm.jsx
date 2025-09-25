@@ -83,8 +83,7 @@ export default function InputTransactionForm({ mode, item, isEditMode, formData,
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        // Here you would handle the form submission logic for the new structure.
-        // This includes processing the products array, discount, and other form fields.
+    
         console.log("Form Submitted:", {
             name: formData.name,
             subject: formData.subject,

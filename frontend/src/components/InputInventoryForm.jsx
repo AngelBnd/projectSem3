@@ -16,7 +16,6 @@ export default function InputInventoryForm() {
     sellingPrice: "",
     initialStock: "",
     thresholdStock: "",
-    lastUpdated: ""
   });
 
   useEffect(() => {
@@ -30,7 +29,7 @@ export default function InputInventoryForm() {
         sellingPrice: item.sellingPrice || "",
         initialStock: item.initialStock || "",
         thresholdStock: item.thresholdStock || "",
-        lastUpdated: item.lastUpdated || new Date().toISOString().split('T')[0]
+
       });
     }
   }, [mode, item]);
@@ -67,8 +66,9 @@ export default function InputInventoryForm() {
         body: JSON.stringify(formData),
       });
 
-      if (response.status === 200 || response.status === 204) {
-        alert("Inventory item saved!");
+      if (response.status === 200 || response.status === 204|| response.status === 201 ) {
+        const resultData = await response.json(); 
+        alert(`Inventory item saved! ${resultData.message || ''}`);
         setFormData({
           productCode: "",
           productName: "",
@@ -78,7 +78,6 @@ export default function InputInventoryForm() {
           sellingPrice: "",
           initialStock: "",
           thresholdStock: "",
-          lastUpdated: ""
         });
         navigate(-1);
       } else {

@@ -94,5 +94,17 @@
     "thresholdStock": "4",
     "lastUpdated": "2025-09-22",
     "userId": "1758541166203"
+  },
+  {
+    "productCode": "kogreg",
+    "productName": "iya",
+    "productBrand": "aaa",
+    "productCategory": "aaa",
+    "unitCost": "222222",
+    "sellingPrice": "200000",
+    "initialStock": "2",
+    "thresholdStock": "30",
+    "lastUpdated": "2025-09-23",
+    "userId": "1758541166203"
   }
 ]
