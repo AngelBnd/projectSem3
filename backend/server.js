@@ -130,7 +130,9 @@ const authenticateToken = (req, res, next) => {
       return res.status(403).json({ error: "Invalid or expired token" });
     }
     // Store the full user object (including ID) on the request
-    req.user = user;
+    req.user = {
+      id: parseInt(user.id, 10),
+    };
     next();
   });
 };
@@ -231,21 +233,40 @@ app.delete("/api/inventory/:id", authenticateToken, (req, res) => {
 //   });
 // });
 
+app.get('/api/inventory/search', authenticateToken, async (req, res) => {
+    try {
+        const { q } = req.query;
+        // userId should be guaranteed to be an integer here based on a well-written authenticateToken
+        const userId = req.user.id; 
+
+        const products = await prisma.products.findMany({
+            where: {
+                userId: userId,
+                OR: [
+                    { productCode: { contains: q } },
+                    { productName: { contains: q } },
+                ],
+            },
+            take: 10,
+        });
+
+        res.json(products);
+    } catch (error) {
+        console.error("Search API Error:", error);
+        res.status(500).json({ error: 'Failed to search for products' });
+    }
+});
+
 
 app.get('/api/inventory/:productCode', authenticateToken, async (req, res) => {
   try {
     const { productCode } = req.params;
     const userId = req.user.id;
 
-    const userIdInt = parseInt(userId, 10);
-    if (isNaN(userIdInt)) {
-      return res.status(400).json({ error: 'Invalid user ID format' });
-    }
-
     const findProduct = await prisma.products.findFirst({
       where: {
         productCode: productCode,
-        userId: userIdInt,
+        userId: userId,
       },
     });
 
@@ -260,9 +281,9 @@ app.get('/api/inventory/:productCode', authenticateToken, async (req, res) => {
   }
 });
 
-app.listen(PORT, () => {
-  console.log(`Server is running on http://localhost:${PORT}`);
-});
+// app.listen(PORT, () => {
+//   console.log(`Server is running on http://localhost:${PORT}`);
+// });
 
 // POST new inventory item
 app.post("/api/inventory", authenticateToken, async (req, res) => {
@@ -411,7 +432,7 @@ app.post("/api/sales", authenticateToken, async (req, res) => {
           invoiceSubtotal: invoiceSubtotal,
           totalAmount: totalAmount,
           paymentMethod: paymentMethod,
-          userId: userId,
+          userId: userIdInt,
           lineItems: {
             create: LineItemsCreate, // Create and connect all line items
           },
@@ -431,41 +452,6 @@ app.post("/api/sales", authenticateToken, async (req, res) => {
   }
 });
 
-
-// In server.js
-
-app.get('/api/inventory/search', authenticateToken, async (req, res) => {
-  try {
-    const { q } = req.query;
-    const userId = req.user.id; // This is a STRING from the token
-
-    if (!q) {
-      return res.json([]);
-    }
-
-    // FIX: Convert the string userId from the token to an integer
-    const userIdInt = parseInt(userId, 10);
-    if (isNaN(userIdInt)) {
-      return res.status(400).json({ error: 'Invalid user ID format' });
-    }
-
-    const products = await prisma.products.findMany({
-      where: {
-        userId: userIdInt, // Use the corrected integer value here
-        OR: [
-          { productCode: { contains: q, mode: 'insensitive' } },
-          { productName: { contains: q, mode: 'insensitive' } },
-        ],
-      },
-      take: 10,
-    });
-
-    res.json(products);
-  } catch (error) {
-    console.error("Search API Error:", error);
-    res.status(500).json({ error: 'Failed to search for products' });
-  }
-});
 
 app.put("/api/sales/:invoiceId", authenticateToken, (req, res) => {
   const invoiceIdToUpdate = req.params.invoiceId;
