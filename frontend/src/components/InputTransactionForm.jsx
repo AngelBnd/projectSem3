@@ -2,100 +2,226 @@ import { useState, useEffect } from "react";
 import Button from "./Button";
 import { useNavigate } from "react-router-dom";
 import { useRef } from "react";
+import { useDebounce } from "./Debounce";
 
 
 // New component for individual product item in the list
-const ProductItem = ({ product, index, handleProductChange, handleDeleteProduct }) => {
+const ProductItem = ({ product, index, onProductChange, onDeleteProduct, onProductFocus, onProductBlur }) => {
     return (
-        <div className="flex items-center gap-2 px-4 py-2 bg-white rounded-lg shadow-sm font-nunito">
-            <div className="flex-1">
-                <p className="font-semibold text-gray-800 ">{product.name || "someProductName"}</p>
-                <p className="text-sm text-gray-500">Rp {product.price ? product.price.toLocaleString('id-ID') : "200.000,-"}</p>
-            </div>
-            <div className="flex items-center gap-2">
-                <input
-                    type="number"
-                    name="quantity"
-                    value={product.quantity}
-                    onChange={(e) => handleProductChange(index, e)}
-                    className="w-12 p-2 text-center border focus:outline-none focus:ring-1 focus:ring-blue-400 rounded-md bg-white text-black"
-                    placeholder="Qty"
-                    min="1"
-                />
-                <input
-                    type="number"
-                    name="tax"
-                    value={product.tax}
-                    onChange={(e) => handleProductChange(index, e)}
-                    className="w-12 p-2 text-center border focus:outline-none focus:ring-1 focus:ring-blue-400 rounded-md bg-white text-black"
-                    placeholder="Tax"
-                    min="0"
-                />
-                <button
-                    type="button"
-                    onClick={() => handleDeleteProduct(index)}
-                    className="p-2 text-red-500 bg-transparent rounded-full hover:bg-red-100"
-                >
-                  <svg  xmlns="http://www.w3.org/2000/svg"  width="20"  height="20"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-trash"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M4 7l16 0" /><path d="M10 11l0 6" /><path d="M14 11l0 6" /><path d="M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12" /><path d="M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3" /></svg>
-                </button>
-            </div>
+        <div className="grid grid-cols-5 items-center gap-4 p-2 bg-transparent rounded-lg">
+        {/* Product Code Input */}
+        <div className="col-span-2 relative">
+            <input
+            type="text"
+            name="productCode"
+            value={product.productCode}
+            onChange={(e) => onProductChange(index, e)}
+            onFocus={(e) => onProductFocus(index, e)}
+            onBlur={onProductBlur}
+            placeholder="Search by code or name"
+            autoComplete="off"
+            className="w-full p-2 border rounded-md bg-white text-black focus:outline-none focus:ring-1 focus:ring-blue-400"
+            />
+        </div>
+
+        <div className="col-span-1">
+            <p className="text-sm text-gray-600 px-2">{product.productName || "..."}</p>
+        </div>
+
+        <div className="col-span-1">
+            <input
+            type="number"
+            name="quantitySold"
+            value={product.quantitySold}
+            onChange={(e) => onProductChange(index, e)}
+            className="w-20 p-2 text-center border rounded-md bg-white text-black focus:outline-none focus:ring-1 focus:ring-blue-400"
+            min="1"
+            />
+        </div>
+
+        <div className="col-span-1 flex justify-end">
+            <button
+            type="button"
+            onClick={() => onDeleteProduct(index)}
+            className="p-2 text-red-500 rounded-10 hover:bg-red-100 bg-transparent"
+            >
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M4 7l16 0" /><path d="M10 11l0 6" /><path d="M14 11l0 6" /><path d="M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12" /><path d="M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3" /></svg>
+            </button>
+        </div>
         </div>
     );
 };
 
-export default function InputTransactionForm({ mode, item, isEditMode, formData, setFormData, setProductDetails }) {
-  const [hasAddedProduct, setHasAddedProduct] = useState(false);
-  const bottomRef = useRef(null);
-  const navigate = useNavigate();
-    const [products, setProducts] = useState([
-        { id: 1, name: "", price: 200000, quantity: 3, tax: 20 },
-        { id: 2, name: "", price: 200000, quantity: 3, tax: 20 },
-        { id: 3, name: "", price: 200000, quantity: 3, tax: 20 }
-    ]);
+export default function InputTransactionForm({ mode, item, isEditMode, invoiceData, setInvoiceData, newProducts, setNewProducts }) {
+    const [hasAddedProduct, setHasAddedProduct] = useState(false);
+    const bottomRef = useRef(null);
+    const navigate = useNavigate();
     const [useDiscount, setUseDiscount] = useState(false);
     const [discountValue, setDiscountValue] = useState(0);
 
+    const [autofill, setAutofill] = useState([]);
+    const [activeProductIndex, setActiveProductIndex] = useState(null);
+    const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0 });
+    const [isAutofillShown, setIsAutofillShown] = useState(false);
+    
+    const activeProductCode = newProducts[activeProductIndex]?.productCode;
+    const debounceProduct = useDebounce(activeProductCode, 300);
+
+    useEffect(() => {
+        const fetchAutofill = async () => {
+            console.log("Debounced:", debounceProduct);
+            console.log("Active Item:", newProducts[activeProductIndex]);
+            if(debounceProduct && debounceProduct !== newProducts[activeProductIndex]?.productName) {
+                const token = localStorage.getItem("token");
+                const response = await fetch(`http://localhost:3000/api/inventory/search?q=${debounceProduct}`, {
+                    method: 'GET',
+                    headers: { Authorization: `Bearer ${token}` },
+                });
+                if (response.ok) {
+                    const data = await response.json();
+                    setAutofill(data);
+                }
+            } else {
+                setAutofill([]);
+            }
+        };
+        fetchAutofill();
+    }, [debounceProduct]);
+
+    const handleProductFocus = (index, event) => {
+        // Get the input's position on the screen
+        const rect = event.currentTarget.getBoundingClientRect();
+        setDropdownPosition({
+        top: rect.bottom + window.scrollY,
+        left: rect.left + window.scrollX,
+        width: rect.width,
+        });
+        setActiveProductIndex(index);
+    };
+
+    const handleProductBlur = () => {
+        // Hide dropdown on blur, with a delay to allow clicks on suggestions
+        setTimeout(() => {
+        setActiveProductIndex(null);
+        }, 200);
+    };
+
+    const handleAutofillClick = (suggest) => {
+        const updatedProductData = {
+            productCode: suggest.productCode,
+            productName: suggest.productName,
+            quantitySold: 1, // Default to 1
+            sellingPrice: suggest.sellingPrice,
+            initialStock: suggest.initialStock, // Store stock for later validation
+            tempId: newProducts[activeProductIndex].tempId, // Keep the original tempId
+        };
+        handleProductChange(activeProductIndex, { target: { name: 'product', value: updatedProductData } });
+        setAutofill([]); // Clear suggestions
+        setActiveProductIndex(null);
+    };
+
     const handleAddProduct = () => {
-        setProducts(prev => [...prev, { id: prev.length + 1, name: "", price: 200000, quantity: 1, tax: 0 }]);
+        const newBlankProduct = {
+        productCode: "",
+        quantitySold: 1,
+        productName: "", // Will be filled in after validation
+        sellingPrice: 0,
+        // Use a temporary key for React until a real ID is available
+        tempId: Date.now(), 
+        };
+        setNewProducts([...newProducts, newBlankProduct]);
         setHasAddedProduct(true);
     };
 
     useEffect(() => {
-        // Only run the scroll effect if a product has been added
-        if (hasAddedProduct) {
-            if (bottomRef.current) {
-                bottomRef.current.scrollIntoView({ behavior: 'smooth' });
-            }
+    // Only run the scroll effect if a product has been added
+    if (hasAddedProduct) {
+        if (bottomRef.current) {
+            bottomRef.current.scrollIntoView({ behavior: "smooth" });
+        }
             setHasAddedProduct(false); // Reset the state after scrolling
         }
-    }, [products, hasAddedProduct]); // Add both dependencies
+    }, [newProducts, hasAddedProduct]); // Add both dependencies
 
-    const handleDeleteProduct = (index) => {
-        setProducts(prev => prev.filter((_, i) => i !== index));
+    const handleDeleteProduct = (indexToRemove) => {
+        setNewProducts(newProducts.filter((_, index) => index !== indexToRemove));
     };
 
     const handleProductChange = (index, e) => {
-        const { name, value } = e.target;
-        const newProducts = [...products];
-        newProducts[index][name] = value;
-        setProducts(newProducts);
-    };
+    const { name, value } = e.target;
+    const updatedProducts = [...newProducts];
+    if (name === 'product') {
+        updatedProducts[index] = value;
+    } else {
+        updatedProducts[index] = { ...updatedProducts[index], [name]: value };
+    }
+    setNewProducts(updatedProducts);
+  };
 
-    const handleSubmit = (e) => {
-        e.preventDefault();
-    
-        console.log("Form Submitted:", {
-            name: formData.name,
-            subject: formData.subject,
-            invoiceDate: formData.invoiceDate,
-            paymentMethod: formData.paymentMethod,
-            products,
-            useDiscount,
-            discountValue
-        });
-        // navigate back
-        window.history.back();
-    };
+    const handleSubmit = async (event) => {
+    event.preventDefault();
+    if (newProducts.length === 0) {
+      return alert("Please add at least one product.");
+    }
+    try {
+      // Validation now happens on the client-side using the data
+      // you already gathered from the autocomplete search.
+      const validatedProducts = newProducts.map(product => {
+        if (!product.productCode || !product.productName) {
+          throw new Error("One or more products are invalid. Please select from the dropdown.");
+        }
+        if (product.initialStock < product.quantitySold) {
+          throw new Error(`Not enough stock for "${product.productName}". Only ${product.initialStock} available.`);
+        }
+        return {
+          productCode: product.productCode,
+          quantitySold: parseInt(product.quantitySold, 10),
+        };
+      });
+
+      const finalInvoice = {
+        ...invoiceData,
+        discount: useDiscount ? discountValue : 0,
+        products: validatedProducts, // This key name must match the backend
+      };
+      
+      const token = localStorage.getItem("token");
+      const response = await fetch('http://localhost:3000/api/sales', { 
+         method: 'POST', 
+         headers: { 
+           'Content-Type': 'application/json',
+           'Authorization': `Bearer ${token}` 
+         },
+         body: JSON.stringify(finalInvoice),
+      });
+
+      if (!response.ok) {
+        const errData = await response.json();
+        throw new Error(errData.error || "Failed to save the transaction.");
+      }
+      
+      alert("Transaction saved successfully!");
+      navigate(-1); // Go back to the previous page
+
+    } catch (error) {
+      alert(`Failed to save: ${error.message}`);
+    }
+  };
+
+    useEffect(() => {
+    if (isEditMode && item) {
+      if (item.discount > 0) {
+        setUseDiscount(true);
+        setDiscountValue(item.discount || 0);
+      }
+      const existingProducts = item.lineItems.map(line => ({
+        ...line.product, // Contains quantitySold, etc.
+        ...line, // Contains productCode, productName, etc.
+        tempId: line.id || line.productCode,
+      }));
+      setNewProducts(existingProducts);
+    }
+    }, [isEditMode, item, setNewProducts]);
 
     const handleCancel = () => {
         navigate(-1);
@@ -116,8 +242,8 @@ export default function InputTransactionForm({ mode, item, isEditMode, formData,
                         <input
                             type="text"
                             name="name"
-                            value={formData.name || ""}
-                            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                            value={invoiceData.name || ""}
+                            onChange={(e) => setInvoiceData({ ...invoiceData, name: e.target.value })}
                             className="border p-2 rounded-xl w-full text-black bg-white focus:outline-none focus:ring-1 focus:ring-blue-400 shadow-sm text-black"
                             placeholder="Name"
                         />
@@ -127,8 +253,8 @@ export default function InputTransactionForm({ mode, item, isEditMode, formData,
                         <input
                             type="text"
                             name="subject"
-                            value={formData.subject || ""}
-                            onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
+                            value={invoiceData.subject || ""}
+                            onChange={(e) => setInvoiceData({ ...invoiceData, subject: e.target.value })}
                             className="border p-2 rounded-xl w-full text-black bg-white focus:outline-none focus:ring-1 focus:ring-blue-400 shadow-sm"
                             placeholder="Subject"
                         />
@@ -139,8 +265,8 @@ export default function InputTransactionForm({ mode, item, isEditMode, formData,
                             <input
                                 type="date"
                                 name="invoiceDate"
-                                value={formData.invoiceDate || ""}
-                                onChange={(e) => setFormData({ ...formData, invoiceDate: e.target.value })}
+                                value={invoiceData.invoiceDate || ""}
+                                onChange={(e) => setInvoiceData({ ...invoiceData, invoiceDate: e.target.value })}
                                 className="border p-2 rounded-xl w-full text-black bg-white focus:outline-none focus:ring-1 focus:ring-blue-400 shadow-sm"
                             />
                             <svg
@@ -164,8 +290,8 @@ export default function InputTransactionForm({ mode, item, isEditMode, formData,
                         <label className="block text-sm font-semibold text-black font-nunito">Payment Method</label>
                         <select
                             name="paymentMethod"
-                            value={formData.paymentMethod || ""}
-                            onChange={(e) => setFormData({ ...formData, paymentMethod: e.target.value })}
+                            value={invoiceData.paymentMethod || ""}
+                            onChange={(e) => setInvoiceData({ ...invoiceData, paymentMethod: e.target.value })}
                             className="border p-2 rounded-xl w-full text-black bg-white focus:outline-none focus:ring-1 focus:ring-blue-400 shadow-sm"
                         >
                            
@@ -179,20 +305,44 @@ export default function InputTransactionForm({ mode, item, isEditMode, formData,
                 <div className="flex flex-col gap-2 mt-4 border-t-2 pt-5">
                     <h2 className="text-xl font-semibold text-black mb-2  font-nunito">Product</h2>
                     <div className="grid grid-cols-4 px-4 text-sm font-semibold text-gray-500 font-nunito">
-                        <span className="col-span-2 font-nunito">Item</span>
-                        <span className="ml-8">Qty</span>
-                        <span className="">Tax</span>
+                        <span className="col-span-3 font-nunito">Item</span>
+                        <span className="col-span-1 mx-auto">Qty</span>
                     </div>
                     {/* The new structure for products */}
-                    {products.map((product, index) => (
+                    {newProducts.map((product, index) => (
                         <ProductItem
-                            key={product.id}
+                            key={product.tempId || product.productCode}
                             product={product}
                             index={index}
-                            handleProductChange={handleProductChange}
-                            handleDeleteProduct={handleDeleteProduct}
+                            onProductChange={handleProductChange}
+                            onDeleteProduct={handleDeleteProduct}
+                            onProductFocus={handleProductFocus}
+                            onProductBlur={handleProductBlur}
                         />
                     ))}
+                    {activeProductIndex !== null && autofill.length > 0 && (
+                        <div
+                        className="absolute bg-white border border-gray-300 rounded-md shadow-lg z-20"
+                        style={{
+                            top: `${dropdownPosition.top}px`,
+                            left: `${dropdownPosition.left}px`,
+                            width: `${dropdownPosition.width}px`,
+
+                        }}
+                        >
+                        {autofill.map((suggestion) => (
+                            <div
+                            key={suggestion.productCode}
+                            className="p-2 hover:bg-blue-100 cursor-pointer"
+                            onMouseDown={() => handleSuggestionClick(suggestion)}
+                            >
+                            <p className="font-semibold text-black">{suggestion.productName}</p>
+                            <p className="text-sm text-gray-500">{suggestion.productCode}</p>
+                            </div>
+                        ))}
+                        </div>
+                    )}
+
                     <button
                         type="button"
                         onClick={handleAddProduct}

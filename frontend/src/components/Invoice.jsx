@@ -1,7 +1,7 @@
 import React from 'react';
 import Button from './Button'; // Assuming you have a Button component
 
-export default function Invoice({ formData, products, useDiscount, discountValue }) {
+export default function Invoice({ invoiceData, products, useDiscount, discountValue }) {
     // This is a placeholder function. You'll need to define it based on your data.
     const formatCurrency = (amount) => {
         return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(amount).replace('Rp', '');
@@ -29,7 +29,7 @@ export default function Invoice({ formData, products, useDiscount, discountValue
                 {/* Header Section */}
                 <div className="flex flex-col pb-4 border-b-2">
                     <div className="text-2xl font-bold text-gray-800 mb">
-                        #{formData.invoiceId || "InvoiceId"}
+                        #{invoiceData.invoiceId || "InvoiceId"}
                     </div>
                 </div>
 
@@ -48,20 +48,20 @@ export default function Invoice({ formData, products, useDiscount, discountValue
                     <div className="flex justify-between items-center mb-1">
                         <span className="text-gray-600">Invoice Date</span>
                         <span className="font-medium text-gray-800">
-                            {formData.invoiceDate ? new Date(formData.invoiceDate).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' }) : "DD/MM/YYYY"}
+                            {invoiceData.invoiceDate ? new Date(invoiceData.invoiceDate).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' }) : "DD/MM/YYYY"}
                         </span>
                     </div>
                     <div className="flex justify-between items-center mb-1">
                         <span className="text-gray-600">Billed to</span>
-                        <span className="font-medium text-gray-800">{formData.name || "The person's Name"}</span>
+                        <span className="font-medium text-gray-800">{invoiceData.name || "The person's Name"}</span>
                     </div>
                     <div className="flex justify-between items-center mb-1">
                         <span className="text-gray-600">Subject</span>
-                        <span className="font-medium text-gray-800">{formData.subject || "Lorem Ipsum Dolor"}</span>
+                        <span className="font-medium text-gray-800">{invoiceData.subject || "Lorem Ipsum Dolor"}</span>
                     </div>
                     <div className="flex justify-between items-center">
                         <span className="text-gray-600">Payment Method</span>
-                        <span className="font-medium text-gray-800">{formData.paymentMethod || "Lorem Ipsum Dolor"}</span>
+                        <span className="font-medium text-gray-800">{invoiceData.paymentMethod || "Lorem Ipsum Dolor"}</span>
                     </div>
                 </div>
 
