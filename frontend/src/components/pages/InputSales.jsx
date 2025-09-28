@@ -11,32 +11,29 @@ export default function InputSales() {
   const navigate = useNavigate();
   const { mode, item } = location.state || { mode: "add", item: null };
   const isEditMode = mode === "edit";
-
-  const [formData, setFormData] = useState({
-    productCode: "",
-    quantitySold: "",
-    discount: "",
-    tax: "",
+  const [invoiceData, setInvoiceData] = useState({
+    discount: 0,
     invoiceDate: new Date().toISOString().split('T')[0],
+    name: "",
+    subject: "",
+    paymentMethod: "",
   });
 
+  const [newProducts, setNewProducts] = useState([]);
   const [productDetails, setProductDetails] = useState(null);
-  // 1. New state for the generated ID
   const [invoiceId, setInvoiceId] = useState("");
+
 
   useEffect(() => {
     // Populate form data for edit mode
     if (isEditMode && item) {
-      setFormData({
-        productCode: item.productCode || "",
-        quantitySold: item.quantitySold || "",
+      setInvoiceData({
         discount: item.discount || "",
-        tax: item.tax || "",
         invoiceDate: item.invoiceDate || new Date().toISOString().split('T')[0],
       });
       // Set the invoice ID from the item
+      setNewProducts(item.lineItems || []);
       setInvoiceId(item.invoiceId);
-      fetchProductDetails(item.productCode);
     } else {
       // 2. Generate and set ID for add mode on initial load
       const uniqueId = `INV-${Date.now()}-${Math.floor(Math.random() * 10000)}`;
@@ -44,34 +41,13 @@ export default function InputSales() {
     }
   }, [isEditMode, item]);
 
-  useEffect(() => {
-    if (formData.productCode) {
-      fetchProductDetails(formData.productCode);
-    }
-  }, [formData.productCode]);
 
-  const fetchProductDetails = async (productCode) => {
-    try {
-      const response = await fetch(`http://localhost:3000/api/inventory/${productCode}`);
-      const data = await response.json();
-      if (response.ok) {
-        setProductDetails(data);
-      } else {
-        setProductDetails(null);
-      }
-    } catch (error) {
-      console.error("Error fetching product details:", error);
-      setProductDetails(null);
-    }
-  };
-
-  const quantity = parseFloat(formData.quantitySold || 0);
+  // Not updated to invoice yet
+  const quantity = parseFloat(invoiceData.quantitySold || 0);
   const unitPrice = parseFloat(productDetails?.sellingPrice || 0);
-  const discountRate = parseFloat(formData.discount || 0);
-  const taxRate = parseFloat(formData.tax || 0);
+  const discountRate = parseFloat(invoiceData.discount || 0);
   const subtotal = quantity * unitPrice;
-  const discountedAmount = subtotal - (subtotal * (discountRate / 100));
-  const totalAmount = discountedAmount + (discountedAmount * (taxRate / 100));
+  const totalAmount = subtotal - (subtotal * (discountRate / 100));
 
   const formatCurrency = (amount) => {
     return parseFloat(amount).toLocaleString('id-ID', {
@@ -79,10 +55,6 @@ export default function InputSales() {
       maximumFractionDigits: 2,
     });
   };
-
-  useEffect(()=>{
-    console.log(productDetails);
-  },[productDetails])
 
   const handleDownloadPdf = () => {
     const doc = new jsPDF();
@@ -106,7 +78,7 @@ export default function InputSales() {
     // Add invoice number and date
     doc.setFontSize(10);
     doc.text(`Invoice ID: #${invoiceId || "Generating ID..."}`, 10, y);
-    doc.text(`Invoice Date: ${new Date(formData.invoiceDate).toLocaleDateString('en-GB')}`, 150, y);
+    doc.text(`Invoice Date: ${new Date(invoiceData.invoiceDate).toLocaleDateString('en-GB')}`, 150, y);
     y += 10;
 
     // Add product details in a structured way
@@ -117,14 +89,13 @@ export default function InputSales() {
     doc.text("Product Details:", 10, y);
     y += 7;
     doc.setFontSize(10);
-    doc.text(`Product Code: ${formData.productCode || "N/A"}`, 15, y);
+    doc.text(`Product Code: ${invoiceData.productCode || "N/A"}`, 15, y);
     doc.text(`Product Name: ${productDetails?.productName || "N/A"}`, 100, y);
     y += 7;
-    doc.text(`Quantity Sold: ${formData.quantitySold || 0}`, 15, y);
+    doc.text(`Quantity Sold: ${invoiceData.quantitySold || 0}`, 15, y);
     doc.text(`Unit Price: Rp ${formatCurrency(unitPrice)}`, 100, y);
     y += 7;
-    doc.text(`Discount: ${formData.discount || 0}%`, 15, y);
-    doc.text(`Tax: ${formData.tax || 0}%`, 100, y);
+    doc.text(`Discount: ${invoiceData.discount || 0}%`, 15, y);
     y += 10;
     doc.line(10, y, 200, y);
     y += 5;
@@ -147,33 +118,31 @@ export default function InputSales() {
         {isEditMode ? "Edit Transaction" : "Add a Transaction"}
       </div>
 
-      <div className=" w-full h-[540px] flex gap-12">
+      <div className=" w-full h-[540px] flex gap-12 relative">
         <div className="w-[50em] h-full ">
           <InputTransactionForm 
-            formData={formData} 
-            setFormData={setFormData}
+            invoiceData={invoiceData} 
+            setInvoiceData={setInvoiceData}
             mode={mode} 
             item={item} 
             isEditMode={isEditMode}
             // 3. Pass the ID down
             invoiceId={invoiceId} 
-            setProductDetails={setProductDetails}
+            newProducts={newProducts}
+            setNewProducts={setNewProducts}
           />
         </div>
 
         {/* INVOICE */}
       <Invoice
-        formData={{
+        invoiceData={{
             invoiceId: "12345", // A dynamic ID
             invoiceDate: "2025-09-22",
             name: "John Doe",
             subject: "Motorcycle repair",
             paymentMethod: "Cash"
         }}
-        products={[
-            { name: "Motor Oil", price: 50000, quantity: 2 },
-            { name: "Spark Plug", price: 25000, quantity: 1 }
-        ]}
+        products={newProducts}
         useDiscount={true}
         discountValue={10} // As a percentage
     />

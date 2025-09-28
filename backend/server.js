@@ -202,31 +202,62 @@ app.delete("/api/inventory/:id", authenticateToken, (req, res) => {
   });
 });
 
-app.get('/api/inventory/:productCode', authenticateToken, (req, res) => {
-  const productCode = req.params.productCode;
-  const userId = req.user.id;
 
-  fs.readFile(INVENTORY_FILE, 'utf8', (err, data) => {
-    if (err) {
-      console.error('Error fetching inventory:', err);
-      return res.status(500).json({ error: 'Failed to read inventory file' });
+// OLD FETCH USING FS
+// app.get('/api/inventory/:productCode', authenticateToken, (req, res) => {
+//   const productCode = req.params.productCode;
+//   const userId = req.user.id;
+
+//   fs.readFile(INVENTORY_FILE, 'utf8', (err, data) => {
+//     if (err) {
+//       console.error('Error fetching inventory:', err);
+//       return res.status(500).json({ error: 'Failed to read inventory file' });
+//     }
+
+//     try {
+//       const inventory = JSON.parse(data);
+//       // Find the product that matches both product code AND user ID
+//       const product = inventory.find(item => item.productCode === productCode && item.userId === userId);
+
+//       if (product) {
+//         res.status(200).json(product);
+//       } else {
+//         res.status(404).json({ error: 'Product not found or does not belong to the user' });
+//       }
+//     } catch (parseError) {
+//       console.error('Error parsing JSON data:', parseError);
+//       res.status(500).json({ error: 'Error parsing inventory data' });
+//     }
+//   });
+// });
+
+
+app.get('/api/inventory/:productCode', authenticateToken, async (req, res) => {
+  try {
+    const { productCode } = req.params;
+    const userId = req.user.id;
+
+    const userIdInt = parseInt(userId, 10);
+    if (isNaN(userIdInt)) {
+      return res.status(400).json({ error: 'Invalid user ID format' });
     }
 
-    try {
-      const inventory = JSON.parse(data);
-      // Find the product that matches both product code AND user ID
-      const product = inventory.find(item => item.productCode === productCode && item.userId === userId);
+    const findProduct = await prisma.products.findFirst({
+      where: {
+        productCode: productCode,
+        userId: userIdInt,
+      },
+    });
 
-      if (product) {
-        res.status(200).json(product);
-      } else {
-        res.status(404).json({ error: 'Product not found or does not belong to the user' });
-      }
-    } catch (parseError) {
-      console.error('Error parsing JSON data:', parseError);
-      res.status(500).json({ error: 'Error parsing inventory data' });
+    if(findProduct) {
+      res.status(200).json(findProduct);
+    } else {
+      res.status(404).json({ error: 'Product not found or does not belong to the user' });
     }
-  });
+  } catch (error) {
+    console.error('Error fetching product from database:', error);
+    res.status(500).json({ error: 'Failed to retrieve product data' });
+  }
 });
 
 app.listen(PORT, () => {
@@ -316,62 +347,124 @@ app.get("/api/sales", authenticateToken, async (req, res) => {
 });
 
 // POST new sale
-app.post("/api/sales", authenticateToken, (req, res) => {
-  const newSale = req.body;
-  const userId = req.user.id; // Get the user ID from the authenticated token
+app.post("/api/sales", authenticateToken, async (req, res) => {
+  const { products: productsSold, discount, invoiceDate, paymentMethod, uniqueId } = req.body;
+  const userId = req.user.id;
 
-  const required = ["productCode", "invoiceDate", "quantitySold", "discount", "tax"];
-  for (let field of required) {
-    if (!newSale[field]) {
-      return res.status(400).json({ error: `Missing field: ${field}` });
-    }
+  if(!productsSold || productsSold.length === 0) {
+    return res.status(400).json({ error: "Transaction must contain at least one product "});
   }
 
-  // Add the userId to the new sale before saving
-  newSale.userId = userId;
-
-  const uniqueId = `INV-${Date.now()}-${Math.floor(Math.random() * 10000)}`;
-  newSale.invoiceId = uniqueId;
-
-  fs.readFile(INVENTORY_FILE, "utf8", (err, inventoryData) => {
-    if (err) return res.status(500).json({ error: "Failed to read inventory file" });
-
-    const inventory = JSON.parse(inventoryData);
-
-    // Find the product in the user's inventory
-    const product = inventory.find(
-      (item) => item.productCode === newSale.productCode && item.userId === userId
-    );
-
-    if (!product) {
-      return res.status(400).json({ error: "Product not found in user's inventory" });
+  try {
+    const userIdInt = parseInt(userId, 10);
+    if (isNaN(userIdInt)) {
+      return res.status(400).json({ error: 'Invalid user ID format' });
     }
 
-    // Calculations using product data
-    const unitPrice = parseFloat(product.sellingPrice);
-    const quantity = parseInt(newSale.quantitySold, 10);
-    const subtotal = (unitPrice * quantity).toFixed(2);
-    const discounted = subtotal - (subtotal * (newSale.discount / 100));
-    const totalAmount = (discounted + (discounted * (newSale.tax / 100))).toFixed(2);
+    // Creates new Record (row) to model transaction
+    const newTransaction = await prisma.$transaction(async (tx) => {
+      let invoiceSubtotal = 0;
+      let totalAmount = 0;
+      const LineItemsCreate = [];
 
-    newSale.unitCost = parseFloat(product.unitCost);
-    newSale.sellingPrice = unitPrice;
-    newSale.subtotal = subtotal;
-    newSale.totalAmount = totalAmount;
+      // Go through each product
+      for(const p of productsSold) {
 
-    fs.readFile(SALES_FILE, "utf8", (err, salesData) => {
-      if (err) return res.status(500).json({ error: "Failed to read sales file" });
+        // Check if it exists
+        const inventoryItem = await tx.products.findUnique({ where: { productCode : p.productCode }});
+        if(!inventoryItem) throw new Error(`Product with ID ${p.productId} not found`);
 
-      const sales = JSON.parse(salesData);
-      newSale.lastUpdated = new Date().toISOString().split('T')[0];
-      sales.push(newSale);
+        // Check if it has enough stock
+        try {
+          await tx.products.update({
+            where: { productCode: p.productCode, initialStock: { gte: p.quantitySold} },
+            data: { initialStock: { decrement: p.quantitySold } },
+          });
+        } catch (error) {
+          throw new Error(`Not enough stock : ${inventoryItem.initialStock}`);
+        }
 
-      fs.writeFile(SALES_FILE, JSON.stringify(sales, null, 2), (err) => {
-        if (err) return res.status(500).json({ error: "Failed to save sale" });
-        res.json({ success: true, sale: newSale });
+        // Calculate subtotal (selling price with amount sold)
+        const lineSubtotal = inventoryItem.sellingPrice * p.quantitySold;
+
+        // The full total Amount for transaction
+        invoiceSubtotal += lineSubtotal;
+
+        // Push the entry of records to data
+        LineItemsCreate.push({
+          invoiceId: uniqueId,
+          productCode: p.productCode,
+          quantitySold: p.quantitySold,
+          sellingPrice: inventoryItem.sellingPrice,
+          lineSubtotal: lineSubtotal
+        });
+      }
+
+      // Update amount with discount
+      totalAmount = invoiceSubtotal - (invoiceSubtotal * (discount / 100));
+
+      const createdTransaction = await tx.invoices.create({
+        data: {
+          invoiceId: uniqueId,
+          invoiceDate: new Date(invoiceDate),
+          discountPrice: discount,
+          invoiceSubtotal: invoiceSubtotal,
+          totalAmount: totalAmount,
+          paymentMethod: paymentMethod,
+          userId: userId,
+          lineItems: {
+            create: LineItemsCreate, // Create and connect all line items
+          },
+        },
+        include: {
+          lineItems: true, // Include the newly created line items in the response
+        },
       });
+
+      return createdTransaction;
     });
-  });
+
+    res.status(201).json({ success: true, invoice: newTransaction });
+
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
+
+// In server.js
+
+app.get('/api/inventory/search', authenticateToken, async (req, res) => {
+  try {
+    const { q } = req.query;
+    const userId = req.user.id; // This is a STRING from the token
+
+    if (!q) {
+      return res.json([]);
+    }
+
+    // FIX: Convert the string userId from the token to an integer
+    const userIdInt = parseInt(userId, 10);
+    if (isNaN(userIdInt)) {
+      return res.status(400).json({ error: 'Invalid user ID format' });
+    }
+
+    const products = await prisma.products.findMany({
+      where: {
+        userId: userIdInt, // Use the corrected integer value here
+        OR: [
+          { productCode: { contains: q, mode: 'insensitive' } },
+          { productName: { contains: q, mode: 'insensitive' } },
+        ],
+      },
+      take: 10,
+    });
+
+    res.json(products);
+  } catch (error) {
+    console.error("Search API Error:", error);
+    res.status(500).json({ error: 'Failed to search for products' });
+  }
 });
 
 app.put("/api/sales/:invoiceId", authenticateToken, (req, res) => {
