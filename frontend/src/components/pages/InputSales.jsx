@@ -135,13 +135,7 @@ export default function InputSales() {
 
         {/* INVOICE */}
       <Invoice
-        invoiceData={{
-            invoiceId: "12345", // A dynamic ID
-            invoiceDate: "2025-09-22",
-            name: "John Doe",
-            subject: "Motorcycle repair",
-            paymentMethod: "Cash"
-        }}
+        invoiceData={invoiceData}
         products={newProducts}
         useDiscount={true}
         discountValue={10} // As a percentage
