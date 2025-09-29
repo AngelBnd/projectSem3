@@ -16,28 +16,33 @@ export default function InputSales() {
     invoiceDate: new Date().toISOString().split('T')[0],
     name: "",
     subject: "",
-    paymentMethod: "",
+    paymentMethod: "Card", // Defaulted on card from selection
+    invoiceId: "",
   });
 
   const [newProducts, setNewProducts] = useState([]);
   const [productDetails, setProductDetails] = useState(null);
-  const [invoiceId, setInvoiceId] = useState("");
 
 
   useEffect(() => {
     // Populate form data for edit mode
     if (isEditMode && item) {
       setInvoiceData({
-        discount: item.discount || "",
-        invoiceDate: item.invoiceDate || new Date().toISOString().split('T')[0],
+        name: item.name || "",
+        subject: item.subject || "",
+        invoiceId: item.invoiceId,
+        discount: item.discountPrice || 0,
+        // Format the incoming date correctly for the input field
+        invoiceDate: item.invoiceDate ? new Date(item.invoiceDate).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+        paymentMethod: item.paymentMethod || "Card",
       });
       // Set the invoice ID from the item
       setNewProducts(item.lineItems || []);
-      setInvoiceId(item.invoiceId);
     } else {
-      // 2. Generate and set ID for add mode on initial load
-      const uniqueId = `INV-${Date.now()}-${Math.floor(Math.random() * 10000)}`;
-      setInvoiceId(uniqueId);
+      setInvoiceData(prevData => ({
+          ...prevData, // Keep the default data
+          invoiceId: crypto.randomUUID() // Generate the unique ID
+      }));
     }
   }, [isEditMode, item]);
 
@@ -77,7 +82,7 @@ export default function InputSales() {
 
     // Add invoice number and date
     doc.setFontSize(10);
-    doc.text(`Invoice ID: #${invoiceId || "Generating ID..."}`, 10, y);
+    doc.text(`Invoice ID: #${invoiceData.invoiceId || "Generating ID..."}`, 10, y);
     doc.text(`Invoice Date: ${new Date(invoiceData.invoiceDate).toLocaleDateString('en-GB')}`, 150, y);
     y += 10;
 
@@ -109,7 +114,7 @@ export default function InputSales() {
     y += 10;
 
     // Save the PDF with a unique filename
-    doc.save(`invoice-${invoiceId}.pdf`);
+    doc.save(`invoice-${invoiceData.invoiceId}.pdf`);
   };
 
   return (
@@ -126,8 +131,6 @@ export default function InputSales() {
             mode={mode} 
             item={item} 
             isEditMode={isEditMode}
-            // 3. Pass the ID down
-            invoiceId={invoiceId} 
             newProducts={newProducts}
             setNewProducts={setNewProducts}
           />

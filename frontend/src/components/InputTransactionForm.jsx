@@ -76,43 +76,51 @@ export default function InputTransactionForm({ mode, item, isEditMode, invoiceDa
         const fetchAutofill = async () => {
             console.log("Debounced:", debounceProduct);
             console.log("Active Item:", newProducts[activeProductIndex]);
-            if(debounceProduct && debounceProduct.trim().length > 0) {
-                const token = localStorage.getItem("token");
-                const url = `http://localhost:3000/api/inventory/search?q=${encodeURIComponent(debounceProduct)}`;
 
-                try {
-                    const response = await fetch(url, {
-                        headers: { Authorization: `Bearer ${token}` },
-                    });
-                    if (response.ok) {
-                        const data = await response.json();
-                        setAutofill(data);
+            if(!debounceProduct || debounceProduct.trim().length === 0) {
+                setAutofill([]);
+                return;
+            }
 
-                        const exactMatch = data.find(p => p.productCode === debounceProduct);
-                        if(exactMatch) {
-                            handleAutofillClick(exactMatch);
-                        }
+            const token = localStorage.getItem("token");
+            const url = `http://localhost:3000/api/inventory/search?q=${encodeURIComponent(debounceProduct)}`;
+
+            try {
+                const response = await fetch(url, {
+                    headers: { Authorization: `Bearer ${token}` },
+                });
+                if (response.ok) {
+                    const data = await response.json();
+                    const exactMatch = data.find(p => p.productCode.toLowerCase() === debounceProduct.toLowerCase());
+                    const isInputFilled = !!newProducts[activeProductIndex]?.productName;
+
+                    if(exactMatch && !isInputFilled) {
+                        handleAutofillClick(exactMatch);
                     } else {
-                        // Log errors for debugging the backend connection
-                        console.error("API Search Failed:", response.status, await response.text());
-                        setAutofill([]);
+                        setAutofill(data);
                     }
-                } catch(error) {
-                    console.error("Network or Fetch Error:", error);
+                } else {
+                    // Log errors for debugging the backend connection
+                    console.error("API Search Failed:", response.status, await response.text());
                     setAutofill([]);
                 }
-            } else {
+            } catch(error) {
+                console.error("Network or Fetch Error:", error);
                 setAutofill([]);
             }
         };
-        fetchAutofill();
+        
+        if(activeProductIndex !== null) {
+            fetchAutofill();
+        }
+
     }, [debounceProduct, activeProductIndex]);
 
     const handleProductFocus = (index, event) => {
         // Get the input's position on the screen
-        // const rect = event.getBoundingClientRect();
+        const rect = event.target.getBoundingClientRect();
         const formRect = formRef.current?.getBoundingClientRect();
-        if (formRect) {
+        if (formRect && rect) {
             setDropdownPosition({
                 top: rect.bottom - formRect.top + formRef.current.scrollTop,
                 left: rect.left - formRect.left, 
@@ -122,6 +130,12 @@ export default function InputTransactionForm({ mode, item, isEditMode, invoiceDa
         
         setActiveProductIndex(index);
     };
+
+    useEffect(() => {
+        if (activeProductIndex !== null && newProducts[activeProductIndex]) {
+            console.log("%cState has been updated. New Active Item:", "color: green; font-weight: bold;", newProducts[activeProductIndex]);
+        }
+    }, [newProducts, activeProductIndex]);
 
     const handleProductBlur = () => {
         setTimeout(() => {
@@ -133,14 +147,13 @@ export default function InputTransactionForm({ mode, item, isEditMode, invoiceDa
         const updatedProductData = {
             productCode: suggest.productCode,
             productName: suggest.productName,
-            quantitySold: 1, // Default to 1
+            quantitySold: newProducts[activeProductIndex]?.quantitySold || 1, // Default to 1
             sellingPrice: suggest.sellingPrice,
             initialStock: suggest.initialStock, // Store stock for later validation
             tempId: newProducts[activeProductIndex].tempId, // Keep the original tempId
         };
         handleProductChange(activeProductIndex, { target: { name: 'product', value: updatedProductData } });
         setAutofill([]); // Clear suggestions
-        setActiveProductIndex(null);
     };
 
     const handleAddProduct = () => {
@@ -243,22 +256,31 @@ export default function InputTransactionForm({ mode, item, isEditMode, invoiceDa
     }
   };
 
+    // useEffect(() => {
+    // if (isEditMode && item) {
+    //   if (item.discount > 0) {
+    //     setUseDiscount(true);
+    //     setDiscountValue(item.discount || 0);
+    //   }
+    //   const existingProducts = item.lineItems.map(line => ({
+    //     ...line.product, // Contains quantitySold, etc.
+    //     ...line, // Contains productCode, productName, etc.
+    //     tempId: line.id || line.productCode,
+    //     initialStock: line.product.initialStock,
+    //     sellingPrice: line.product.sellingPrice
+    //   }));
+    //   setNewProducts(existingProducts);
+    // }
+    // }, [isEditMode, item, setNewProducts]);
+
     useEffect(() => {
-    if (isEditMode && item) {
-      if (item.discount > 0) {
-        setUseDiscount(true);
-        setDiscountValue(item.discount || 0);
-      }
-      const existingProducts = item.lineItems.map(line => ({
-        ...line.product, // Contains quantitySold, etc.
-        ...line, // Contains productCode, productName, etc.
-        tempId: line.id || line.productCode,
-        initialStock: line.product.initialStock,
-        sellingPrice: line.product.sellingPrice
-      }));
-      setNewProducts(existingProducts);
-    }
-    }, [isEditMode, item, setNewProducts]);
+        if (!isEditMode) {
+        setInvoiceData(prevData => ({
+            ...prevData,
+            invoiceId: crypto.randomUUID()
+        }));
+        }
+    }, [isEditMode]);
 
     const handleCancel = () => {
         navigate(-1);
@@ -271,7 +293,7 @@ export default function InputTransactionForm({ mode, item, isEditMode, invoiceDa
     // The form's overall layout and styling based on the screenshot
     return (
         <div className="flex flex-col h-full">
-            <form onSubmit={handleSubmit} className="flex flex-col flex-grow gap-4 p-4 overflow-y-auto custom-scrollbar">
+            <form ref={formRef} onSubmit={handleSubmit} className="relative flex flex-col flex-grow gap-4 p-4 overflow-y-auto custom-scrollbar">
                 {/* General Information Section */}
                 <div className="flex flex-col gap-4">
                     <div className="w-full">
@@ -332,8 +354,8 @@ export default function InputTransactionForm({ mode, item, isEditMode, invoiceDa
                             className="border p-2 rounded-xl w-full text-black bg-white focus:outline-none focus:ring-1 focus:ring-blue-400 shadow-sm"
                         >
                            
-                            <option value="card">Card</option>
-                            <option value="cash">Cash</option>
+                            <option value="Card">Card</option>
+                            <option value="Cash">Cash</option>
                         </select>
                     </div>
                 </div>
@@ -360,12 +382,11 @@ export default function InputTransactionForm({ mode, item, isEditMode, invoiceDa
                     ))}
                     {activeProductIndex !== null && autofill.length > 0 && (
                         <div
-                        className="absolute bg-white border border-gray-300 rounded-md shadow-lg z-20"
+                        className="absolute bg-white border border-gray-300 rounded-md shadow-lg z-20 max-h-[100px] overflow-y-auto no-scrollbar-arrows"
                         style={{
                             top: `${dropdownPosition.top}px`,
                             left: `${dropdownPosition.left}px`,
                             width: `${dropdownPosition.width}px`,
-
                         }}
                         >
                         {autofill.map((suggestion) => (

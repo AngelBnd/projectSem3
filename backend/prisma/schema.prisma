@@ -48,6 +48,7 @@ model Invoices {
 
   invoiceDate DateTime @default(now())
 
+  name String
   subject String
 
   paymentMethod   String
@@ -64,11 +65,11 @@ model Invoices {
 
 model LineItems {
   id Int @id @default(autoincrement())
-  invoiceId Int
-  invoice   Invoices @relation(fields: [invoiceId], references: [id])
+  invoiceId String
+  invoice   Invoices @relation(fields: [invoiceId], references: [invoiceId])
 
-  productCode Int
-  product     Products @relation(fields: [productCode], references: [id])
+  productCode String
+  product     Products @relation(fields: [productCode], references: [productCode])
 
   quantitySold Int
 

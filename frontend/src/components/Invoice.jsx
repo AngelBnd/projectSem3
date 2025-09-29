@@ -53,15 +53,15 @@ export default function Invoice({ invoiceData, products, useDiscount, discountVa
                     </div>
                     <div className="flex justify-between items-center mb-1">
                         <span className="text-gray-600">Billed to</span>
-                        <span className="font-medium text-gray-800">{invoiceData.name || "The person's Name"}</span>
+                        <span className="font-medium text-gray-800">{invoiceData.name || "Customer's Name"}</span>
                     </div>
                     <div className="flex justify-between items-center mb-1">
                         <span className="text-gray-600">Subject</span>
-                        <span className="font-medium text-gray-800">{invoiceData.subject || "Lorem Ipsum Dolor"}</span>
+                        <span className="font-medium text-gray-800">{invoiceData.subject || "Enter Subject"}</span>
                     </div>
                     <div className="flex justify-between items-center">
                         <span className="text-gray-600">Payment Method</span>
-                        <span className="font-medium text-gray-800">{invoiceData.paymentMethod || "Lorem Ipsum Dolor"}</span>
+                        <span className="font-medium text-gray-800">{invoiceData.paymentMethod || "Enter PaymentMethod"}</span>
                     </div>
                 </div>
 
