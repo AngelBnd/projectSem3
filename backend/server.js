@@ -1,9 +1,6 @@
-
 require('dotenv').config(); 
 
 const express = require("express");
-// const fs = require('fs');
-// const path = require('path');
 const cors = require("cors");
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
@@ -13,11 +10,6 @@ const PORT = 3000;
 
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient(); 
-
-// File paths
-// const INVENTORY_FILE = path.join(__dirname, "data", "inventoryItems.json");
-// const SALES_FILE = path.join(__dirname, "data", "transactions.json");
-// const USERS_FILE = path.join(__dirname, "data", "users.json");
 
 // Middleware
 app.use(cors());
@@ -139,100 +131,6 @@ const authenticateToken = (req, res, next) => {
 
 /* -------------------- INVENTORY ROUTES -------------------- */
 
-// GET all inventory items for the current user
-app.get("/api/inventory", authenticateToken, async (req, res) => {
-  const userId = req.user.id;
-
-  try{
-      const inventoryData = await prisma.products.findMany({
-        where: {
-          userId : userId
-        }
-      });  
-      res.json(inventoryData);
-
-  } catch(error){
-      console.error("Error fetching inventory:", error);
-      res.status(500).json({ error: "Failed to retrieve inventory data." });
-  }
-
-  // fs.readFile(INVENTORY_FILE, "utf8", (err, data) => {
-  //   if (err) return res.status(500).json({ error: "Failed to read inventory file" });
-  //   const inventory = JSON.parse(data);
-  //   const userInventory = inventory.filter(item => item.userId === userId);
-  //   res.json(userInventory);
-  // });
-});
-
-// DELETE (remove an inventory item) for the current user
-app.delete("/api/inventory/:id", authenticateToken, (req, res) => {
-  const id = req.params.id;
-  const userId = req.user.id;
-
-  fs.readFile(INVENTORY_FILE, "utf8", (err, data) => {
-    if (err) {
-      console.error("Failed to read inventory file:", err);
-      return res.status(500).json({ error: "Failed to read inventory file" });
-    }
-
-    let inventory = [];
-    try {
-      inventory = JSON.parse(data || "[]");
-    } catch (parseErr) {
-      console.error("Failed to parse inventory JSON:", parseErr);
-      return res.status(500).json({ error: "Invalid inventory data" });
-    }
-
-    // Filter to only include items that belong to the user AND don't match the ID
-    const newInventory = inventory.filter(
-      (item) => !(String(item.productCode) === String(id) && item.userId === userId)
-    );
-    
-    // Check if the item was found and removed
-    const itemRemoved = newInventory.length < inventory.length;
-    if (!itemRemoved) {
-        return res.status(404).json({ error: "Item not found or does not belong to the user" });
-    }
-
-    fs.writeFile(INVENTORY_FILE, JSON.stringify(newInventory, null, 2), (writeErr) => {
-      if (writeErr) {
-        console.error("Failed to write inventory file:", writeErr);
-        return res.status(500).json({ error: "Failed to save inventory file" });
-      }
-      res.json({ success: true });
-    });
-  });
-});
-
-
-// OLD FETCH USING FS
-// app.get('/api/inventory/:productCode', authenticateToken, (req, res) => {
-//   const productCode = req.params.productCode;
-//   const userId = req.user.id;
-
-//   fs.readFile(INVENTORY_FILE, 'utf8', (err, data) => {
-//     if (err) {
-//       console.error('Error fetching inventory:', err);
-//       return res.status(500).json({ error: 'Failed to read inventory file' });
-//     }
-
-//     try {
-//       const inventory = JSON.parse(data);
-//       // Find the product that matches both product code AND user ID
-//       const product = inventory.find(item => item.productCode === productCode && item.userId === userId);
-
-//       if (product) {
-//         res.status(200).json(product);
-//       } else {
-//         res.status(404).json({ error: 'Product not found or does not belong to the user' });
-//       }
-//     } catch (parseError) {
-//       console.error('Error parsing JSON data:', parseError);
-//       res.status(500).json({ error: 'Error parsing inventory data' });
-//     }
-//   });
-// });
-
 app.get('/api/inventory/search', authenticateToken, async (req, res) => {
     try {
         const { q } = req.query;
@@ -281,9 +179,81 @@ app.get('/api/inventory/:productCode', authenticateToken, async (req, res) => {
   }
 });
 
-// app.listen(PORT, () => {
-//   console.log(`Server is running on http://localhost:${PORT}`);
-// });
+// GET all inventory items for the current user
+app.get("/api/inventory", authenticateToken, async (req, res) => {
+  const userId = req.user.id;
+
+  try{
+      const inventoryData = await prisma.products.findMany({
+        where: {
+          userId : userId
+        }
+      });  
+      res.json(inventoryData);
+
+  } catch(error){
+      console.error("Error fetching inventory:", error);
+      res.status(500).json({ error: "Failed to retrieve inventory data." });
+  }
+
+  // fs.readFile(INVENTORY_FILE, "utf8", (err, data) => {
+  //   if (err) return res.status(500).json({ error: "Failed to read inventory file" });
+  //   const inventory = JSON.parse(data);
+  //   const userInventory = inventory.filter(item => item.userId === userId);
+  //   res.json(userInventory);
+  // });
+});
+
+// GET single inventory item by product code (Read One)
+app.get('/api/inventory/:productCode', authenticateToken, async (req, res) => {
+  const productCode = req.params.productCode;
+  const userId = req.user.id;
+
+  try {
+    const product = await prisma.products.findUnique({
+      where: {
+        productCode: productCode,
+        userId: userId, // Ensure the user owns the product
+      },
+    });
+
+    if (product) {
+      res.status(200).json(product);
+    } else {
+      res.status(404).json({ error: 'Product not found or does not belong to the user' });
+    }
+  } catch (error) {
+    console.error('Error fetching product:', error);
+    res.status(500).json({ error: 'Database query failed' });
+  }
+});
+
+// DELETE (remove an inventory item) for the current user
+app.delete("/api/inventory/:id", authenticateToken, async (req, res) => {
+  const productCode = req.params.id;
+  const userId = req.user.id;
+
+  try {
+    await prisma.products.delete({
+      where: {
+        // Crucial security check: only allow deletion if the user owns the product
+        productCode: productCode,
+        userId: userId, 
+      },
+    });
+    res.json({ success: true, message: "Item deleted successfully." });
+
+  } catch (error) {
+    // P2025 means the record was not found (or not found for the given userId)
+    if (error.code === 'P2025') {
+      return res.status(404).json({ error: "Item not found or does not belong to the user." });
+    }
+    console.error("Error deleting item:", error);
+    res.status(500).json({ error: "Failed to delete item from database." });
+  }
+});
+
+
 
 // POST new inventory item
 app.post("/api/inventory", authenticateToken, async (req, res) => {
@@ -340,6 +310,42 @@ app.post("/api/inventory", authenticateToken, async (req, res) => {
   }
 });
 
+// PUT (Update)
+app.put('/api/inventory/:id', authenticateToken, async (req, res) => {
+  const productCode = req.params.id;
+  const editedItem = req.body;
+  const userId = req.user.id;
+
+  try {
+    const updatedItem = await prisma.products.update({
+      where: {
+        // Find the product by productCode AND ensure it belongs to the authenticated user
+        productCode: productCode,
+        userId: userId,
+      },
+      data: {
+        productName: editedItem.productName,
+        productBrand: editedItem.productBrand,
+        productCategory: editedItem.productCategory,
+        // Ensure data types are converted
+        unitCost: parseFloat(editedItem.unitCost),
+        sellingPrice: parseFloat(editedItem.sellingPrice),
+        initialStock: parseInt(editedItem.initialStock, 10),
+        thresholdStock: parseInt(editedItem.thresholdStock, 10),
+      },
+    });
+    res.status(200).json({ message: 'Item updated successfully', item: updatedItem });
+
+  } catch (error) {
+    // P2025 is the error code for "Record to update not found."
+    if (error.code === 'P2025') {
+      return res.status(404).json({ error: "Item not found or does not belong to the user." });
+    }
+    console.error("Error updating item:", error);
+    res.status(500).json({ error: 'Failed to update item in database.' });
+  }
+});
+
 /* -------------------- SALES/TRANSACTIONS ROUTES -------------------- */
 
 // GET all sales for the current user
@@ -358,13 +364,6 @@ app.get("/api/sales", authenticateToken, async (req, res) => {
       console.error("Error fetching transactions:", error);
       res.status(500).json({ error: "Failed to retrieve transactions data." });
   }
-
-  // fs.readFile(SALES_FILE, "utf8", (err, data) => {
-  //   if (err) return res.status(500).json({ error: "Failed to read sales file" });
-  //   const sales = JSON.parse(data);
-  //   const userSales = sales.filter(sale => sale.userId === userId);
-  //   res.json(userSales);
-  // });
 });
 
 // POST new sale
@@ -606,3 +605,91 @@ app.get("/transactions", authenticateToken, (req, res) => {
 app.listen(PORT, () => {
   console.log(`🚀 Server running at http://localhost:${PORT}`);
 });
+
+// const fs = require('fs');
+// const path = require('path');
+
+// File paths
+// const INVENTORY_FILE = path.join(__dirname, "data", "inventoryItems.json");
+// const SALES_FILE = path.join(__dirname, "data", "transactions.json");
+// const USERS_FILE = path.join(__dirname, "data", "users.json");
+
+// old DELETE USING FS
+// app.delete("/api/inventory/:id", authenticateToken, (req, res) => {
+//   const id = req.params.id;
+//   const userId = req.user.id;
+
+//   fs.readFile(INVENTORY_FILE, "utf8", (err, data) => {
+//     if (err) {
+//       console.error("Failed to read inventory file:", err);
+//       return res.status(500).json({ error: "Failed to read inventory file" });
+//     }
+
+//     let inventory = [];
+//     try {
+//       inventory = JSON.parse(data || "[]");
+//     } catch (parseErr) {
+//       console.error("Failed to parse inventory JSON:", parseErr);
+//       return res.status(500).json({ error: "Invalid inventory data" });
+//     }
+
+//     // Filter to only include items that belong to the user AND don't match the ID
+//     const newInventory = inventory.filter(
+//       (item) => !(String(item.productCode) === String(id) && item.userId === userId)
+//     );
+    
+//     // Check if the item was found and removed
+//     const itemRemoved = newInventory.length < inventory.length;
+//     if (!itemRemoved) {
+//         return res.status(404).json({ error: "Item not found or does not belong to the user" });
+//     }
+
+//     fs.writeFile(INVENTORY_FILE, JSON.stringify(newInventory, null, 2), (writeErr) => {
+//       if (writeErr) {
+//         console.error("Failed to write inventory file:", writeErr);
+//         return res.status(500).json({ error: "Failed to save inventory file" });
+//       }
+//       res.json({ success: true });
+//     });
+//   });
+// });
+
+// OLD FETCH USING FS
+// app.get('/api/inventory/:productCode', authenticateToken, (req, res) => {
+//   const productCode = req.params.productCode;
+//   const userId = req.user.id;
+
+//   fs.readFile(INVENTORY_FILE, 'utf8', (err, data) => {
+//     if (err) {
+//       console.error('Error fetching inventory:', err);
+//       return res.status(500).json({ error: 'Failed to read inventory file' });
+//     }
+
+//     try {
+//       const inventory = JSON.parse(data);
+//       // Find the product that matches both product code AND user ID
+//       const product = inventory.find(item => item.productCode === productCode && item.userId === userId);
+
+//       if (product) {
+//         res.status(200).json(product);
+//       } else {
+//         res.status(404).json({ error: 'Product not found or does not belong to the user' });
+//       }
+//     } catch (parseError) {
+//       console.error('Error parsing JSON data:', parseError);
+//       res.status(500).json({ error: 'Error parsing inventory data' });
+//     }
+//   });
+// });
+
+// app.listen(PORT, () => {
+//   console.log(`Server is running on http://localhost:${PORT}`);
+// });
+
+
+// fs.readFile(SALES_FILE, "utf8", (err, data) => {
+//   if (err) return res.status(500).json({ error: "Failed to read sales file" });
+//   const sales = JSON.parse(data);
+//   const userSales = sales.filter(sale => sale.userId === userId);
+//   res.json(userSales);
+// });
