@@ -120,7 +120,7 @@ export default function InputTransactionForm({ mode, item, isEditMode, invoiceDa
 
     const handleProductFocus = (index, event) => {
         // Get the input's position on the screen
-        const rect = event.getBoundingClientRect();
+        // const rect = event.getBoundingClientRect();
         const formRect = formRef.current?.getBoundingClientRect();
         if (formRect) {
             setDropdownPosition({
