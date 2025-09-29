@@ -10,6 +10,38 @@ export default function InventoryRow({ item, onDelete }) {
   const navigate = useNavigate();
   const dropdownMenuRef = useRef(null);
   const dropdownTriggerRef = useRef(null);
+  const formatLastUpdated = (utcDateString) => {
+    if (!utcDateString) return "N/A";
+    
+    const date = new Date(utcDateString);
+
+    // Options to force UTC+7 (Asia/Jakarta)
+    const options = {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: false, // Use 24-hour format
+        timeZone: 'Asia/Jakarta' // Forces conversion to UTC+7
+    };
+
+    // Use toLocaleString to convert and format based on options
+    const formattedString = date.toLocaleString('en-GB', options);
+
+    // The output is typically: "29/09/2025, 00:55:51" (D/M/Y, H:M:S)
+    // We need to reformat this string manually to YYYY-MM-DD HH:MM:SS
+
+    // Split the date and time parts
+    const [datePart, timePart] = formattedString.split(', ');
+    
+    // Split the date part and rearrange from DD/MM/YYYY to YYYY-MM-DD
+    const [day, month, year] = datePart.split('/');
+    
+    // Final desired format: YYYY-MM-DD HH:MM:SS
+    return `${year}-${month}-${day} ${timePart}`;
+  };
 
   const handleToggleDropdown = (event) => {
     const rect = event.currentTarget.getBoundingClientRect();
@@ -68,7 +100,7 @@ export default function InventoryRow({ item, onDelete }) {
       <td className="w-1/6 text-center py-2">{item.productName}</td>
       <td className="w-1/6 text-center py-2">{item.productCategory}</td>
       <td className="w-1/6 text-center py-2">{item.initialStock}</td>
-      <td className="w-1/6 text-center py-2">{item.lastUpdated}</td>
+      <td className="w-1/6 text-center py-2">{formatLastUpdated(item.lastUpdated)}</td>
       <td className="w-1/6 text-center py-2">
         <BadgeStatus status={status}/>
       </td>
