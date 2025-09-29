@@ -14,43 +14,52 @@ const DUMMY_PRODUCTS = [
 // New component for individual product item in the list
 const ProductItem = ({ product, index, onProductChange, onDeleteProduct, onProductFocus, onProductBlur }) => {
     return (
-        <div className="grid grid-cols-6 items-center gap-4 p-2 px-0 bg-transparent rounded-lg">
+        <div className="grid grid-cols-6 items-end gap-4 py-[4px] bg-transparent rounded-lg">
+            
+            {/* 1. Product Name and Input (Combined) */}
+            {/* The inner div uses flex-col and gap-1 (4px) to control the vertical space precisely. */}
+            <div className="col-span-4 relative flex flex-col gap-1"> 
+                <p className="text-sm font-semibold text-gray-800 truncate leading-tight">
+                    {product.productName || "Product Name..."}
+                </p>
+                
+                {/* Product Code Input */}
+                <input
+                    type="text"
+                    name="productCode"
+                    value={product.productCode}
+                    onChange={(e) => onProductChange(index, e)}
+                    onFocus={(e) => onProductFocus(index, e)}
+                    onBlur={onProductBlur}
+                    placeholder="Search by code or name"
+                    autoComplete="off"
+                    className="w-full p-2 border rounded-md bg-white text-black focus:outline-none focus:ring-1 focus:ring-blue-400"
+                />
+            </div>
 
-        {/* Product Code Input */}
-        <div className="col-span-4 relative">
-            <input
-            type="text"
-            name="productCode"
-            value={product.productCode}
-            onChange={(e) => onProductChange(index, e)}
-            onFocus={(e) => onProductFocus(index, e)}
-            onBlur={onProductBlur}
-            placeholder="Search by code or name"
-            autoComplete="off"
-            className="w-full p-2 border rounded-md bg-white text-black focus:outline-none focus:ring-1 focus:ring-blue-400"
-            />
-        </div>
+            {/* 2. Quantity Input */}
+            {/* This element will align to the bottom (end) because of the parent's items-end class */}
+            <div className="col-span-1">
+                <input
+                    type="number"
+                    name="quantitySold"
+                    value={product.quantitySold}
+                    onChange={(e) => onProductChange(index, e)}
+                    className="w-full p-2 text-center border rounded-md bg-white text-black focus:outline-none focus:ring-1 focus:ring-blue-400" 
+                    min="1"
+                />
+            </div>
 
-        <div className="col-span-1">
-            <input
-            type="number"
-            name="quantitySold"
-            value={product.quantitySold}
-            onChange={(e) => onProductChange(index, e)}
-            className="w-[50px] p-2 text-center border rounded-md bg-white text-black focus:outline-none focus:ring-1 focus:ring-blue-400"
-            min="1"
-            />
-        </div>
-
-        <div className="col-span-1 flex justify-end">
-            <button
-            type="button"
-            onClick={() => onDeleteProduct(index)}
-            className="p-2 text-red-500 rounded-10 hover:bg-red-100 bg-transparent mx-auto"
-            >
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M4 7l16 0" /><path d="M10 11l0 6" /><path d="M14 11l0 6" /><path d="M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12" /><path d="M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3" /></svg>
-            </button>
-        </div>
+            {/* 3. Delete Button */}
+            <div className="col-span-1 flex justify-end">
+                <button
+                    type="button"
+                    onClick={() => onDeleteProduct(index)}
+                    className="p-2 text-red-500 rounded-md hover:bg-red-100 bg-transparent mx-auto"
+                >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M4 7l16 0" /><path d="M10 11l0 6" /><path d="M14 11l0 6" /><path d="M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12" /><path d="M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3" /></svg>
+                </button>
+            </div>
         </div>
     );
 };
@@ -65,7 +74,7 @@ export default function InputTransactionForm({ mode, item, isEditMode, invoiceDa
 
     const [autofill, setAutofill] = useState([]);
     const [activeProductIndex, setActiveProductIndex] = useState(null);
-    const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0 });
+    const [dropdownPosition, setDropdownPosition] = useState({});
     
     const activeProductCode = newProducts[activeProductIndex]?.productCode;
     const debounceProduct = useDebounce(activeProductCode, 300);
@@ -75,23 +84,6 @@ export default function InputTransactionForm({ mode, item, isEditMode, invoiceDa
             console.log("Debounced:", debounceProduct);
             console.log("Active Item:", newProducts[activeProductIndex]);
             if(debounceProduct && debounceProduct.trim().length > 0) {
-                const query = debounceProduct.toLowerCase();
-                const filteredSuggestions = DUMMY_PRODUCTS.filter(p => 
-                    p.productCode.toLowerCase().includes(query) || 
-                    p.productName.toLowerCase().includes(query)
-                );
-                setAutofill(filteredSuggestions);
-            //     return; 
-
-                // const token = localStorage.getItem("token");
-                // const response = await fetch(`http://localhost:3000/api/inventory/search?q=${debounceProduct}`, {
-                //     headers: { Authorization: `Bearer ${token}` },
-                // });
-                // if (response.ok) {
-                //     const data = await response.json();
-                //     setAutofill(data);
-                // }
-
                 const token = localStorage.getItem("token");
                 const url = `http://localhost:3000/api/inventory/search?q=${encodeURIComponent(debounceProduct)}`;
 
@@ -102,6 +94,11 @@ export default function InputTransactionForm({ mode, item, isEditMode, invoiceDa
                     if (response.ok) {
                         const data = await response.json();
                         setAutofill(data);
+
+                        const exactMatch = data.find(p => p.productCode === debounceProduct);
+                        if(exactMatch) {
+                            handleAutofillClick(exactMatch);
+                        }
                     } else {
                         // Log errors for debugging the backend connection
                         console.error("API Search Failed:", response.status, await response.text());
@@ -120,7 +117,7 @@ export default function InputTransactionForm({ mode, item, isEditMode, invoiceDa
 
     const handleProductFocus = (index, event) => {
         // Get the input's position on the screen
-        const rect = event.getBoundingClientRect();
+        // const rect = event.getBoundingClientRect();
         const formRect = formRef.current?.getBoundingClientRect();
         if (formRect) {
             setDropdownPosition({
@@ -134,7 +131,6 @@ export default function InputTransactionForm({ mode, item, isEditMode, invoiceDa
     };
 
     const handleProductBlur = () => {
-        // Hide dropdown on blur, with a delay to allow clicks on suggestions
         setTimeout(() => {
         setActiveProductIndex(null);
         }, 200);
@@ -187,7 +183,19 @@ export default function InputTransactionForm({ mode, item, isEditMode, invoiceDa
     if (name === 'product') {
         updatedProducts[index] = value;
     } else {
-        updatedProducts[index] = { ...updatedProducts[index], [name]: value };
+        const currentProduct = updatedProducts[index];
+        let newProductState = { ...currentProduct, [name]: value };
+        if (name === 'productCode' && value !== currentProduct.productCode) {
+            newProductState = {
+                ...currentProduct,      // Keep tempId and quantitySold
+                productCode: value,     // Update with the user's new input
+                productName: "",        // Reset product name
+                sellingPrice: 0,        // Reset selling price
+                initialStock: undefined,// Reset initial stock
+            };
+        }
+        updatedProducts[index] = newProductState;
+
     }
     setNewProducts(updatedProducts);
   };
@@ -344,6 +352,7 @@ export default function InputTransactionForm({ mode, item, isEditMode, invoiceDa
                         <span className="col-span-4 font-nunito">Item</span>
                         <span className="col-span-1">Qty</span>
                     </div>
+                    
                     {/* The new structure for products */}
                     {newProducts.map((product, index) => (
                         <ProductItem
@@ -418,6 +427,7 @@ export default function InputTransactionForm({ mode, item, isEditMode, invoiceDa
                     <Button
                         type="submit"
                         className="flex-1 px-4 py-2 text-white bg-blue-500 rounded-2xl hover:bg-blue-600 transition-colors"
+                        onClick={handleSubmit}
                     >
                         Save
                     </Button>
