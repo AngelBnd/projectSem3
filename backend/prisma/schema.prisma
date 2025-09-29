@@ -19,7 +19,8 @@ model Users {
 }
 
 model Products {
-  productCode String @id
+  id Int @id @default(autoincrement())
+  productCode String @unique
 
   productName     String
   productCategory String
@@ -42,7 +43,8 @@ model Products {
 }
 
 model Invoices {
-  invoiceId String @id
+  id Int @id @default(autoincrement())
+  invoiceId String @unique
 
   invoiceDate DateTime @default(now())
 
@@ -61,11 +63,12 @@ model Invoices {
 }
 
 model LineItems {
-  invoiceId String
-  invoice   Invoices @relation(fields: [invoiceId], references: [invoiceId])
+  id Int @id @default(autoincrement())
+  invoiceId Int
+  invoice   Invoices @relation(fields: [invoiceId], references: [id])
 
-  productCode String
-  product     Products @relation(fields: [productCode], references: [productCode])
+  productCode Int
+  product     Products @relation(fields: [productCode], references: [id])
 
   quantitySold Int
 
@@ -73,5 +76,5 @@ model LineItems {
 
   lineSubtotal Decimal @db.Decimal(10, 2)
 
-  @@id([productCode, invoiceId])
+  @@unique([productCode, invoiceId])
 }

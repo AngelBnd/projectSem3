@@ -4,13 +4,6 @@ import { useNavigate } from "react-router-dom";
 import { useRef } from "react";
 import { useDebounce } from "./Debounce";
 
-const DUMMY_PRODUCTS = [
-    { productCode: "ABC-001", productName: "Acoustic Guitar, Red", sellingPrice: 500, initialStock: 10 },
-    { productCode: "ABC-002", productName: "Electric Cello, Black", sellingPrice: 1200, initialStock: 5 },
-    { productCode: "XY-404", productName: "Violin Bow Resin", sellingPrice: 15, initialStock: 100 },
-    { productCode: "XY-405", productName: "Piano Keyboard Stand", sellingPrice: 80, initialStock: 20 },
-];
-
 // New component for individual product item in the list
 const ProductItem = ({ product, index, onProductChange, onDeleteProduct, onProductFocus, onProductBlur }) => {
     return (
