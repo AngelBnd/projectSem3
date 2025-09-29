@@ -162,45 +162,94 @@ app.get("/api/inventory", authenticateToken, async (req, res) => {
   // });
 });
 
-// DELETE (remove an inventory item) for the current user
-app.delete("/api/inventory/:id", authenticateToken, (req, res) => {
-  const id = req.params.id;
+// GET single inventory item by product code (Read One)
+app.get('/api/inventory/:productCode', authenticateToken, async (req, res) => {
+  const productCode = req.params.productCode;
   const userId = req.user.id;
 
-  fs.readFile(INVENTORY_FILE, "utf8", (err, data) => {
-    if (err) {
-      console.error("Failed to read inventory file:", err);
-      return res.status(500).json({ error: "Failed to read inventory file" });
-    }
-
-    let inventory = [];
-    try {
-      inventory = JSON.parse(data || "[]");
-    } catch (parseErr) {
-      console.error("Failed to parse inventory JSON:", parseErr);
-      return res.status(500).json({ error: "Invalid inventory data" });
-    }
-
-    // Filter to only include items that belong to the user AND don't match the ID
-    const newInventory = inventory.filter(
-      (item) => !(String(item.productCode) === String(id) && item.userId === userId)
-    );
-    
-    // Check if the item was found and removed
-    const itemRemoved = newInventory.length < inventory.length;
-    if (!itemRemoved) {
-        return res.status(404).json({ error: "Item not found or does not belong to the user" });
-    }
-
-    fs.writeFile(INVENTORY_FILE, JSON.stringify(newInventory, null, 2), (writeErr) => {
-      if (writeErr) {
-        console.error("Failed to write inventory file:", writeErr);
-        return res.status(500).json({ error: "Failed to save inventory file" });
-      }
-      res.json({ success: true });
+  try {
+    const product = await prisma.products.findUnique({
+      where: {
+        productCode: productCode,
+        userId: userId, // Ensure the user owns the product
+      },
     });
-  });
+
+    if (product) {
+      res.status(200).json(product);
+    } else {
+      res.status(404).json({ error: 'Product not found or does not belong to the user' });
+    }
+  } catch (error) {
+    console.error('Error fetching product:', error);
+    res.status(500).json({ error: 'Database query failed' });
+  }
 });
+
+// DELETE (remove an inventory item) for the current user
+app.delete("/api/inventory/:id", authenticateToken, async (req, res) => {
+  const productCode = req.params.id;
+  const userId = req.user.id;
+
+  try {
+    await prisma.products.delete({
+      where: {
+        // Crucial security check: only allow deletion if the user owns the product
+        productCode: productCode,
+        userId: userId, 
+      },
+    });
+    res.json({ success: true, message: "Item deleted successfully." });
+
+  } catch (error) {
+    // P2025 means the record was not found (or not found for the given userId)
+    if (error.code === 'P2025') {
+      return res.status(404).json({ error: "Item not found or does not belong to the user." });
+    }
+    console.error("Error deleting item:", error);
+    res.status(500).json({ error: "Failed to delete item from database." });
+  }
+});
+
+// old DELETE USING FS
+// app.delete("/api/inventory/:id", authenticateToken, (req, res) => {
+//   const id = req.params.id;
+//   const userId = req.user.id;
+
+//   fs.readFile(INVENTORY_FILE, "utf8", (err, data) => {
+//     if (err) {
+//       console.error("Failed to read inventory file:", err);
+//       return res.status(500).json({ error: "Failed to read inventory file" });
+//     }
+
+//     let inventory = [];
+//     try {
+//       inventory = JSON.parse(data || "[]");
+//     } catch (parseErr) {
+//       console.error("Failed to parse inventory JSON:", parseErr);
+//       return res.status(500).json({ error: "Invalid inventory data" });
+//     }
+
+//     // Filter to only include items that belong to the user AND don't match the ID
+//     const newInventory = inventory.filter(
+//       (item) => !(String(item.productCode) === String(id) && item.userId === userId)
+//     );
+    
+//     // Check if the item was found and removed
+//     const itemRemoved = newInventory.length < inventory.length;
+//     if (!itemRemoved) {
+//         return res.status(404).json({ error: "Item not found or does not belong to the user" });
+//     }
+
+//     fs.writeFile(INVENTORY_FILE, JSON.stringify(newInventory, null, 2), (writeErr) => {
+//       if (writeErr) {
+//         console.error("Failed to write inventory file:", writeErr);
+//         return res.status(500).json({ error: "Failed to save inventory file" });
+//       }
+//       res.json({ success: true });
+//     });
+//   });
+// });
 
 
 // OLD FETCH USING FS
@@ -316,6 +365,42 @@ app.post("/api/inventory", authenticateToken, async (req, res) => {
   }catch(error){
     console.error("Prisma inventory creation error:", error);
     res.status(500).json({ error: "Failed to add product to inventory." });
+  }
+});
+
+// PUT (Update)
+app.put('/api/inventory/:id', authenticateToken, async (req, res) => {
+  const productCode = req.params.id;
+  const editedItem = req.body;
+  const userId = req.user.id;
+
+  try {
+    const updatedItem = await prisma.products.update({
+      where: {
+        // Find the product by productCode AND ensure it belongs to the authenticated user
+        productCode: productCode,
+        userId: userId,
+      },
+      data: {
+        productName: editedItem.productName,
+        productBrand: editedItem.productBrand,
+        productCategory: editedItem.productCategory,
+        // Ensure data types are converted
+        unitCost: parseFloat(editedItem.unitCost),
+        sellingPrice: parseFloat(editedItem.sellingPrice),
+        initialStock: parseInt(editedItem.initialStock, 10),
+        thresholdStock: parseInt(editedItem.thresholdStock, 10),
+      },
+    });
+    res.status(200).json({ message: 'Item updated successfully', item: updatedItem });
+
+  } catch (error) {
+    // P2025 is the error code for "Record to update not found."
+    if (error.code === 'P2025') {
+      return res.status(404).json({ error: "Item not found or does not belong to the user." });
+    }
+    console.error("Error updating item:", error);
+    res.status(500).json({ error: 'Failed to update item in database.' });
   }
 });
 
