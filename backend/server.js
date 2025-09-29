@@ -368,7 +368,7 @@ app.get("/api/sales", authenticateToken, async (req, res) => {
 
 // POST new sale
 app.post("/api/sales", authenticateToken, async (req, res) => {
-  const { products: productsSold, discount, invoiceDate, paymentMethod, uniqueId } = req.body;
+  const { products: productsSold, discount, invoiceDate, paymentMethod, invoiceId, subject, name } = req.body;
   const userId = req.user.id;
 
   if(!productsSold || productsSold.length === 0) {
@@ -392,7 +392,7 @@ app.post("/api/sales", authenticateToken, async (req, res) => {
 
         // Check if it exists
         const inventoryItem = await tx.products.findUnique({ where: { productCode : p.productCode }});
-        if(!inventoryItem) throw new Error(`Product with ID ${p.productId} not found`);
+        if(!inventoryItem) throw new Error(`Product with ID ${p.productCode} not found`);
 
         // Check if it has enough stock
         try {
@@ -412,11 +412,12 @@ app.post("/api/sales", authenticateToken, async (req, res) => {
 
         // Push the entry of records to data
         LineItemsCreate.push({
-          invoiceId: uniqueId,
-          productCode: p.productCode,
           quantitySold: p.quantitySold,
           sellingPrice: inventoryItem.sellingPrice,
-          lineSubtotal: lineSubtotal
+          lineSubtotal: lineSubtotal,
+          product: {
+            connect: {productCode: p.productCode}
+          }
         });
       }
 
@@ -425,7 +426,9 @@ app.post("/api/sales", authenticateToken, async (req, res) => {
 
       const createdTransaction = await tx.invoices.create({
         data: {
-          invoiceId: uniqueId,
+          invoiceId: invoiceId,
+          subject, subject,
+          name: name,
           invoiceDate: new Date(invoiceDate),
           discountPrice: discount,
           invoiceSubtotal: invoiceSubtotal,
