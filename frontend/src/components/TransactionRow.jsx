@@ -25,13 +25,14 @@ export default function TransactionRow({sale, products, onDelete }) {
   );
   console.log(matchedProduct)
 
-  const [lineItem, setLineItems] = useState(null);
+  const [lineItem, setLineItems] = useState([]);
 
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [dropdownPosition, setDropdownPosition] = useState(null);
   const dropdownRef = useRef(null);
   const dropdownMenuRef = useRef(null);
   const dropdownTriggerRef = useRef(null);
+  const[totalQuantity, setTotalQuantity] = useState(0)
 
   const handleToggleDropdown = (event) => {
     const rect = event.currentTarget.getBoundingClientRect();
@@ -62,11 +63,16 @@ export default function TransactionRow({sale, products, onDelete }) {
         console.error("get failed:", err);
         alert("Failed to get item. Check console/server logs.");
       });
-
-    console.log(lineItem);
-    console.log(2222);
   },[])
 
+  useEffect(() => {
+    if (lineItem.length > 0) {
+      const total = lineItem.reduce((sum, item) => sum + (item.quantitySold || 0), 0);
+      setTotalQuantity(total);
+    } else {
+      setTotalQuantity(0);
+    }
+  }, [lineItem]);
 
 
 
@@ -106,11 +112,11 @@ export default function TransactionRow({sale, products, onDelete }) {
     <tr className="bg-white rounded-md shadow text-sm ">
       <td className="w-1/6 text-center py-2">{sale.invoiceId}</td>
       <td className="w-1/6 text-center py-2">{sale.name || "Unknown"}</td>
-      <td className="w-1/6 text-center py-2">{quantitySold}</td>
+      <td className="w-1/6 text-center py-2">{totalQuantity}</td>
       <td className="w-1/6 text-center py-2">
         Rp {parseFloat(totalAmount).toLocaleString('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
       </td>
-      <td className="w-1/6 text-center py-2">{invoiceDate}</td>
+      <td className="w-1/6 text-center py-2">{invoiceDate.split("T")[0]}</td>
 <td className="w-1/6 text-center py-2">
         <div className="flex justify-center space-x-4">
           {/* Details button */}

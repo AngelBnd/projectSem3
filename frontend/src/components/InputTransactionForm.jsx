@@ -368,6 +368,7 @@ export default function InputTransactionForm({ mode, item, isEditMode, invoiceDa
                         <span className="col-span-1">Qty</span>
                     </div>
                     
+
                     {/* The new structure for products */}
                     {newProducts.map((product, index) => (
                         <ProductItem
