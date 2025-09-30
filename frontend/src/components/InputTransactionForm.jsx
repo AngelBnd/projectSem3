@@ -5,33 +5,64 @@ import { useRef } from "react";
 import { useDebounce } from "./Debounce";
 
 // New component for individual product item in the list
-const ProductItem = ({ product, index, onProductChange, onDeleteProduct, onProductFocus, onProductBlur }) => {
+const ProductItem = ({ product, index, onProductChange, onDeleteProduct, onProductFocus, onProductBlur, activeProductIndex, mode}) => {
+   
+    const isFocused = activeProductIndex === index;
+    const isEditMode = mode === 'edit';
+     const isProductSet = !!product.productName && product.productName.trim().length > 0;
+    const isNewlyAddedAndBlank = !isProductSet && product.tempId && product.productCode === ""; 
+    const showFinalDisplay = (isEditMode || isProductSet) && !isFocused;
+    const showInput = isFocused || !isProductSet;
     return (
         <div className="grid grid-cols-6 items-end gap-4 py-[4px] bg-transparent rounded-lg">
             
-            {/* 1. Product Name and Input (Combined) */}
-            {/* The inner div uses flex-col and gap-1 (4px) to control the vertical space precisely. */}
             <div className="col-span-4 relative flex flex-col gap-1"> 
-                <p className="text-sm font-semibold text-gray-800 truncate leading-tight">
-                    {product.productName || "Product Name..."}
-                </p>
-                
-                {/* Product Code Input */}
-                <input
-                    type="text"
-                    name="productCode"
-                    value={product.productCode}
-                    onChange={(e) => onProductChange(index, e)}
-                    onFocus={(e) => onProductFocus(index, e)}
-                    onBlur={onProductBlur}
-                    placeholder="Search by code or name"
-                    autoComplete="off"
-                    className="w-full p-2 border rounded-md bg-white text-black focus:outline-none focus:ring-1 focus:ring-blue-400"
-                />
-            </div>
+         
+         {showInput ? (
+                    // --- SHOW INPUT FIELD ---
+                    <>
+             <p className="text-sm font-semibold text-gray-800 truncate leading-tight">
+               {product.productName || "Product Name"}
+             </p>
+             
+             {/* Product Code Input */}
+             <input
+               type="text"
+               name="productCode"
+               value={product.productCode}
+               onChange={(e) => onProductChange(index, e)}
+               onFocus={(e) => onProductFocus(index, e)}
+               onBlur={onProductBlur}
+               placeholder="Search by code or name"
+               autoComplete="off"
+               className={`w-full p-2 border rounded-md bg-white text-black focus:outline-none focus:ring-1 focus:ring-blue-400`}
+             />
+           </>
+         ) : (
+                    // --- SHOW READ-ONLY DISPLAY ---
+           <div 
+             onMouseDown={(e) => {
+               e.preventDefault(); 
+               const inputElement = e.currentTarget.parentElement.querySelector('input[name="productCode"]');
+               if (inputElement) {
+                 onProductFocus(index, { target: inputElement });
+                 inputElement.focus(); 
+               }
+             }}
+             className={`p-2 border border-transparent rounded-md transition-colors -m-2 ${isEditMode ? 'cursor-pointer hover:bg-gray-50' : ''}`}
+           >
+             <p className="text-sm font-semibold text-gray-800 truncate leading-tight">
+               {product.productName || "Product Name"}
+             </p>
+             <p className="text-xs text-gray-500">
+               Code: {product.productCode}
+               <span className="ml-2 text-green-600">(${product.sellingPrice} per unit)</span>
+             </p>
+           </div>
+         )}
+       </div>
 
-            {/* 2. Quantity Input */}
-            {/* This element will align to the bottom (end) because of the parent's items-end class */}
+
             <div className="col-span-1">
                 <input
                     type="number"
@@ -43,7 +74,7 @@ const ProductItem = ({ product, index, onProductChange, onDeleteProduct, onProdu
                 />
             </div>
 
-            {/* 3. Delete Button */}
+    
             <div className="col-span-1 flex justify-end">
                 <button
                     type="button"
@@ -184,78 +215,110 @@ export default function InputTransactionForm({ mode, item, isEditMode, invoiceDa
     };
 
     const handleProductChange = (index, e) => {
-    const { name, value } = e.target;
-    const updatedProducts = [...newProducts];
-    if (name === 'product') {
-        updatedProducts[index] = value;
-    } else {
-        const currentProduct = updatedProducts[index];
-        let newProductState = { ...currentProduct, [name]: value };
-        if (name === 'productCode' && value !== currentProduct.productCode) {
-            newProductState = {
-                ...currentProduct,      // Keep tempId and quantitySold
-                productCode: value,     // Update with the user's new input
-                productName: "",        // Reset product name
-                sellingPrice: 0,        // Reset selling price
-                initialStock: undefined,// Reset initial stock
-            };
-        }
-        updatedProducts[index] = newProductState;
+        const { name, value } = e.target;
+        const updatedProducts = [...newProducts];
+        if (name === 'product') {
+            updatedProducts[index] = value;
+        } else {
+            const currentProduct = updatedProducts[index];
+            let newProductState = { ...currentProduct, [name]: value };
+            if (name === 'productCode' && value !== currentProduct.productCode) {
+                newProductState = {
+                    ...currentProduct,      // Keep tempId and quantitySold
+                    productCode: value,     // Update with the user's new input
+                    productName: "",        // Reset product name
+                    sellingPrice: 0,        // Reset selling price
+                    initialStock: undefined,// Reset initial stock
+                };
+            }
+            updatedProducts[index] = newProductState;
 
-    }
-    setNewProducts(updatedProducts);
-  };
+        }
+        setNewProducts(updatedProducts);
+    };
 
     const handleSubmit = async (event) => {
-    event.preventDefault();
-    if (newProducts.length === 0) {
-      return alert("Please add at least one product.");
-    }
-    try {
-      // Validation now happens on the client-side using the data
-      // you already gathered from the autocomplete search.
-      const validatedProducts = newProducts.map(product => {
-        if (!product.productCode || !product.productName) {
-          throw new Error("One or more products are invalid. Please select from the dropdown.");
+        event.preventDefault();
+
+        if (newProducts.length === 0) {
+            return alert("Please add at least one product.");
+        }   
+
+        try {
+            // --- 1. NORMALIZE and VALIDATE PRODUCTS ---
+            const normalizedProducts = newProducts.reduce((acc, product) => {
+                const code = product.productCode;
+                const quantity = parseInt(product.quantitySold, 10);
+                const price = parseFloat(product.sellingPrice) || 0;
+
+                // Basic validation checks (stop processing if an item is invalid)
+                if (!code || code.trim().length === 0 || isNaN(quantity) || quantity <= 0) {
+                    throw new Error("One or more products are incomplete or invalid.");
+                }
+                if (product.initialStock < quantity) {
+                    throw new Error(`Not enough stock for "${product.productName}". Only ${product.initialStock} available.`);
+                }
+                
+                // If the product code is already in the accumulator, merge the quantities
+                if (acc[code]) {
+                    acc[code].quantitySold += quantity;
+                } else {
+                    // Otherwise, add the new unique product entry
+                    acc[code] = {
+                        productCode: code,
+                        quantitySold: quantity,
+                        sellingPrice: price, // ADDED: Required for backend validation/calculation
+                    };
+                }
+                return acc;
+            }, {});
+
+            // Convert the normalized object back into an array for the backend payload
+            const validatedProducts = Object.values(normalizedProducts);
+            
+            // If the normalized array is empty after validation (should be caught by the length check, but for safety)
+            if (validatedProducts.length === 0) {
+                 throw new Error("No valid products were submitted.");
+            }
+
+            // --- 2. Build the final invoice payload ---
+            const finalInvoice = {
+                ...invoiceData,
+                discount: useDiscount ? discountValue : 0,
+                // The 'products' array now has unique productCode entries
+                products: validatedProducts, 
+            };
+
+            
+            const url =
+            mode === "edit"
+                ? `http://localhost:3000/api/sales/${item.invoiceId}`
+                : "http://localhost:3000/api/sales";
+
+            const method = mode === "edit" ? "PUT" : "POST";
+
+            const token = localStorage.getItem("token");
+            const response = await fetch(url, { 
+                method: `${method}`, 
+                headers: { 
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}` 
+                },
+                body: JSON.stringify(finalInvoice),
+            });
+
+            if (!response.ok) {
+                const errData = await response.json();
+                throw new Error(errData.error || "Failed to save the transaction.");
+            }
+            
+            alert("Transaction saved successfully!");
+            navigate(-1); // Go back to the previous page
+
+        } catch (error) {
+            alert(`Failed to save: ${error.message}`);
         }
-        if (product.initialStock < product.quantitySold) {
-          throw new Error(`Not enough stock for "${product.productName}". Only ${product.initialStock} available.`);
-        }
-        return {
-          productCode: product.productCode,
-          quantitySold: parseInt(product.quantitySold, 10),
-        };
-      });
-
-      const finalInvoice = {
-        ...invoiceData,
-        discount: useDiscount ? discountValue : 0,
-        products: validatedProducts, // This key name must match the backend
-      };
-      
-      const token = localStorage.getItem("token");
-      const response = await fetch('http://localhost:3000/api/sales', { 
-         method: 'POST', 
-         headers: { 
-           'Content-Type': 'application/json',
-           'Authorization': `Bearer ${token}` 
-         },
-         body: JSON.stringify(finalInvoice),
-      });
-
-      if (!response.ok) {
-        const errData = await response.json();
-        throw new Error(errData.error || "Failed to save the transaction.");
-      }
-      
-      alert("Transaction saved successfully!");
-      navigate(-1); // Go back to the previous page
-
-    } catch (error) {
-      alert(`Failed to save: ${error.message}`);
-    }
-  };
-
+    };
     // useEffect(() => {
     // if (isEditMode && item) {
     //   if (item.discount > 0) {
@@ -289,6 +352,10 @@ export default function InputTransactionForm({ mode, item, isEditMode, invoiceDa
     const handleDiscountChange = (e) => {
         setDiscountValue(e.target.value);
     };
+
+    useEffect(()=>{
+        console.log(item)
+    },[item])
 
     // The form's overall layout and styling based on the screenshot
     return (
@@ -379,6 +446,8 @@ export default function InputTransactionForm({ mode, item, isEditMode, invoiceDa
                             onDeleteProduct={handleDeleteProduct}
                             onProductFocus={handleProductFocus}
                             onProductBlur={handleProductBlur}
+                            activeProductIndex={activeProductIndex}
+                            mode = {mode}
                         />
                     ))}
                     {activeProductIndex !== null && autofill.length > 0 && (
