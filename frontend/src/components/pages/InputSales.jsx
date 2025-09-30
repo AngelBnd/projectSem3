@@ -25,26 +25,55 @@ export default function InputSales() {
 
 
   useEffect(() => {
-    // Populate form data for edit mode
     if (isEditMode && item) {
       setInvoiceData({
         name: item.name || "",
         subject: item.subject || "",
         invoiceId: item.invoiceId,
         discount: item.discountPrice || 0,
-        // Format the incoming date correctly for the input field
-        invoiceDate: item.invoiceDate ? new Date(item.invoiceDate).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+        invoiceDate: item.invoiceDate
+          ? new Date(item.invoiceDate).toISOString().split("T")[0]
+          : new Date().toISOString().split("T")[0],
         paymentMethod: item.paymentMethod || "Card",
       });
-      // Set the invoice ID from the item
-      setNewProducts(item.lineItems || []);
+
     } else {
-      setInvoiceData(prevData => ({
-          ...prevData, // Keep the default data
-          invoiceId: crypto.randomUUID() // Generate the unique ID
+      setInvoiceData((prevData) => ({
+        ...prevData,
+        invoiceId: crypto.randomUUID(),
       }));
     }
   }, [isEditMode, item]);
+
+  // Second effect: run fetch AFTER invoiceData updates
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
+    if (!isEditMode || !invoiceData.invoiceId) return;
+
+    console.log("iininini")
+    console.log(invoiceData.invoiceId)
+
+    const fetchLineItems = async () => {
+      try {
+        const res = await fetch(
+          `http://localhost:3000/api/lineitems/${encodeURIComponent(
+            invoiceData.invoiceId
+          )}`,{headers}
+        );
+        if (!res.ok) throw new Error("Failed to fetch line items");
+
+        const data = await res.json();
+        setNewProducts(data);
+      } catch (err) {
+        console.error("Fetch failed:", err);
+        alert("Failed to get item. Check console/server logs.");
+      }
+    };
+
+    fetchLineItems();
+  }, [isEditMode, invoiceData.invoiceId]);
+
 
 
   // Not updated to invoice yet
