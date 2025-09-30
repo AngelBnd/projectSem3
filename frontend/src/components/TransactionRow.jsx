@@ -11,13 +11,21 @@ export default function TransactionRow({sale, products, onDelete }) {
     tax,
     subtotal,
     totalAmount,
+    invoiceId
   } = sale;
+
+  const token = localStorage.getItem('token');
+  const headers = { 'Authorization': `Bearer ${token}` };
+
+  console.log(sale);
+  console.log(1111);
 
   const matchedProduct = products.find(
     (item) => item.productCode === sale.productCode
   );
   console.log(matchedProduct)
 
+  const [lineItem, setLineItems] = useState(null);
 
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [dropdownPosition, setDropdownPosition] = useState(null);
@@ -33,6 +41,35 @@ export default function TransactionRow({sale, products, onDelete }) {
     });
     setIsDropdownOpen((prev) => !prev);
   };
+
+  useEffect(()=>{
+    console.log(`testtt ${invoiceId}`)
+    console.log(sale);
+
+    fetch(`http://localhost:3000/api/lineitems/${encodeURIComponent(sale.invoiceId)}`, {
+      method: "GET",
+      headers: headers,
+    })
+      .then((res)=>{
+        if (!res.ok) throw new Error("Delete failed");
+        return res.json();
+      })
+      .then((data)=>{
+        console.log(data);
+        setLineItems(data)
+      })
+      .catch((err) => {
+        console.error("get failed:", err);
+        alert("Failed to get item. Check console/server logs.");
+      });
+
+    console.log(lineItem);
+    console.log(2222);
+  },[])
+
+
+
+
   useEffect(() => {
       function handleClickOutside(event) {
         // Check if click is outside both trigger and dropdown menu
@@ -67,9 +104,8 @@ export default function TransactionRow({sale, products, onDelete }) {
 
   return (
     <tr className="bg-white rounded-md shadow text-sm ">
-      <td className="w-1/6 text-center py-2">{productCode}</td>
-      <td className="w-1/6 text-center py-2">{matchedProduct?.productName || "Unknown"}</td>
-      <td className="w-1/6 text-center py-2">{matchedProduct?.productCategory || "N/A"}</td>
+      <td className="w-1/6 text-center py-2">{sale.invoiceId}</td>
+      <td className="w-1/6 text-center py-2">{sale.name || "Unknown"}</td>
       <td className="w-1/6 text-center py-2">{quantitySold}</td>
       <td className="w-1/6 text-center py-2">
         Rp {parseFloat(totalAmount).toLocaleString('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}

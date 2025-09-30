@@ -173,7 +173,6 @@ export default function Sales(){
             <tr>
               <th className="w-1/6 px-6 py-2 font-bold text-center">Code</th>
               <th className="w-1/6 px-6 py-2 font-bold text-center">Name</th>
-              <th className="w-1/6 px-6 py-2 font-bold text-center">Category</th>
               <th className="w-1/6 px-6 py-2 font-bold text-center">Quantity</th>
               <th className="w-1/6 px-6 py-2 font-bold text-center">Total</th>
               <th className="w-1/6 px-6 py-2 font-bold text-center">Invoice Date</th>
@@ -181,10 +180,10 @@ export default function Sales(){
             </tr>
           </thead>
             <tbody>
-              {updateSales.length === 0 ? (
+              {sales.length === 0 ? (
                 <NotFound />
               ) : (
-                updateSales.map((sale) => (
+                sales.map((sale) => (
                   <TransactionRow
                     key={sale.invoiceId}
                     sale={sale}
