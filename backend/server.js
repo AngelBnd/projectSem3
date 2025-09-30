@@ -494,6 +494,24 @@ app.put("/api/sales/:invoiceId", authenticateToken, (req, res) => {
   });
 });
 
+app.get("/api/lineitems/:invoiceId", authenticateToken, async (req, res) => {
+  const invoiceId = req.params.invoiceId;
+  const userId = req.user.id;
+
+  try {
+    const lineItemsData = await prisma.lineItems.findMany({
+      where:{
+        invoiceId : invoiceId
+      }
+    })
+    res.json(lineItemsData);
+
+  }catch(error){
+      console.error("Error fetching transactions:", error);
+      res.status(500).json({ error: "Failed to retrieve transactions data." });
+  }
+});
+
 /* -------------------- DATA INVENTORY STUFF -------------------- */
 // This route appears to be a duplicate of /api/inventory, so it's adjusted to be redundant.
 app.get("/inventory", authenticateToken, (req, res) => {
