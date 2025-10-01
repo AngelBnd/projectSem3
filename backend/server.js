@@ -356,6 +356,9 @@ app.get("/api/sales", authenticateToken, async (req, res) => {
     const transactionsData = await prisma.invoices.findMany({
       where:{
         userId : userId
+      },
+      include: {
+        lineItems: true,
       }
     })
     res.json(transactionsData);
@@ -468,7 +471,7 @@ app.put("/api/sales/:invoiceId", authenticateToken, async (req, res) => {
         
         return {
             productCode: product.productCode,
-            quantitySold: qty,
+            quantitySold: qty,  
             sellingPrice: price, 
             lineSubtotal: subtotal,
         };
@@ -603,19 +606,21 @@ app.get("/api/lineitems/:invoiceId", authenticateToken, async (req, res) => {
   }
 });
 
+
+
 /* -------------------- DATA INVENTORY STUFF -------------------- */
 // This route appears to be a duplicate of /api/inventory, so it's adjusted to be redundant.
-app.get("/inventory", authenticateToken, (req, res) => {
-  const userId = req.user.id;
-  fs.readFile(INVENTORY_FILE, "utf-8", (err, data) => {
-    if (err) {
-      return res.status(500).json({ error: "Failed to read data file" });
-    }
-    const inventory = JSON.parse(data);
-    const userInventory = inventory.filter(item => item.userId === userId);
-    res.json(userInventory);
-  });
-});
+// app.get("/inventory", authenticateToken, (req, res) => {
+//   const userId = req.user.id;
+//   fs.readFile(INVENTORY_FILE, "utf-8", (err, data) => {
+//     if (err) {
+//       return res.status(500).json({ error: "Failed to read data file" });
+//     }
+//     const inventory = JSON.parse(data);
+//     const userInventory = inventory.filter(item => item.userId === userId);
+//     res.json(userInventory);
+//   });
+// });
 
 app.put('/api/inventory/:id', authenticateToken, (req, res) => {
   const selectedProductCode = req.params.id;
@@ -700,17 +705,17 @@ app.delete("/api/sales/:id", authenticateToken, (req, res) => {
 
 /* -------------------- DATA TRANSACTIONS STUFF -------------------- */
 // This route is a duplicate of /api/sales and is adjusted to be redundant.
-app.get("/transactions", authenticateToken, (req, res) => {
-  const userId = req.user.id;
-  fs.readFile(SALES_FILE, "utf-8", (err, data) => {
-    if (err) {
-      return res.status(500).json({ error: "Failed to read data file" });
-    }
-    const sales = JSON.parse(data);
-    const userSales = sales.filter(sale => sale.userId === userId);
-    res.json(userSales);
-  });
-});
+// app.get("/transactions", authenticateToken, (req, res) => {
+//   const userId = req.user.id;
+//   fs.readFile(SALES_FILE, "utf-8", (err, data) => {
+//     if (err) {
+//       return res.status(500).json({ error: "Failed to read data file" });
+//     }
+//     const sales = JSON.parse(data);
+//     const userSales = sales.filter(sale => sale.userId === userId);
+//     res.json(userSales);
+//   });
+// });
 
 
 /* -------------------- START SERVER -------------------- */
