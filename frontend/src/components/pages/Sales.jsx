@@ -50,23 +50,27 @@ export default function Sales(){
     let expense = 0;
     let totalSale = 0;
 
-    // Filter for valid sales and calculate
-    sales.forEach((sale) => {
-      const product = products.find(p => p.productCode === sale.productCode);
+    const productMap = new Map(products.map(p => [p.productCode, p]));
 
-      // Check if the product exists before doing any calculations
-      if (product) {
-        const quantity = parseInt(sale.quantitySold || 0, 10);
-        const cost = parseFloat(product.unitCost || 0);
-        const saleAmount = parseFloat(sale.totalAmount || 0);
+    sales.forEach((invoice) => { 
+        
+        (invoice.lineItems || []).forEach((lineItem) => {
+            const product = productMap.get(lineItem.productCode);
 
-        // Check if values are valid numbers before adding them to totals
-        if (!isNaN(quantity) && !isNaN(cost) && !isNaN(saleAmount)) {
-          orders += quantity;
-          expense += cost * quantity;
-          totalSale += saleAmount;
-        }
-      }
+            if (product) {
+                // Get data from LineItem and Product
+                const quantity = parseInt(lineItem.quantitySold || 0, 10);
+                const cost = parseFloat(product.unitCost || 0);
+                
+                const saleAmount = parseFloat(lineItem.lineSubtotal || 0); 
+
+                if (!isNaN(quantity) && !isNaN(cost) && !isNaN(saleAmount)) { 
+                    orders += quantity;
+                    expense += cost * quantity;
+                    totalSale += saleAmount;
+                }
+            }
+        });
     });
 
     return {
@@ -117,6 +121,12 @@ export default function Sales(){
     });
   }, []);
 
+  useEffect(()=>{
+    console.log(112121212);
+    console.log(sales);
+     console.log(products);
+     console.log(112121212);
+  },[sales,products])
 
   return (
     <div className="w-full text-black  ">
