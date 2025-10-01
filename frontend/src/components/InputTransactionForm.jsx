@@ -16,11 +16,7 @@ const ProductItem = ({ product, index, onProductChange, onDeleteProduct, onProdu
     return (
         <div className="grid grid-cols-6 items-end gap-4 py-[4px] bg-transparent rounded-lg">
             
-            <div className="col-span-4 relative flex flex-col gap-1"> 
-         
-         {showInput ? (
-                    // --- SHOW INPUT FIELD ---
-                    <>
+            <div className="col-span-4 relative flex flex-col gap-1">
              <p className="text-sm font-semibold text-gray-800 truncate leading-tight">
                {product.productName || "Product Name"}
              </p>
@@ -37,29 +33,6 @@ const ProductItem = ({ product, index, onProductChange, onDeleteProduct, onProdu
                autoComplete="off"
                className={`w-full p-2 border rounded-md bg-white text-black focus:outline-none focus:ring-1 focus:ring-blue-400`}
              />
-           </>
-         ) : (
-                    // --- SHOW READ-ONLY DISPLAY ---
-           <div 
-             onMouseDown={(e) => {
-               e.preventDefault(); 
-               const inputElement = e.currentTarget.parentElement.querySelector('input[name="productCode"]');
-               if (inputElement) {
-                 onProductFocus(index, { target: inputElement });
-                 inputElement.focus(); 
-               }
-             }}
-             className={`p-2 border border-transparent rounded-md transition-colors -m-2 ${isEditMode ? 'cursor-pointer hover:bg-gray-50' : ''}`}
-           >
-             <p className="text-sm font-semibold text-gray-800 truncate leading-tight">
-               {product.productName || "Product Name"}
-             </p>
-             <p className="text-xs text-gray-500">
-               Code: {product.productCode}
-               <span className="ml-2 text-green-600">(${product.sellingPrice} per unit)</span>
-             </p>
-           </div>
-         )}
        </div>
 
 

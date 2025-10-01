@@ -394,7 +394,7 @@ app.post("/api/sales", authenticateToken, async (req, res) => {
         const inventoryItem = await tx.products.findUnique({ where: { productCode : p.productCode }});
         if(!inventoryItem) throw new Error(`Product with ID ${p.productCode} not found`);
 
-        // Check if it has enough stock
+        // Check if it has enough stock   
         try {
           await tx.products.update({
             where: { productCode: p.productCode, initialStock: { gte: p.quantitySold} },
@@ -482,8 +482,6 @@ app.put("/api/sales/:invoiceId", authenticateToken, async (req, res) => {
     const rawSubtotal = calculatedLineItems.reduce((sum, item) => sum + item.lineSubtotal, 0);
     const discount = parseFloat(updatedSaleData.discountPrice) || 0; 
     
-    // Note: If discountPrice is a percentage, you need to calculate the value first.
-    // Assuming discountPrice is the currency value of the discount.
     const finalTotal = rawSubtotal - discount;
 
     try {
@@ -500,11 +498,10 @@ app.put("/api/sales/:invoiceId", authenticateToken, async (req, res) => {
                 
                 // Ensure Date is a proper Date object (use || null for safety)
                 invoiceDate: updatedSaleData.invoiceDate ? new Date(updatedSaleData.invoiceDate) : null, 
-                
-                // 💡 UPDATED: Use server-calculated totals for maximum consistency
+            
                 discountPrice: discount,
                 invoiceSubtotal: rawSubtotal, // Calculated from line items
-                totalAmount: finalTotal,      // Calculated from subtotal and discount
+                totalAmount: finalTotal,     
 
                 // Update Line Items using the calculated array
                 lineItems: {
@@ -514,14 +511,12 @@ app.put("/api/sales/:invoiceId", authenticateToken, async (req, res) => {
                             productCode: item.productCode,
                             quantitySold: item.quantitySold,
                             sellingPrice: item.sellingPrice,
-                            lineSubtotal: item.lineSubtotal, // Use the calculated line subtotal
-                            // Note: invoiceId is likely a required field on LineItem, 
-                            // so it must be passed here (as you did previously) or 
-                            // should be automatically handled by Prisma's nested createMany 
-                            // (which requires the foreign key, so keeping it is safest)
+                            lineSubtotal: item.lineSubtotal, 
                         })),
                     },
                 },
+
+        
             },
         });
 
