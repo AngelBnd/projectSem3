@@ -459,12 +459,9 @@ app.put("/api/sales/:invoiceId", authenticateToken, async (req, res) => {
     const invoiceIdToUpdate = req.params.invoiceId;
     const updatedSaleData = req.body;
     const userId = req.user.id;
-    // lineItemsArray (req.body.products) now contains productCode, quantitySold, and sellingPrice
     const lineItemsArray = req.body.products; 
 
-    // 1. Calculate the lineSubtotal for each item and the overall invoiceSubtotal
     const calculatedLineItems = lineItemsArray.map(product => {
-        // Ensure values are numbers before calculation
         const price = parseFloat(product.sellingPrice) || 0;
         const qty = parseInt(product.quantitySold, 10) || 0;
         const subtotal = price * qty;
@@ -473,96 +470,119 @@ app.put("/api/sales/:invoiceId", authenticateToken, async (req, res) => {
             productCode: product.productCode,
             quantitySold: qty,
             sellingPrice: price, 
-            lineSubtotal: subtotal, // 💡 NEW: Calculated Subtotal per line
-            // invoiceId: invoiceIdToUpdate // Will be added by Prisma nested write if not explicitly included
+            lineSubtotal: subtotal,
         };
     });
 
-    // 2. Calculate the total amounts based on the calculated line items
     const rawSubtotal = calculatedLineItems.reduce((sum, item) => sum + item.lineSubtotal, 0);
     const discount = parseFloat(updatedSaleData.discountPrice) || 0; 
-    
     const finalTotal = rawSubtotal - discount;
 
+
     try {
-        const updatedItem = await prisma.invoices.update({
-            where: {
-                invoiceId: invoiceIdToUpdate,
-                userId: userId,
-            },
-            data: {
-                // Update Invoice Header Details
-                name: updatedSaleData.name,
-                subject: updatedSaleData.subject,
-                paymentMethod: updatedSaleData.paymentMethod,
-                
-                // Ensure Date is a proper Date object (use || null for safety)
-                invoiceDate: updatedSaleData.invoiceDate ? new Date(updatedSaleData.invoiceDate) : null, 
-            
-                discountPrice: discount,
-                invoiceSubtotal: rawSubtotal, // Calculated from line items
-                totalAmount: finalTotal,     
-
-                // Update Line Items using the calculated array
-                lineItems: {
-                    deleteMany: {}, 
-                    createMany: {
-                        data: calculatedLineItems.map(item => ({
-                            productCode: item.productCode,
-                            quantitySold: item.quantitySold,
-                            sellingPrice: item.sellingPrice,
-                            lineSubtotal: item.lineSubtotal, 
-                        })),
-                    },
-                },
-
-        
+        const oldInvoice = await prisma.invoices.findUnique({
+            where: { invoiceId: invoiceIdToUpdate },
+            include: {
+                lineItems: true,
             },
         });
 
-        res.status(200).json({ message: 'Item updated successfully', item: updatedItem });
+        if (!oldInvoice || oldInvoice.userId !== userId) {
+            return res.status(404).json({ error: "Invoice not found or does not belong to the user." });
+        }
+
+        const oldLineItems = oldInvoice.lineItems;
+
+        const stockUpdates = [];
+        
+        const oldQuantities = oldLineItems.reduce((acc, item) => {
+            acc[item.productCode] = item.quantitySold;
+            return acc;
+        }, {});
+        
+        const newQuantities = calculatedLineItems.reduce((acc, item) => {
+            acc[item.productCode] = item.quantitySold;
+            return acc;
+        }, {});
+
+        const allProductCodes = new Set([
+            ...Object.keys(oldQuantities),
+            ...Object.keys(newQuantities),
+        ]);
+
+        for (const productCode of allProductCodes) {
+            const oldQty = oldQuantities[productCode] || 0;
+            const newQty = newQuantities[productCode] || 0;
+            
+            const stockAdjustment = oldQty - newQty; 
+
+            if (stockAdjustment !== 0) {
+                stockUpdates.push({
+                    productCode,
+                    stockAdjustment,
+                });
+            }
+        }
+        
+        const prismaQueries = [];
+
+        for (const { productCode, stockAdjustment } of stockUpdates) {
+            prismaQueries.push(
+                prisma.products.update({
+                    where: { productCode: productCode },
+                    data: {
+                        initialStock: {
+                            increment: stockAdjustment, 
+                        },
+                    },
+                })
+            );
+        }
+
+        prismaQueries.push(
+            prisma.invoices.update({
+                where: {
+                    invoiceId: invoiceIdToUpdate,
+                    userId: userId,
+                },
+                data: {
+                    name: updatedSaleData.name,
+                    subject: updatedSaleData.subject,
+                    paymentMethod: updatedSaleData.paymentMethod,
+                    
+                    invoiceDate: updatedSaleData.invoiceDate ? new Date(updatedSaleData.invoiceDate) : null, 
+                
+                    discountPrice: discount,
+                    invoiceSubtotal: rawSubtotal,
+                    totalAmount: finalTotal,     
+
+                    lineItems: {
+                        deleteMany: {}, 
+                        createMany: {
+                            data: calculatedLineItems.map(item => ({
+                                productCode: item.productCode,
+                                quantitySold: item.quantitySold,
+                                sellingPrice: item.sellingPrice,
+                                lineSubtotal: item.lineSubtotal, 
+                            })),
+                        },
+                    },
+                },
+            })
+        );
+        
+        const [/* ...stockUpdatesResults */, updatedItem] = await prisma.$transaction(prismaQueries);
+
+        res.status(200).json({ message: 'Item updated successfully and stock adjusted.', item: updatedItem });
 
     } catch (error) {
         if (error.code === 'P2025') {
-            return res.status(404).json({ error: "Item not found or does not belong to the user." });
+            return res.status(404).json({ error: "Item/Product not found or invoice doesn't belong to the user." });
         }
-        console.error("Error updating item:", error);
-        res.status(500).json({ error: 'Failed to update item in database.' });
+        // Handle potential stock depletion error here if your database enforces checks (e.g., stock cannot be negative)
+        console.error("Error updating item or stock:", error);
+        res.status(500).json({ error: 'Failed to update item and/or stock in database.' });
     }
-
-
-  // fs.readFile(SALES_FILE, "utf8", (err, salesData) => {
-  //   if (err) {
-  //     console.error("Failed to read sales file:", err);
-  //     return res.status(500).json({ error: "Failed to read sales data" });
-  //   }
-
-  //   let sales = JSON.parse(salesData);
-  //   const saleIndex = sales.findIndex(sale => sale.invoiceId === invoiceIdToUpdate && sale.userId === userId);
-
-  //   if (saleIndex === -1) {
-  //     return res.status(404).json({ error: "Sale not found or does not belong to the user" });
-  //   }
-    
-  //   // Recalculate financial values (subtotal and totalAmount) - this logic should ideally be on the server.
-  //   const finalUpdatedSale = {
-  //     ...sales[saleIndex],
-  //     ...updatedSaleData,
-  //     lastUpdated: new Date().toISOString().split('T')[0]
-  //   };
-    
-  //   // Update the sales array
-  //   sales[saleIndex] = finalUpdatedSale;
-    
-  //   fs.writeFile(SALES_FILE, JSON.stringify(sales, null, 2), (err) => {
-  //     if (err) {
-  //       console.error("Failed to write sales file:", err);
-  //       return res.status(500).json({ error: "Failed to update sale" });
-  //     }
-
-  //     res.status(200).json({ success: true, updatedSale: finalUpdatedSale });
-  //   });
-  // });
 });
 
 app.get("/api/lineitems/:invoiceId", authenticateToken, async (req, res) => {
