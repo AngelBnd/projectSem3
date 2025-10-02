@@ -122,10 +122,9 @@ export default function Sales(){
   }, []);
 
   useEffect(()=>{
-    console.log(112121212);
+    console.log("ini yang gw mau perbaiki");
     console.log(sales);
-     console.log(products);
-     console.log(112121212);
+
   },[sales,products])
 
   return (

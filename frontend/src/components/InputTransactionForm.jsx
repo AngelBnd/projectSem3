@@ -13,6 +13,7 @@ const ProductItem = ({ product, index, onProductChange, onDeleteProduct, onProdu
     const isNewlyAddedAndBlank = !isProductSet && product.tempId && product.productCode === ""; 
     const showFinalDisplay = (isEditMode || isProductSet) && !isFocused;
     const showInput = isFocused || !isProductSet;
+
     return (
         <div className="grid grid-cols-6 items-end gap-4 py-[4px] bg-transparent rounded-lg">
             
@@ -189,6 +190,9 @@ export default function InputTransactionForm({ mode, item, isEditMode, invoiceDa
 
     const handleProductChange = (index, e) => {
         const { name, value } = e.target;
+        console.log("right hereasdasasdasd")
+        console.log(name)
+        console.log(value)
         const updatedProducts = [...newProducts];
         if (name === 'product') {
             updatedProducts[index] = value;
@@ -412,7 +416,7 @@ export default function InputTransactionForm({ mode, item, isEditMode, invoiceDa
                     {/* The new structure for products */}
                     {newProducts.map((product, index) => (
                         <ProductItem
-                            key={product.tempId || product.productCode}
+                            key={product.tempId}
                             product={product}
                             index={index}
                             onProductChange={handleProductChange}
