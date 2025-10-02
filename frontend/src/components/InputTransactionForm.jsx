@@ -3,6 +3,8 @@ import Button from "./Button";
 import { useNavigate } from "react-router-dom";
 import { useRef } from "react";
 import { useDebounce } from "./Debounce";
+import { usePopup } from "./PopupContext";
+import { PopupOkay } from "./PopupComp";
 
 // New component for individual product item in the list
 const ProductItem = ({ product, index, onProductChange, onDeleteProduct, onProductFocus, onProductBlur, activeProductIndex, mode}) => {
@@ -69,6 +71,8 @@ export default function InputTransactionForm({ mode, item, isEditMode, invoiceDa
     const navigate = useNavigate();
     const [useDiscount, setUseDiscount] = useState(false);
     const [discountValue, setDiscountValue] = useState(0);
+
+    const { openPopup } = usePopup();
 
     const [autofill, setAutofill] = useState([]);
     const [activeProductIndex, setActiveProductIndex] = useState(null);
@@ -217,8 +221,8 @@ export default function InputTransactionForm({ mode, item, isEditMode, invoiceDa
         event.preventDefault();
 
         if (newProducts.length === 0) {
-            return alert("Please add at least one product.");
-        }   
+            return openPopup(<PopupOkay message="Please add at least one product." />, null, 2500);;
+        };
 
         try {
             // --- 1. NORMALIZE and VALIDATE PRODUCTS ---
@@ -288,13 +292,33 @@ export default function InputTransactionForm({ mode, item, isEditMode, invoiceDa
                 throw new Error(errData.error || "Failed to save the transaction.");
             }
             
-            alert("Transaction saved successfully!");
-            navigate(-1); // Go back to the previous page
+            const AUTO_CLOSE_MS = 2500; 
+
+            const navigateBack = () => {
+                setTimeout(() => {
+                    navigate(-1);
+                }, 1500); 
+            };
+
+            if(response.ok) {
+                openPopup(
+                    <PopupOkay message="Transaction saved successfully! Returning to list..." />, 
+                    navigateBack(),
+                    AUTO_CLOSE_MS // Duration
+                );
+            }
+            
 
         } catch (error) {
-            alert(`Failed to save: ${error.message}`);
-        }
+            openPopup(
+                <PopupOkay message={`Failed to save: ${error.message}`} />,
+                    null, 
+                    2500 // Error message displays longer
+                );
+            }
     };
+
+    
     // useEffect(() => {
     // if (mode === 'edit' && item) {
     //   if (item.discount > 0) {

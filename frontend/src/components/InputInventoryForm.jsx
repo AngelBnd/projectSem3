@@ -1,11 +1,15 @@
 import { useState,useEffect } from "react";
 import Button from "./Button";
 import { useLocation, useNavigate } from "react-router-dom"; 
+import { usePopup } from "./PopupContext.jsx";
+import { PopupOption, PopupOkay } from "./PopupComp.jsx";
 
 export default function InputInventoryForm() {
   const navigate = useNavigate();
   const location = useLocation();
   const { mode, item } = location.state || {};
+
+  const { openPopup } = usePopup();
 
   const [formData, setFormData] = useState({
     productCode: "",
@@ -68,7 +72,6 @@ export default function InputInventoryForm() {
 
       if (response.status === 200 || response.status === 204|| response.status === 201 ) {
         const resultData = await response.json(); 
-        alert(`Inventory item saved! ${resultData.message || ''}`);
         setFormData({
           productCode: "",
           productName: "",
@@ -79,7 +82,19 @@ export default function InputInventoryForm() {
           initialStock: "",
           thresholdStock: "",
         });
-        navigate(-1);
+
+        // Calls popup with autoclosems -> navigates back after time
+        const AUTO_CLOSE_MS = 2500; 
+
+        const navigateBack = () => {
+            setTimeout(() => {
+                navigate(-1);
+            }, 1000); 
+        };
+
+        openPopup(
+          <PopupOkay message={`Inventory item saved! ${resultData.message || ''}`} />,
+          navigateBack(), AUTO_CLOSE_MS);
       } else {
         const errorData = await response.json();
         alert(`Failed to save item: ${errorData.error}`);
