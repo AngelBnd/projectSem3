@@ -201,11 +201,10 @@ export default function InputTransactionForm({ mode, item, isEditMode, invoiceDa
                     productCode: value,     // Update with the user's new input
                     productName: "",        // Reset product name
                     sellingPrice: 0,        // Reset selling price
-                    initialStock: undefined,// Reset initial stock
+                    initialStock: 0,// Reset initial stock
                 };
             }
             updatedProducts[index] = newProductState;
-
         }
         setNewProducts(updatedProducts);
     };
@@ -293,7 +292,7 @@ export default function InputTransactionForm({ mode, item, isEditMode, invoiceDa
         }
     };
     // useEffect(() => {
-    // if (isEditMode && item) {
+    // if (mode === 'edit' && item) {
     //   if (item.discount > 0) {
     //     setUseDiscount(true);
     //     setDiscountValue(item.discount || 0);
@@ -301,9 +300,6 @@ export default function InputTransactionForm({ mode, item, isEditMode, invoiceDa
     //   const existingProducts = item.lineItems.map(line => ({
     //     ...line.product, // Contains quantitySold, etc.
     //     ...line, // Contains productCode, productName, etc.
-    //     tempId: line.id || line.productCode,
-    //     initialStock: line.product.initialStock,
-    //     sellingPrice: line.product.sellingPrice
     //   }));
     //   setNewProducts(existingProducts);
     // }
@@ -315,8 +311,8 @@ export default function InputTransactionForm({ mode, item, isEditMode, invoiceDa
             ...prevData,
             invoiceId: crypto.randomUUID()
         }));
-        }
-    }, [isEditMode]);
+    }
+    }, [isEditMode, setInvoiceData]);
 
     const handleCancel = () => {
         navigate(-1);

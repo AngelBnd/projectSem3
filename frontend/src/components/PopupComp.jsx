@@ -26,7 +26,7 @@ export const PopupOption = ({ message }) => {
                 {/* Close Button */}
                 <button
                     onClick={closePopup}
-                    className="px-4 py-2 text-sm font-medium rounded-md border border-gray-300 text-gray-700 hover:bg-gray-100 transition"
+                    className="px-4 py-2 text-sm font-medium rounded-md border border-gray-300 bg-white text-gray-700 hover:bg-gray-100 transition"
                 >
                     Close
                 </button>
