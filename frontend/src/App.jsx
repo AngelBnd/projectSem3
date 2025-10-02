@@ -8,6 +8,13 @@ import Inventory from './components/pages/Inventory';
 import Sales from './components/pages/Sales';
 import InputSales from './components/pages/InputSales';
 import InputInventory from './components/pages/InputInventory';
+import { PopupProvider, usePopup } from './components/PopupContext';
+
+const GlobalPopupRenderer = () => {
+  const { isPopupOpen, popupContent } = usePopup();
+  if (!isPopupOpen) return null;
+  return popupContent.content; 
+};
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -33,29 +40,33 @@ function App() {
 
       {/* Remove the px/pt classes from the main tag */}
       <main className={`${mainColSpan} bg-[#F5F7FA]`}>
-        <Routes>
-          <Route path="/login" element={<Login setAuthenticated={setAuthenticated} />} />
-          <Route path="/register" element={<Register />} />
+        <PopupProvider>
+          <GlobalPopupRenderer/>
 
-          {/* Use the ProtectedRoute component to wrap authenticated pages */}
-          <Route
-            path="/inventory"
-            element={<ProtectedRoute isAuthenticated={isAuthenticated}><Inventory /></ProtectedRoute>}
-          />
-          <Route
-            path="/sales"
-            element={<ProtectedRoute isAuthenticated={isAuthenticated}><Sales /></ProtectedRoute>}
-          />
-          <Route
-            path="/sales/input"
-            element={<ProtectedRoute isAuthenticated={isAuthenticated}><InputSales /></ProtectedRoute>}
-          />
-          <Route
-            path="/inventory/input"
-            element={<ProtectedRoute isAuthenticated={isAuthenticated}><InputInventory /></ProtectedRoute>}
-          />
-          <Route path="/" element={<Navigate to={isAuthenticated ? "/inventory" : "/login"} replace />} />
-        </Routes>
+          <Routes>
+            <Route path="/login" element={<Login setAuthenticated={setAuthenticated} />} />
+            <Route path="/register" element={<Register />} />
+
+            {/* Use the ProtectedRoute component to wrap authenticated pages */}
+            <Route
+              path="/inventory"
+              element={<ProtectedRoute isAuthenticated={isAuthenticated}><Inventory /></ProtectedRoute>}
+            />
+            <Route
+              path="/sales"
+              element={<ProtectedRoute isAuthenticated={isAuthenticated}><Sales /></ProtectedRoute>}
+            />
+            <Route
+              path="/sales/input"
+              element={<ProtectedRoute isAuthenticated={isAuthenticated}><InputSales /></ProtectedRoute>}
+            />
+            <Route
+              path="/inventory/input"
+              element={<ProtectedRoute isAuthenticated={isAuthenticated}><InputInventory /></ProtectedRoute>}
+            />
+            <Route path="/" element={<Navigate to={isAuthenticated ? "/inventory" : "/login"} replace />} />
+          </Routes>
+        </PopupProvider>
       </main>
     </div>
   );

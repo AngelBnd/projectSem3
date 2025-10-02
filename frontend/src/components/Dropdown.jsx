@@ -1,6 +1,8 @@
 import { createPortal } from "react-dom";
 import { Link } from "react-router-dom";
 import { forwardRef } from "react";
+import { usePopup } from "./PopupContext.jsx";
+import { PopupOption, PopupOkay } from "./PopupComp.jsx";
 
 const Dropdown = forwardRef(({ 
   isOpen, 
@@ -11,6 +13,8 @@ const Dropdown = forwardRef(({
   onDelete
 }, ref) => {
   if (!isOpen) return null;
+  
+  const { openPopup } = usePopup();
 
   // Configuration based on dropdown type
   const config = {
@@ -29,6 +33,22 @@ const Dropdown = forwardRef(({
   };
 
   const { editLink, editState, editText, deleteText } = config[type];
+
+  const handleDelete = () => {
+    const id = type === "transaction" ? item.invoiceId : item.productCode;
+    onDelete?.(id);
+  }
+
+  const handleOpenOption = () => {
+    onClose?.();
+
+    openPopup(
+      <PopupOption
+        message={`Are you sure you want to delete this ${type} (${type === "transaction" ? item.invoiceId : item.productCode})?`}
+      />,
+      handleDelete
+    );
+  };
 
   return createPortal(
     <div
@@ -52,13 +72,7 @@ const Dropdown = forwardRef(({
 
         <button
           className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100 bg-white"
-          onClick={() => {
-            if (window.confirm(`Are you sure you want to delete this ${type}?`)) {
-              const id = type === "transaction" ? item.invoiceId : item.productCode;
-              onDelete?.(id);
-            }
-            onClose?.();
-          }}
+          onClick={handleOpenOption}
         >
           {deleteText}
         </button>
