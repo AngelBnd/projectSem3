@@ -3,6 +3,32 @@ import ReactDOM from 'react-dom/client';
 import App from './App';
 import './index.css';
 
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale, 
+  BarElement,
+  ArcElement,   
+  PointElement,  
+  LineElement,  
+  Title,       
+  Tooltip,      
+  Legend       
+} from 'chart.js';
+
+// **Register the components with Chart.js**
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  BarElement, 
+  PointElement,
+  ArcElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend
+);
+
 // Import BrowserRouter
 import { BrowserRouter } from 'react-router-dom';
 

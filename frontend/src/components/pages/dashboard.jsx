@@ -1,11 +1,68 @@
-export default function Dashboard(){
+import { Line } from "react-chartjs-2";
+import { useEffect, useState } from "react";
+import ChartBar from "../ChartBar";
+import CategoryPieChart from "../CategoryPieChart";
+import FilterDropdown from "../FilterButton";
+import RecentTransactionRow from "../recentTransactionRow";
 
-  const dashboardBoxes = [
+export default function Dashboard(){
+    const [data, setData] = useState([]);
+    const [filterBarData, setFilterBarData] = useState('Monthly');
+    const categoryFilters = ['Yearly', 'Monthly', 'Weekly'];
+    const dummyData = [ 
+  {
+    "invoiceID": "INV-20251003-001",
+    "customerName": "Rizky Firmansyah",
+    "totalQuantity": 4,
+    "totalAmount": 450000.00,
+    "currency": "Rp",
+    "invoiceDate": "2025-10-03",
+    "status": "Paid"
+  },
+  {
+    "invoiceID": "INV-20251003-002",
+    "customerName": "Siti Hartono",
+    "totalQuantity": 1,
+    "totalAmount": 125000.00,
+    "currency": "Rp",
+    "invoiceDate": "2025-10-03",
+    "status": "Paid"
+  },
+  {
+    "invoiceID": "INV-20251003-003",
+    "customerName": "Bambang W.",
+    "totalQuantity": 2,
+    "totalAmount": 28000.00,
+    "currency": "Rp",
+    "invoiceDate": "2025-10-03",
+    "status": "Canceled"
+  },
+  {
+    "invoiceID": "INV-20251002-015",
+    "customerName": "Melati Jaya Store",
+    "totalQuantity": 15,
+    "totalAmount": 1950000.00,
+    "currency": "Rp",
+    "invoiceDate": "2025-10-02",
+    "status": "Paid"
+  },
+  {
+    "invoiceID": "INV-20251002-016",
+    "customerName": "Toko Sejahtera",
+    "totalQuantity": 3,
+    "totalAmount": 75000.00,
+    "currency": "Rp",
+    "invoiceDate": "2025-10-02",
+    "status": "Paid"
+  }
+ ];
+
+    const dashboardBoxes = [
     { number: 0, label: "Profit Total" },
     { number: 0, label: "Expense Total" },
     { number: 0, label: "Order Total" },
     { number: 0, label: "Total Total" },
-  ];
+    ];
 
     return(
     <div className="w-full text-black">
@@ -35,26 +92,86 @@ export default function Dashboard(){
             ))}
         </div>
 
-        <div className=" w-full h-80 flex gap-2">
-            <div className=" w-full h-80 flex gap-2">
-                <div className="bg-white basis-2/3 rounded-lg shadow h-full">
+        <div className=" w-full h-[300px] flex gap-2">
+            <div className="bg-white basis-2/3 rounded-lg shadow h-full px-8 py-6 flex flex-col gap-4 overflow-hidden box-border">
+                <div className="w-full flex justify-between">
+                    <div className="font-nunito text-xl font-bold mb-4">
+                        Cashflow
+                    </div>
 
-
+                    <FilterDropdown
+                    label="Monthly"
+                    options={categoryFilters}
+                    onSelect={(selectedOption) => setFilterBarData(selectedOption)}
+                    />
                 </div>
-
-                <div className="bg-white basis-1/3 rounded-lg shadow h-full">
                 
+                {/* Chart Wrapper */}
+                <div className="flex-grow"> 
+                    <ChartBar
+                    timeFrame={filterBarData}
+                    />
+                </div>
+                
+            </div>
+
+            <div className="bg-white basis-1/3 rounded-lg shadow h-full px-8 py-6 flex flex-col overflow-hidden box-border">
+                <div className="font-nunito text-xl font-bold mb-4">
+                    Categories Sold
+                </div>
+                <div className="flex-grow"> 
+                    <CategoryPieChart/>
                 </div>
             </div>
         </div>
 
         <div className=" w-full h-80 flex gap-2">
-            <div className="bg-white basis-1/3 rounded-lg shadow h-full">
-            
+            <div className="bg-white basis-1/3 rounded-lg shadow h-full px-8 py-6 flex flex-col overflow-hidden box-border">
+                <div className="flex justify-between">
+                    <div className="font-nunito text-xl font-bold mb-4">
+                        Top Selling Products
+                    </div>
+
+                    <FilterDropdown
+                    label="Filter"
+                    options={categoryFilters}
+                    onSelect={(selectedOption) => setFilter(selectedOption)}
+                    />
+                </div>
             </div>
 
-            <div className="bg-white basis-2/3 rounded-lg shadow h-full">
-            
+            <div className="bg-white basis-2/3 rounded-lg shadow h-full px-8 py-6 flex flex-col overflow-hidden box-border">
+                <div className="font-nunito text-xl font-bold ">
+                    Recent Transactions
+                </div>
+
+            <div className="flex-grow overflow-y-auto custom-scrollbar"> 
+
+                <table className="table-auto w-full border-separate border-spacing-y-3 font-nunito text-[14px]">
+                    <thead className="text-gray-600 text-sm">
+                        <tr>
+                            {/* Note: Columns are w-1/5 for 5 columns for even spacing, not w-1/6 */}
+                            <th className="w-1/5 px-6 py-2 font-bold text-center">Invoice ID</th>
+                            <th className="w-1/5 px-6 py-2 font-bold text-center">Name</th>
+                            <th className="w-1/5 px-6 py-2 font-bold text-center">Invoice Date</th>
+                            <th className="w-1/5 px-6 py-2 font-bold text-center">Quantity</th>
+                            <th className="w-1/5 px-6 py-2 font-bold text-center">Total</th>  
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {/* FIX: Ensure you add the return statement and key inside the map */}
+                        {dummyData.map((transaction, index) => {
+                            return (
+                                <RecentTransactionRow
+                                    key={transaction.invoiceID}
+                                    transaction={transaction}
+                                />
+                            );
+                        })}
+                    </tbody>
+                </table>
+            </div>
+
             </div>
         </div>
 
