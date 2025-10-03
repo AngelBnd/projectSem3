@@ -84,7 +84,7 @@ export default function InputInventoryForm() {
         });
 
         // Calls popup with autoclosems -> navigates back after time
-        const AUTO_CLOSE_MS = 2500; 
+        const AUTO_CLOSE_MS = 10000; 
 
         const navigateBack = () => {
             setTimeout(() => {
