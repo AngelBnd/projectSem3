@@ -68,7 +68,7 @@ export default function Inventory() {
 
   return (
     <div className="w-full text-black">
-      <div className="text-nunito font-bold text-4xl mb-[16px]">
+      <div className="font-nunito font-bold text-4xl mb-[16px]">
         Inventory Management
       </div>
 

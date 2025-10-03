@@ -6,6 +6,13 @@ const Sidebar = () => {
     <div className="col-span-2 bg-white  flex flex-col h-screen p-[40px]">
       <h1 className="text-2xl text-black font-bold mb-8 font-nunito">StockWise</h1>
       <nav className='h-full '>
+          <ul>
+            <div className='text-[#838790] font-nunito text-[10px] mb-[8px]'>DASHBOARD</div>
+            <li className="mb-[20px]">
+                <Link to="/dashboard" className="text-black text-[18px] ml-4 hover:text-gray-500 transition">Dashboard</Link>
+            </li>
+            <hr class="my-4 border-t border-gray-300" />
+        </ul>
         <ul>
             <div className='text-[#838790] font-nunito text-[10px] mb-[8px]'>REPORT</div>
             <li className="mb-[20px]">
