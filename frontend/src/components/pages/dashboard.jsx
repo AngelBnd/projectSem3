@@ -85,7 +85,7 @@ export default function Dashboard(){
     { number: 0, label: "Total Sales" },
     { number: 0, label: "Profit" },
     { number: 0, label: "Low Stock Items" },
-    { number: 0, label: "" },
+    { number: 0, label: "Total Customers" },
     ];
 
     return(
