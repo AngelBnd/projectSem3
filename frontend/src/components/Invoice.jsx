@@ -1,5 +1,7 @@
 import React from 'react';
+import { useState } from 'react';
 import Button from './Button'; // Assuming you have a Button component
+import { useEffect } from 'react';
 
 export default function Invoice({ invoiceData, products, useDiscount, discountValue }) {
     // This is a placeholder function. You'll need to define it based on your data.
@@ -9,9 +11,13 @@ export default function Invoice({ invoiceData, products, useDiscount, discountVa
 
     // Calculate totals
     const subtotal = products.reduce((acc, product) => {
-        const itemTotal = (product.quantity || 0) * (product.price || 0);
+        const itemTotal = (product.quantitySold || 0) * (product.sellingPrice || 0);
         return acc + itemTotal;
     }, 0);
+
+    useEffect(() => {
+        console.log("Products in Invoice:", JSON.stringify(products, null, 2));
+    }, [products]);
 
     const discountAmount = useDiscount ? (subtotal * (discountValue / 100)) : 0;
     const total = subtotal - discountAmount;
@@ -77,21 +83,21 @@ export default function Invoice({ invoiceData, products, useDiscount, discountVa
                             </tr>
                         </thead>
                         <tbody>
-                            {products.length > 0 ? (
+                            {products.length > 0 ? (    
                                 products.map((product, index) => (
                                     <tr key={index} className="border-b border-gray-200 text-gray-800">
-                                        <td className="py-4 px-2">{product.name || "the product name"}</td>
-                                        <td className="py-4 px-2 text-center">{product.quantity || 0}</td>
-                                        <td className="py-4 px-2 text-right">Rp {formatCurrency(product.price || 0)}</td>
-                                        <td className="py-4 px-2 text-right">Rp {formatCurrency((product.quantity || 0) * (product.price || 0))}</td>
+                                        <td className="py-4 px-2">{product.productName || "the product name"}</td>
+                                        <td className="py-4 px-2 text-center">{product.quantitySold || 0}</td>
+                                        <td className="py-4 px-2 text-right">Rp {formatCurrency(product.sellingPrice || 0)}</td>
+                                        <td className="py-4 px-2 text-right">Rp {formatCurrency((product.quantitySold || 0) * (product.sellingPrice || 0))}</td>
                                     </tr>
                                 ))
                             ) : (
                                 <tr className="border-b border-gray-200 text-gray-800">
-                                    <td className="py-4 px-2">the product name</td>
+                                    {/* <td className="py-4 px-2">the product name</td>
                                     <td className="py-4 px-2 text-center">2</td>
                                     <td className="py-4 px-2 text-right">Rp 2.000,00</td>
-                                    <td className="py-4 px-2 text-right">Rp 4.000,00</td>
+                                    <td className="py-4 px-2 text-right">Rp 4.000,00</td> */}
                                 </tr>
                             )}
                         </tbody>

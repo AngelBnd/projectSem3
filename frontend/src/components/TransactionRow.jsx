@@ -11,14 +11,15 @@ export default function TransactionRow({sale, products, onDelete }) {
     tax,
     subtotal,
     totalAmount,
-    invoiceId
+    invoiceId,
+    name,
   } = sale;
 
   const token = localStorage.getItem('token');
   const headers = { 'Authorization': `Bearer ${token}` };
 
-  console.log(sale);
-  console.log(1111);
+  // console.log(sale);
+  // console.log(1111);
 
   const matchedProduct = products.find(
     (item) => item.productCode === sale.productCode
@@ -44,7 +45,6 @@ export default function TransactionRow({sale, products, onDelete }) {
   };
 
   useEffect(()=>{
-    console.log(`testtt ${invoiceId}`)
     console.log(sale);
 
     fetch(`http://localhost:3000/api/lineitems/${encodeURIComponent(sale.invoiceId)}`, {
@@ -65,6 +65,7 @@ export default function TransactionRow({sale, products, onDelete }) {
       });
   },[])
 
+
   useEffect(() => {
     if (lineItem.length > 0) {
       const total = lineItem.reduce((sum, item) => sum + (item.quantitySold || 0), 0);
@@ -74,6 +75,11 @@ export default function TransactionRow({sale, products, onDelete }) {
     }
   }, [lineItem]);
 
+
+  useEffect(() => {
+        console.log(`testtt ${invoiceId}`)
+        console.log('dissss', sale);
+      });
 
 
   useEffect(() => {
