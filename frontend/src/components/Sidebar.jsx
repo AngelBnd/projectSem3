@@ -1,7 +1,14 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
+import React, { use } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import getCurrentUsername from '../functions/getCurrentUsername';
+import handleLogout from '../functions/handleLogOut';
+
 
 const Sidebar = () => {
+  const token = localStorage.getItem('token');
+  const username = getCurrentUsername(token); 
+  const navigate = useNavigate();
+
   return (
     <div className="col-span-2 bg-white  flex flex-col h-screen p-[40px]">
       <h1 className="text-2xl text-black font-bold mb-8 font-nunito">StockWise</h1>
@@ -31,12 +38,17 @@ const Sidebar = () => {
         <div className=' flex justify-content-center items-center h-16 w-full gap-2'>
           <svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="black"  class="icon icon-tabler icons-tabler-filled icon-tabler-user"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 2a5 5 0 1 1 -5 5l.005 -.217a5 5 0 0 1 4.995 -4.783z" /><path d="M14 14a5 5 0 0 1 5 5v1a2 2 0 0 1 -2 2h-10a2 2 0 0 1 -2 -2v-1a5 5 0 0 1 5 -5h4z" /></svg>
           <div className='flex flex-col'>
-            <div className='text-black font-nunito'>Usernamenya</div>
-            <div className='text-gray-600 text-xs'>Role</div>
+            <div className='text-black font-nunito'>{username}</div>
+            <div className='text-gray-600 text-xs'>RoleToBeAdded latur</div>
           </div>
         </div>
 
-        <div className='text-black'>
+        <div className='text-black cursor-pointer'
+        onClick={()=>{
+          handleLogout()
+          navigate('/login');
+        }}
+        >
           Log out
         </div>
       </div>
