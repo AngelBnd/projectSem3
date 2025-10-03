@@ -4,64 +4,88 @@ import ChartBar from "../ChartBar";
 import CategoryPieChart from "../CategoryPieChart";
 import FilterDropdown from "../FilterButton";
 import RecentTransactionRow from "../recentTransactionRow";
+import TopSellingRow from "../TopSellingRow";
 
 export default function Dashboard(){
     const [data, setData] = useState([]);
     const [filterBarData, setFilterBarData] = useState('Monthly');
     const categoryFilters = ['Yearly', 'Monthly', 'Weekly'];
     const dummyData = [ 
-  {
-    "invoiceID": "INV-20251003-001",
-    "customerName": "Rizky Firmansyah",
-    "totalQuantity": 4,
-    "totalAmount": 450000.00,
-    "currency": "Rp",
-    "invoiceDate": "2025-10-03",
-    "status": "Paid"
-  },
-  {
-    "invoiceID": "INV-20251003-002",
-    "customerName": "Siti Hartono",
-    "totalQuantity": 1,
-    "totalAmount": 125000.00,
-    "currency": "Rp",
-    "invoiceDate": "2025-10-03",
-    "status": "Paid"
-  },
-  {
-    "invoiceID": "INV-20251003-003",
-    "customerName": "Bambang W.",
-    "totalQuantity": 2,
-    "totalAmount": 28000.00,
-    "currency": "Rp",
-    "invoiceDate": "2025-10-03",
-    "status": "Canceled"
-  },
-  {
-    "invoiceID": "INV-20251002-015",
-    "customerName": "Melati Jaya Store",
-    "totalQuantity": 15,
-    "totalAmount": 1950000.00,
-    "currency": "Rp",
-    "invoiceDate": "2025-10-02",
-    "status": "Paid"
-  },
-  {
-    "invoiceID": "INV-20251002-016",
-    "customerName": "Toko Sejahtera",
-    "totalQuantity": 3,
-    "totalAmount": 75000.00,
-    "currency": "Rp",
-    "invoiceDate": "2025-10-02",
-    "status": "Paid"
-  }
- ];
+    {
+        "invoiceID": "INV-20251003-001",
+        "customerName": "Rizky Firmansyah",
+        "totalQuantity": 4,
+        "totalAmount": 450000.00,
+        "currency": "Rp",
+        "invoiceDate": "2025-10-03",
+        "status": "Paid"
+    },
+    {
+        "invoiceID": "INV-20251003-002",
+        "customerName": "Siti Hartono",
+        "totalQuantity": 1,
+        "totalAmount": 125000.00,
+        "currency": "Rp",
+        "invoiceDate": "2025-10-03",
+        "status": "Paid"
+    },
+    {
+        "invoiceID": "INV-20251003-003",
+        "customerName": "Bambang W.",
+        "totalQuantity": 2,
+        "totalAmount": 28000.00,
+        "currency": "Rp",
+        "invoiceDate": "2025-10-03",
+        "status": "Canceled"
+    },
+    {
+        "invoiceID": "INV-20251002-015",
+        "customerName": "Melati Jaya Store",
+        "totalQuantity": 15,
+        "totalAmount": 1950000.00,
+        "currency": "Rp",
+        "invoiceDate": "2025-10-02",
+        "status": "Paid"
+    },
+    {
+        "invoiceID": "INV-20251002-016",
+        "customerName": "Toko Sejahtera",
+        "totalQuantity": 3,
+        "totalAmount": 75000.00,
+        "currency": "Rp",
+        "invoiceDate": "2025-10-02",
+        "status": "Paid"
+    }
+    ];
+
+    const productSalesDataDummy = [ 
+    {
+        "productName": "Signature Espresso Blend 1kg",
+        "quantitySold": 850
+    },
+    {
+        "productName": "Cold Brew Concentrate (Bottle)",
+        "quantitySold": 520
+    },
+    {
+        "productName": "Vanilla Syrup (1L)",
+        "quantitySold": 310
+    },
+    {
+        "productName": "Ceramic Mug - White (Box of 6)",
+        "quantitySold": 155
+    },
+    {
+        "productName": "Milk Frother (Pro Model)",
+        "quantitySold": 92
+    }
+    ];
 
     const dashboardBoxes = [
-    { number: 0, label: "Profit Total" },
-    { number: 0, label: "Expense Total" },
-    { number: 0, label: "Order Total" },
-    { number: 0, label: "Total Total" },
+    { number: 0, label: "Total Sales" },
+    { number: 0, label: "Profit" },
+    { number: 0, label: "Low Stock Items" },
+    { number: 0, label: "" },
     ];
 
     return(
@@ -137,6 +161,29 @@ export default function Dashboard(){
                     options={categoryFilters}
                     onSelect={(selectedOption) => setFilter(selectedOption)}
                     />
+                </div>
+
+                <div className="flex-grow overflow-y-auto custom-scrollbar"> 
+
+                    <table className="table-auto w-full border-separate border-spacing-y-3 font-nunito text-[14px]">
+                        <thead className="text-gray-600 text-sm">
+                            <tr>
+                                <th className="w-1/2 px-6 py-2 font-bold text-center">Product Name</th>
+                                <th className="w-1/2 px-6 py-2 font-bold text-center">Quantity Sold</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            
+                            {productSalesDataDummy.map((item, index) => {
+                                return (
+                                    <TopSellingRow
+                                        key={item.productCode}
+                                        item={item}
+                                    />
+                                );
+                            })}
+                        </tbody>
+                    </table>
                 </div>
             </div>
 
