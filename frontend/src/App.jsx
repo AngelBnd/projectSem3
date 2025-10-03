@@ -9,6 +9,7 @@ import Sales from './components/pages/Sales';
 import InputSales from './components/pages/InputSales';
 import InputInventory from './components/pages/InputInventory';
 import { PopupProvider, usePopup } from './components/PopupContext';
+import Dashboard from './components/pages/dashboard';
 
 const GlobalPopupRenderer = () => {
   const { isPopupOpen, popupContent } = usePopup();
@@ -39,7 +40,7 @@ function App() {
       {showSidebar && <Sidebar />}
 
       {/* Remove the px/pt classes from the main tag */}
-      <main className={`${mainColSpan} bg-[#F5F7FA]`}>
+      <main className={`${mainColSpan} bg-[#F5F7FA] h-screen overflow-y-auto`}>
         <PopupProvider>
           <GlobalPopupRenderer/>
 
@@ -48,6 +49,10 @@ function App() {
             <Route path="/register" element={<Register />} />
 
             {/* Use the ProtectedRoute component to wrap authenticated pages */}
+            <Route
+              path="/dashboard"
+              element={<ProtectedRoute isAuthenticated={isAuthenticated}><Dashboard /></ProtectedRoute>}
+            />
             <Route
               path="/inventory"
               element={<ProtectedRoute isAuthenticated={isAuthenticated}><Inventory /></ProtectedRoute>}

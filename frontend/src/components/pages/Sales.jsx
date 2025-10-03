@@ -130,7 +130,7 @@ export default function Sales(){
   return (
     <div className="w-full text-black  ">
       <div className="w-full flex justify-between">
-        <div className="text-nunito font-bold text-4xl mb-[16px]">
+        <div className="font-nunito font-bold text-4xl mb-[16px]">
           Sales
         </div>
         <FilterDropdown
