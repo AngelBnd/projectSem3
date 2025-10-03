@@ -9,7 +9,8 @@ import Sales from './components/pages/Sales';
 import InputSales from './components/pages/InputSales';
 import InputInventory from './components/pages/InputInventory';
 import { PopupProvider, usePopup } from './components/PopupContext';
-import Dashboard from './components/pages/dashboard';
+import Dashboard from './components/pages/Dashboard';
+import PendingList from './components/pages/PendingList';
 
 const GlobalPopupRenderer = () => {
   const { isPopupOpen, popupContent } = usePopup();
@@ -52,6 +53,10 @@ function App() {
             <Route
               path="/dashboard"
               element={<ProtectedRoute isAuthenticated={isAuthenticated}><Dashboard /></ProtectedRoute>}
+            />
+            <Route
+              path="/PendingList"
+              element={<ProtectedRoute isAuthenticated={isAuthenticated}><PendingList /></ProtectedRoute>}
             />
             <Route
               path="/inventory"
