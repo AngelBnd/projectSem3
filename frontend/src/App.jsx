@@ -74,7 +74,7 @@ function App() {
               path="/inventory/input"
               element={<ProtectedRoute isAuthenticated={isAuthenticated}><InputInventory /></ProtectedRoute>}
             />
-            <Route path="/" element={<Navigate to={isAuthenticated ? "/inventory" : "/login"} replace />} />
+            <Route path="/" element={<Navigate to={isAuthenticated ? "/dashboard" : "/login"} replace />} />
           </Routes>
         </PopupProvider>
       </main>

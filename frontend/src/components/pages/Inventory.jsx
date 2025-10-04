@@ -12,7 +12,10 @@ const stockStatuses = ["Low stock", "Good", "Out of Stock", "Low stock"];
 
 export default function Inventory() {
   const [items, setItems] = useState([]);
-  const [query, setQuery] = useState("");
+  const [searchInput, setSearchInput] = useState(""); 
+  const [updateItems, setUpdateItems] = useState([])
+  
+
   const [filter, setFilter] = useState('All');
   const categoryFilters = ['All', ...new Set(items.map(item => item.productCategory))];
 
@@ -41,7 +44,7 @@ export default function Inventory() {
         }
         return res.json();
       })
-      .then((data) => setItems(data))
+      .then((data) => setUpdateItems(data))
       .catch((err) => {
         console.error("Error fetching inventory:", err);
         if (err.message === 'Unauthorized access') {
@@ -50,21 +53,32 @@ export default function Inventory() {
       });
   }, []);
 
-  const updateItems = items.filter(item => {
-    if (filter != 'All' && item.productCategory !== filter) {
-      return false;
-    }
+  // const updateItems = items.filter(item => {
+  //   if (filter != 'All' && item.productCategory !== filter) {
+  //     return false;
+  //   }
 
-    if (query) {
-      const searchTerm = query.toLowerCase();
-      const matchesName = item.productName.toLowerCase().includes(searchTerm);
-      const matchesCode = item.productCode.toLowerCase().includes(searchTerm);
-      if (!matchesName && !matchesCode) {
-        return false;
-      }
+  //   if (query) {
+  //     const searchTerm = query.toLowerCase();
+  //     const matchesName = item.productName.toLowerCase().includes(searchTerm);
+  //     const matchesCode = item.productCode.toLowerCase().includes(searchTerm);
+  //     if (!matchesName && !matchesCode) {
+  //       return false;
+  //     }
+  //   }
+  //   return true;
+  // });
+
+  const handleKeyDown = async (e) => {
+    if (e.key === "Enter") {
+      const token = localStorage.getItem('token');
+      const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
+
+      const res = await fetch(`/api/inventory/search?q=${encodeURIComponent(searchInput)}`, { headers });
+      const data = await res.json();
+      setUpdateItems(data);
     }
-    return true;
-  });
+  };
 
   return (
     <div className="w-full text-black">
@@ -90,7 +104,10 @@ export default function Inventory() {
         <div className="text-nunito text-2xl">Inventory Overview</div>
 
         <div className="ml-auto flex gap-4">
-          <SearchBar onSearch={setQuery} />
+          <SearchBar 
+          setSearchInput={setSearchInput} 
+          handleKeyDown={handleKeyDown}
+          />
 
           <FilterDropdown
             label="Filter"
