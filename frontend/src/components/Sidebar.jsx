@@ -31,13 +31,13 @@ const Sidebar = () => {
             </li>
             <hr class="my-4 border-t border-gray-300" />
         </ul>
-          <ul>
+          {/* <ul>
             <div className='text-[#838790] font-nunito text-[10px] mb-[8px]'>ONGOING</div>
             <li className="mb-[20px]">
                 <Link to="/pendinglist" className="text-black text-[18px] ml-4 hover:text-gray-500 transition">Pending List</Link>
             </li>
             <hr class="my-4 border-t border-gray-300" />
-        </ul>
+        </ul> */}
       </nav>
 
 
