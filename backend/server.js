@@ -951,7 +951,6 @@ app.get("/api/dashboard/summary", authenticateToken, async (req, res) => {
       totalProfit += profitPerItem;
     });
 
-    // 3. Low Stock Items: Fetch all products and filter in Node.js (Safest method)
     const allProducts = await prisma.products.findMany({
       where: { userId: userId },
       select: {
@@ -964,11 +963,9 @@ app.get("/api/dashboard/summary", authenticateToken, async (req, res) => {
     const lowStockCount = allProducts.filter(item => {
         const initial = item.initialStock;
         const threshold = item.thresholdStock;
-        // Check for low stock (Initial Stock <= Threshold Stock)
         return initial <= threshold && initial > 0;
     }).length;
 
-    // 4. Total Customers: Count distinct user subjects from Invoices
     const uniqueCustomerSubjects = await prisma.invoices.findMany({
         where: { userId: userId },
         distinct: ['subject'], 

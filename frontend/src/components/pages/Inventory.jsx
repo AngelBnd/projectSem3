@@ -26,7 +26,7 @@ export default function Inventory() {
     { number: updateItems.length, label: "Total Items" },
     {
       number: updateItems.filter(
-        (item) => parseInt(item.initialStock) <= parseInt(item.thresholdStock)
+        (item) => parseInt(item.initialStock) <= parseInt(item.thresholdStock) && parseInt(item.initialStock)!=0
       ).length,
       label: "Low Stock Items",
     },
