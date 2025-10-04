@@ -5,7 +5,7 @@ import FilterDropdown from './FilterButton'; // Assuming you have this imported
 // Row Component (TopSellingRow)
 const TopSellingRow = ({ product }) => {
     return (
-        <tr className="bg-white rounded-xl shadow-md transition duration-150">
+        <tr className="bg-white rounded-xl shadow transition duration-150">
             <td className="w-1/2 px-6 py-3 text-left font-semibold text-gray-800 rounded-l-xl">
                 {product.productName}
             </td>
@@ -19,7 +19,7 @@ const TopSellingRow = ({ product }) => {
 // Main Component (Fetching and Display)
 export default function TopSellingProducts() {
     const [products, setProducts] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(true);   
     const [error, setError] = useState(null);
     
     // Placeholder state for the filter dropdown
