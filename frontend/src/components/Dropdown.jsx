@@ -21,7 +21,7 @@ const Dropdown = forwardRef(({
     product: {
       editLink: "/inventory/input",
       editState: { mode: "edit", item },
-      editText: "Edit",
+      editText: "Update",
       deleteText: "Delete"
     },
     transaction: {
