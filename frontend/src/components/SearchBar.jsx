@@ -1,12 +1,12 @@
 import { useState } from 'react';
 
-export default function SearchBar ({onSearch}) {
-  const [query, setQuery] = useState("");
+export default function SearchBar ({setQuery, setSearchInput, handleKeyDown}) {
 
   const handleChange = (e) => {
     const value = e.target.value;
-    setQuery(value);
-    onSearch(value);
+    setSearchInput(value);
+
+    console.log(value)
  }  
  
  return (
@@ -18,6 +18,7 @@ export default function SearchBar ({onSearch}) {
         placeholder="Search by product code or name..."
         className="ml-2 bg-transparent text-lato text-[14px] focus:outline-none text-gray-600 w-full placeholder:text-gray-400 font-medium"
         onChange = {handleChange}
+        onKeyDown={handleKeyDown}
       />
     </div>
   );

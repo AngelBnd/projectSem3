@@ -9,6 +9,8 @@ import Sales from './components/pages/Sales';
 import InputSales from './components/pages/InputSales';
 import InputInventory from './components/pages/InputInventory';
 import { PopupProvider, usePopup } from './components/PopupContext';
+import Dashboard from './components/pages/Dashboard';
+import PendingList from './components/pages/PendingList';
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -33,13 +35,21 @@ function App() {
       {showSidebar && <Sidebar />}
 
       {/* Remove the px/pt classes from the main tag */}
-      <main className={`${mainColSpan} bg-[#F5F7FA]`}>
+      <main className={`${mainColSpan} bg-[#F5F7FA] h-screen overflow-y-auto`}>
         <PopupProvider>
           <Routes>
             <Route path="/login" element={<Login setAuthenticated={setAuthenticated} />} />
             <Route path="/register" element={<Register />} />
 
             {/* Use the ProtectedRoute component to wrap authenticated pages */}
+            <Route
+              path="/dashboard"
+              element={<ProtectedRoute isAuthenticated={isAuthenticated}><Dashboard /></ProtectedRoute>}
+            />
+            <Route
+              path="/PendingList"
+              element={<ProtectedRoute isAuthenticated={isAuthenticated}><PendingList /></ProtectedRoute>}
+            />
             <Route
               path="/inventory"
               element={<ProtectedRoute isAuthenticated={isAuthenticated}><Inventory /></ProtectedRoute>}
@@ -56,7 +66,7 @@ function App() {
               path="/inventory/input"
               element={<ProtectedRoute isAuthenticated={isAuthenticated}><InputInventory /></ProtectedRoute>}
             />
-            <Route path="/" element={<Navigate to={isAuthenticated ? "/inventory" : "/login"} replace />} />
+            <Route path="/" element={<Navigate to={isAuthenticated ? "/dashboard" : "/login"} replace />} />
           </Routes>
         </PopupProvider>
       </main>
