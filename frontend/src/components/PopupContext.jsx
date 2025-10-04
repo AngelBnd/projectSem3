@@ -1,6 +1,13 @@
 import React, { createContext, useContext, useState, useRef, useEffect } from 'react';
 
 const PopupContext = createContext();
+const TRANSITION_DURATION = 300; // IN MS
+
+const GlobalPopupRenderer = ({ isPopupOpen, popupContent }) => {
+  return React.cloneElement(popupContent.content, {
+    show: isPopupOpen,
+  });
+};
 
 export const usePopup = () => {
   return useContext(PopupContext);
@@ -10,6 +17,8 @@ export const PopupProvider = ({ children }) => {
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const [popupContent, setPopupContent] = useState({});
   const timeoutRef = useRef(null);
+
+  const [shouldRender, setShouldRender] = useState(false); 
 
   const clearExistingTimeout = () => {
     if(timeoutRef.current) {
@@ -22,7 +31,8 @@ export const PopupProvider = ({ children }) => {
     clearExistingTimeout();
 
     setPopupContent({ content, onConfirm });
-    setIsPopupOpen(true);
+    setShouldRender(true);
+    setTimeout(() => setIsPopupOpen(true), 10);
 
     if(durationMs > 0) {
       timeoutRef.current = setTimeout(() => {
@@ -34,7 +44,11 @@ export const PopupProvider = ({ children }) => {
   const closePopup = () => {
     clearExistingTimeout();
     setIsPopupOpen(false);
-    setPopupContent({});
+
+    setTimeout(() => {
+        setShouldRender(false);
+        setPopupContent({});
+    }, TRANSITION_DURATION);
   };
 
   useEffect(() => {
@@ -51,6 +65,7 @@ export const PopupProvider = ({ children }) => {
   return (
     <PopupContext.Provider value={contextValue}>
       {children}
+      {shouldRender && <GlobalPopupRenderer isPopupOpen={isPopupOpen} popupContent={popupContent} />}
     </PopupContext.Provider>
   );
 };
