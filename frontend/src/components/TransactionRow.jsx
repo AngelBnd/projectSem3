@@ -13,14 +13,6 @@ export default function TransactionRow({sale, products, onDelete }) {
   const token = localStorage.getItem('token');
   const headers = { 'Authorization': `Bearer ${token}` };
 
-  // console.log(sale);
-  // console.log(1111);
-
-  const matchedProduct = products.find(
-    (item) => item.productCode === sale.productCode
-  );
-  console.log(matchedProduct)
-
   const [lineItem, setLineItems] = useState([]);
 
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);

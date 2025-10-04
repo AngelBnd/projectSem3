@@ -12,6 +12,12 @@ import { PopupProvider, usePopup } from './components/PopupContext';
 import Dashboard from './components/pages/Dashboard';
 import PendingList from './components/pages/PendingList';
 
+const GlobalPopupRenderer = () => {
+  const { isPopupOpen, popupContent } = usePopup();
+  if (!isPopupOpen) return null;
+  return popupContent.content; 
+};
+
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const location = useLocation();
@@ -37,6 +43,8 @@ function App() {
       {/* Remove the px/pt classes from the main tag */}
       <main className={`${mainColSpan} bg-[#F5F7FA] h-screen overflow-y-auto`}>
         <PopupProvider>
+          <GlobalPopupRenderer/>
+
           <Routes>
             <Route path="/login" element={<Login setAuthenticated={setAuthenticated} />} />
             <Route path="/register" element={<Register />} />

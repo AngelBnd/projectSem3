@@ -1,8 +1,6 @@
-// components/TopSellingProducts.jsx
 import React, { useEffect, useState } from 'react';
 import FilterDropdown from './FilterButton'; // Assuming you have this imported
 
-// Row Component (TopSellingRow)
 const TopSellingRow = ({ product }) => {
     return (
         <tr className="bg-white rounded-xl shadow transition duration-150">
@@ -16,13 +14,12 @@ const TopSellingRow = ({ product }) => {
     );
 };
 
-// Main Component (Fetching and Display)
+
 export default function TopSellingProducts() {
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(true);   
     const [error, setError] = useState(null);
-    
-    // Placeholder state for the filter dropdown
+
     const [filter, setFilter] = useState('All'); 
     const categoryFilters = ['All', 'This Month', 'Last 30 Days']; 
 
@@ -57,19 +54,17 @@ export default function TopSellingProducts() {
     if (error) return <div className="basis-1/3 bg-white p-6 shadow rounded-lg h-full flex flex-col justify-center items-center">Error: {error}</div>;
 
     return (
-        // 💡 Uses basis-1/3 for 1/3 width
         <div className="bg-white basis-1/3 rounded-lg shadow h-full px-8 py-6 flex flex-col overflow-hidden box-border">
             <div className="flex justify-between">
                 <div className="font-nunito text-xl font-bold mb-4">
                     Top Selling Products
                 </div>
-                
-                {/* Filter Dropdown */}
+                    {/* 
                 <FilterDropdown
                     label="Filter"
                     options={categoryFilters}
                     onSelect={(selectedOption) => setFilter(selectedOption)}
-                />
+                /> */}
             </div>
 
             <div className="flex-grow overflow-y-auto custom-scrollbar"> 
