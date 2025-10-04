@@ -351,34 +351,25 @@ app.put('/api/inventory/:id', authenticateToken, async (req, res) => {
 // GET all sales for the current user
 app.get("/api/sales", authenticateToken, async (req, res) => {
   try {
-    // 1. Read all potential filters from the URL query string
     const { period, category, search } = req.query;
 
-    // 2. IMPORTANT: Start the where clause with the user ID for security.
     const whereClause = {
       userId: req.user.id,
     };
 
-    // This array will hold filters related to the product/line items.
     const lineItemConditions = [];
 
-    // 3. Add dynamic filters to the where clause.
-    
-    // === HANDLE TIME FILTER (using the "from scratch" method) ===
     let startDate, endDate;
     const now = new Date();
 
     if (period && period.startsWith('last_') && period.endsWith('_days')) {
-        const parts = period.split('_'); // -> ['last', '30', 'days']
+        const parts = period.split('_'); 
         const days = parseInt(parts[1], 10);
 
         if (!isNaN(days) && days > 0) {
-            // The end date is the end of today
             endDate = new Date(now);
             endDate.setHours(23, 59, 59, 999);
 
-            // The start date is N-1 days before today
-            // (e.g., for 7 days, we go back 6 days to include today)
             startDate = new Date(now);
             startDate.setDate(now.getDate() - (days - 1));
             startDate.setHours(0, 0, 0, 0);
@@ -395,15 +386,12 @@ app.get("/api/sales", authenticateToken, async (req, res) => {
   }
 
     if (startDate && endDate) {
-      // Add the date filter to the main where clause.
-      // NOTE: Using 'invoiceDate' to match your schema.
       whereClause.invoiceDate = {
         gte: startDate,
         lte: endDate,
       };
     }
     
-    // === HANDLE CATEGORY & SEARCH FILTERS ===
     if (category) {
       lineItemConditions.push({
         product: {
@@ -425,7 +413,7 @@ app.get("/api/sales", authenticateToken, async (req, res) => {
       });
     }
 
-    // If there are any product-related filters, add them to the main where clause.
+
     if (lineItemConditions.length > 0) {
       whereClause.lineItems = {
         some: {
@@ -434,9 +422,8 @@ app.get("/api/sales", authenticateToken, async (req, res) => {
       };
     }
 
-    // 4. Execute the final query with the combined where clause.
     const filteredInvoices = await prisma.invoices.findMany({
-      where: whereClause, // Use the dynamically built where clause
+      where: whereClause, 
       include: {
         lineItems: {
           include: {

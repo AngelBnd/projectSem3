@@ -13,13 +13,13 @@ export default function Sales(){
   const [query, setQuery] = useState(""); // Search items state
   const [filter, setFilter] = useState('All'); // Filter category button
   const [timeFilter, setTimeFilter] = useState('all_sales'); 
-  const timeFilters = [
-  { value: 'all_sales', label: 'All Sales' },
-  { value: 'last_7_days', label: 'Last Week' },
-  { value: 'last_30_days', label: 'Last Month' },
-  { value: 'last_365_days', label: 'Last Year' },
-];
-  
+    const timeFilters = [
+    { value: 'all_sales', label: 'All Sales' },
+    { value: 'last_7_days', label: 'Last Week' },
+    { value: 'last_30_days', label: 'Last Month' },
+    { value: 'last_365_days', label: 'Last Year' },
+    ];
+    
 
   // Filter categories based on the transactions list shown
   const categoryFilters = ['All', ...new Set(
@@ -113,7 +113,6 @@ export default function Sales(){
     const token = localStorage.getItem('token');
     const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
 
-  // Build the dynamic URL based on the current filter states
     const params = new URLSearchParams();
     if (timeFilter) params.append('period', timeFilter);
     if (filter && filter !== 'All') params.append('category', filter);
@@ -148,9 +147,12 @@ export default function Sales(){
         </div>
         <FilterDropdown
           label="Time"
-          options={timeFilters}
-          value={timeFilter}
-          onSelect={(selectedOption) => setTimeFilter(selectedOption)}
+          options={timeFilters.map(f => f.label)}
+          onSelect={(selectedLabel) => {
+            const selectedOption = timeFilters.find(f => f.label === selectedLabel);
+
+            if (selectedOption) setTimeFilter(selectedOption.value);
+            }}
         />
       </div>
 
