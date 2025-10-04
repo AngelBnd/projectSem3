@@ -1,10 +1,17 @@
 import React from "react";
 import { usePopup } from "./PopupContext";
 
-const PopupWrapper = ({ children }) => {
+const TRANSITION_DURATION = 300; // IN MS
+const TRANSITION_CLASSES = `transition-all duration-${TRANSITION_DURATION} ease-in-out`;
+
+const PopupWrapper = ({ children, show }) => {
+    const opacityClass = show ? 'opacity-100' : 'opacity-0';
+    const backdropOpacity = show ? 'bg-opacity-30' : 'bg-opacity-0';
+    const scaleClaass = show ? 'scale-100' : 'scale-95';
+
     return (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[9999] transition-opacity duration-300">
-            <div className="bg-white p-6 rounded-lg shadow-2xl w-full max-w-sm transition duration-300"
+        <div className={`fixed inset-0 bg-black flex items-center justify-center z-[9999] ${TRANSITION_CLASSES} ${opacityClass} ${backdropOpacity}`}>
+            <div className={`bg-white p-6 rounded-lg shadow-2xl w-full max-w-sm ${TRANSITION_CLASSES} ${scaleClaass}`}
                 onClick={(e) => e.stopPropagation()}
             >
                 {children}
@@ -13,10 +20,13 @@ const PopupWrapper = ({ children }) => {
     );
 };
 
-const PopupWrapperAlt = ({ children }) => {
+const PopupWrapperAlt = ({ children, show }) => {
+    const opacityClass = show ? 'opacity-100' : 'opacity-0';
+    const translateClass = show ? 'translate-y-0' : '-translate-y-full';
+
     return (
-        <div className="fixed inset-x-0 top-0 pt-5 pb-12 flex items-center justify-center z-[9999] transition-opacity duration-300">
-            <div className="bg-white p-3 rounded-lg shadow-l h-auto my-auto w-auto mx-auto transition duration-300"
+        <div className="fixed inset-x-0 top-0 pt-5 pb-12 flex items-center justify-center z-[9999]">
+            <div className={`bg-white p-3 px-5 rounded-lg shadow-lg h-auto my-auto w-auto mx-auto ${TRANSITION_CLASSES} ${translateClass} ${show ? 'opacity-100' : 'opacity-0'}`}
                 onClick={(e) => e.stopPropagation()}
             >
                 {children}
@@ -25,7 +35,7 @@ const PopupWrapperAlt = ({ children }) => {
     );
 };
 
-export const PopupOption = ({ message }) => {
+export const PopupOption = ({ message, show = false }) => {
     const { popupContent, closePopup } = usePopup();
 
     const handleConfirm = () => {
@@ -34,7 +44,7 @@ export const PopupOption = ({ message }) => {
     };
 
     return (
-        <PopupWrapper>
+        <PopupWrapper show={show}>
             <p className="text-gray-800 text-lg mb-6">{message}</p>
             <div className="flex justify-end gap-3">
                 {/* Close Button */}
@@ -56,13 +66,26 @@ export const PopupOption = ({ message }) => {
     );
 };
 
-export const PopupOkay = ({ message }) => {
+export const PopupOkay = ({ message, show = false }) => {
     const { closePopup } = usePopup(); 
 
     return (
-        <PopupWrapperAlt>
-            <p className="text-gray-800 text-md text-center flex items-center justify-center">
+        <PopupWrapperAlt show={show}>
+            <p className="text-gray-800 text-md text-center flex items-center justify-center align-center gap-3">
                 <svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="#0fcf0c"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-circle-check"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0" /><path d="M9 12l2 2l4 -4" /></svg>
+                {message}
+            </p>
+        </PopupWrapperAlt>
+    );
+};
+
+export const PopupError = ({ message, show }) => {
+    const { closePopup } = usePopup(); 
+
+    return (
+        <PopupWrapperAlt show={show}>
+            <p className="text-gray-800 text-md text-center flex items-center justify-center align-center gap-3">
+                <svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="#cf0c0c"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-circle-x"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0" /><path d="M10 10l4 4m0 -4l-4 4" /></svg>
                 {message}
             </p>
         </PopupWrapperAlt>

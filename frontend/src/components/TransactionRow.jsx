@@ -4,14 +4,11 @@ import Dropdown from "./Dropdown";
 
 export default function TransactionRow({sale, products, onDelete }) {
   const {
-    productCode,
     invoiceDate,
-    quantitySold,
-    discount,
-    tax,
-    subtotal,
+    invoiceId,
+    name,
     totalAmount,
-    invoiceId
+    lineItems
   } = sale;
 
   const token = localStorage.getItem('token');
@@ -32,7 +29,6 @@ export default function TransactionRow({sale, products, onDelete }) {
   const dropdownRef = useRef(null);
   const dropdownMenuRef = useRef(null);
   const dropdownTriggerRef = useRef(null);
-  const[totalQuantity, setTotalQuantity] = useState(0)
 
   const handleToggleDropdown = (event) => {
     const rect = event.currentTarget.getBoundingClientRect();
@@ -65,16 +61,9 @@ export default function TransactionRow({sale, products, onDelete }) {
       });
   },[])
 
-  useEffect(() => {
-    if (lineItem.length > 0) {
-      const total = lineItem.reduce((sum, item) => sum + (item.quantitySold || 0), 0);
-      setTotalQuantity(total);
-    } else {
-      setTotalQuantity(0);
-    }
-  }, [lineItem]);
-
-
+  const totalQuantity = (lineItems || []).reduce(
+    (sum, item) => sum + (parseInt(item.quantitySold || 0, 10)), 0
+  );
 
   useEffect(() => {
       function handleClickOutside(event) {
@@ -110,14 +99,14 @@ export default function TransactionRow({sale, products, onDelete }) {
 
   return (
     <tr className="bg-white rounded-md shadow text-sm ">
-      <td className="w-1/6 text-center py-2">{sale.invoiceId}</td>
-      <td className="w-1/6 text-center py-2">{sale.name || "Unknown"}</td>
+      <td className="w-1/6 text-center py-2">{invoiceId}</td>
+      <td className="w-1/6 text-center py-2">{name || "Unknown"}</td>
       <td className="w-1/6 text-center py-2">{totalQuantity}</td>
       <td className="w-1/6 text-center py-2">
-        Rp {parseFloat(totalAmount).toLocaleString('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+        Rp {parseFloat(totalAmount || 0).toLocaleString('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
       </td>
-      <td className="w-1/6 text-center py-2">{invoiceDate.split("T")[0]}</td>
-<td className="w-1/6 text-center py-2">
+      <td className="w-1/6 text-center py-2">{invoiceDate ? invoiceDate.split("T")[0] : 'N/A'}</td>
+      <td className="w-1/6 text-center py-2">
         <div className="flex justify-center space-x-4">
           {/* Details button */}
           <div className="w-7 h-7 flex items-center justify-center rounded-full bg-[#EBF2FF] hover:bg-blue-100 transition cursor-pointer">

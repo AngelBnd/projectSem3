@@ -5,38 +5,46 @@ import { Link } from "react-router-dom";
 import Button from "../Button";
 import NotFound from "../NotFound";
 import { useEffect, useState, useMemo  } from "react";
+import { useDebounce } from "../Debounce";
 
 
 export default function Sales(){
   const [sales, setSales] = useState([]);
+  const [staticSales, setStaticSales] = useState([]);
+
   const [products, setProducts] = useState([]);
   const [query, setQuery] = useState(""); // Search items state
   const [filter, setFilter] = useState('All'); // Filter category button
-  const timeFilters = ['This Year','This month','This Week']
+  const timeFilters = ['This Year','This month','This Week'];
 
+  const debounceQuery = useDebounce(query, 300);
+
+  const productMap = useMemo(() => {
+    return new Map(products.map(p => [p.productCode, p]));
+  }, [products]);
+
+  const flatSalesData = useMemo(() => {
+    return sales.flatMap((invoice) => {
+      return (invoice.lineItems || []).map((lineItem) => {
+        const product = productMap.get(lineItem.productCode);
+        return product ? product.productCategory : 'Unknown category';
+      });
+    });
+  }, [sales, productMap]);
+  
   // Filter categories based on the transactions list shown
   const categoryFilters = ['All', ...new Set(
-    sales.map(sale => {
-      const product = products.find(p => p.productCode === sale.productCode);
-      return product ? product.productCategory : null;
-    }).filter(category => category !== null)
+    flatSalesData.filter(category => category !== 'Unknown Category')
   )];
 
   // Update list of sales based on filters / search
-  const updateSales = sales.filter(sale => {
-    const matchProduct = products.find(p => p.productCode === sale.productCode);
-
-    if (!matchProduct) return false;
-
-    if(filter != 'All' && matchProduct.productCategory !== filter) {
-      return false;
-    }
-
-    if (query) {
-      const searchTerm = query.toLowerCase();
-      const matchesName = matchProduct.productName.toLowerCase().includes(searchTerm);
-      const matchesCode = matchProduct.productCode.toLowerCase().includes(searchTerm);
-      if (!matchesName && !matchesCode) {
+  const updateSales = sales.filter(invoice => {
+    if (filter != 'All') {
+      const matchCategory = (invoice.lineItems || []).some(lineItem => {
+        const product = productMap.get(lineItem.productCode);
+        return product && product.productCategory === filter;
+      });
+      if(!matchCategory) {
         return false;
       }
     }
@@ -52,7 +60,7 @@ export default function Sales(){
 
     const productMap = new Map(products.map(p => [p.productCode, p]));
 
-    sales.forEach((invoice) => { 
+    staticSales.forEach((invoice) => { 
         
         (invoice.lineItems || []).forEach((lineItem) => {
             const product = productMap.get(lineItem.productCode);
@@ -78,7 +86,7 @@ export default function Sales(){
       orderTotal: orders,
       expenseTotal: expense,
     };
-  }, [sales, products]);
+  }, [staticSales, products]);
 
   const totals = [
     { number: profitTotal, label: "Profit Total" },
@@ -89,37 +97,79 @@ export default function Sales(){
   const boxes = new Array(3).fill(null);
   const testRows = new Array(12).fill(null);
 
+  // useEffect(() => {
+  //   const token = localStorage.getItem('token');
+  //   const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
+
+  //   Promise.all([
+  //     fetch("http://localhost:3000/api/sales", { headers }).then((res) => {
+  //       if (!res.ok) {
+  //         throw new Error('Unauthorized access');
+  //       }
+  //       return res.json();
+  //     }),
+  //     fetch("http://localhost:3000/api/inventory", { headers }).then((res) => {
+  //       if (!res.ok) {
+  //         throw new Error('Unauthorized access');
+  //       }
+  //       return res.json();
+  //     }),
+  //   ])
+  //   .then(([transactions, inventory]) => {
+  //     setSales(transactions);
+  //     setProducts(inventory);
+  //   })
+  //   .catch((err) => {
+  //     console.error("Error fetching data:", err);
+  //     // Optional: Handle redirection to login page if needed
+  //     if (err.message === 'Unauthorized access') {
+  //         // You might want to handle this more globally with a context or a higher-order component
+  //         window.location.href = '/login';
+  //     }
+  //   });
+  // }, []);
+
   useEffect(() => {
     const token = localStorage.getItem('token');
     const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
 
-    Promise.all([
-      fetch("http://localhost:3000/api/sales", { headers }).then((res) => {
-        if (!res.ok) {
-          throw new Error('Unauthorized access');
+    const salesUrl = debounceQuery
+      ? `http://localhost:3000/api/sales/search?q=${encodeURIComponent(debounceQuery)}`
+      : `http://localhost:3000/api/sales`;
+
+    const fetchData = async () => {
+      try {
+        const [salesRes, inventoryRes] = await Promise.all([
+          fetch(salesUrl, { headers }),
+          fetch("http://localhost:3000/api/inventory", { headers }),
+        ]);
+        if (!salesRes.ok || !inventoryRes.ok) {
+          throw new Error('Unauthorized access or network error during fetch.');
         }
-        return res.json();
-      }),
-      fetch("http://localhost:3000/api/inventory", { headers }).then((res) => {
-        if (!res.ok) {
-          throw new Error('Unauthorized access');
+        
+        const [transactions, inventory] = await Promise.all([
+          salesRes.json(),
+          inventoryRes.json(),
+        ]);
+
+        setSales(transactions);
+        setProducts(inventory);
+
+        if (!debounceQuery) {
+          setStaticSales(transactions);
         }
-        return res.json();
-      }),
-    ])
-    .then(([transactions, inventory]) => {
-      setSales(transactions);
-      setProducts(inventory);
-    })
-    .catch((err) => {
-      console.error("Error fetching data:", err);
-      // Optional: Handle redirection to login page if needed
-      if (err.message === 'Unauthorized access') {
-          // You might want to handle this more globally with a context or a higher-order component
+
+      } catch (err) {
+        console.error("Error fetching data:", err);
+        if (err.message === 'Unauthorized access') {
           window.location.href = '/login';
+        }
       }
-    });
-  }, []);
+    };
+
+    fetchData();
+  }, [debounceQuery]);
+
 
   useEffect(()=>{
     console.log("ini yang gw mau perbaiki");
@@ -189,19 +239,19 @@ export default function Sales(){
             </tr>
           </thead>
             <tbody>
-              {sales.length === 0 ? (
+              {updateSales.length === 0 ? (
                 <NotFound />
               ) : (
-                sales.map((sale) => (
+                updateSales.map((sale) => (
                   <TransactionRow
                     key={sale.invoiceId}
                     sale={sale}
                     products={products}
-                    onDelete={(id) => {
+                    onDelete={(invoiceId) => {
                       const token = localStorage.getItem('token');
                       const headers = { 'Authorization': `Bearer ${token}` };
 
-                      fetch(`http://localhost:3000/api/sales/${encodeURIComponent(id)}`, {
+                      fetch(`http://localhost:3000/api/sales/${encodeURIComponent(invoiceId)}`, {
                         method: "DELETE",
                         headers: headers,
                       })
@@ -211,7 +261,10 @@ export default function Sales(){
                         })
                         .then(() => {
                           setSales((prev) => {
-                            return prev.filter((s) => String(s.invoiceId) !== String(id));
+                            return prev.filter((s) => String(s.invoiceId) !== String(invoiceId));
+                          });
+                          setStaticSales((prev) => {
+                            return prev.filter((s) => String(s.invoiceId) !== String(invoiceId));
                           });
                         })
                         .catch((err) => {

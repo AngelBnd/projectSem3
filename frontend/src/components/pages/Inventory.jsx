@@ -6,26 +6,31 @@ import InventoryRow from "../InventoryRow";
 import NotFound from "../NotFound";
 import { Link } from "react-router-dom";
 import { useEffect, useState, useSyncExternalStore } from "react";
+import { useDebounce } from "../Debounce";
 
 // Assuming these are still valid based on your backend logic
 const stockStatuses = ["Low stock", "Good", "Out of Stock", "Low stock"];
 
 export default function Inventory() {
   const [items, setItems] = useState([]);
+  const [staticItems, setStaticItems] = useState([]);
+
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState('All');
   const categoryFilters = ['All', ...new Set(items.map(item => item.productCategory))];
 
+  const debounceQuery = useDebounce(query, 300);
+
   const theBoxValues = [
-    { number: items.length, label: "Total Items" },
+    { number: staticItems.length, label: "Total Items" },
     {
-      number: items.filter(
+      number: staticItems.filter(
         (item) => parseInt(item.initialStock) <= parseInt(item.thresholdStock)
       ).length,
       label: "Low Stock Items",
     },
     {
-      number: items.filter((item) => parseInt(item.initialStock) === 0).length,
+      number: staticItems.filter((item) => parseInt(item.initialStock) === 0).length,
       label: "Out of Stock Items",
     },
   ];
@@ -41,7 +46,7 @@ export default function Inventory() {
         }
         return res.json();
       })
-      .then((data) => setItems(data))
+      .then((data) => setStaticItems(data))
       .catch((err) => {
         console.error("Error fetching inventory:", err);
         if (err.message === 'Unauthorized access') {
@@ -50,19 +55,43 @@ export default function Inventory() {
       });
   }, []);
 
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
+
+    const url = debounceQuery
+      ? `http://localhost:3000/api/inventory/search?q=${encodeURIComponent(debounceQuery)}`
+      : `http://localhost:3000/api/inventory`;
+
+    const fetchData = async () => {
+      try {
+        const res = await fetch(url, { headers });
+        if (!res.ok) {
+          throw new Error('Unauthorized access');
+        }
+
+        const data = await res.json();
+        setItems(data);
+        if(!debounceQuery) {
+          setStaticItems(data);
+        }
+        
+      } catch (err) {
+        console.error("Error fetching inventory:", err);
+        if (err.message === 'Unauthorized access') {
+          window.location.href = '/login';
+        }
+      }
+    };
+
+    fetchData();
+  }, [debounceQuery]);
+
   const updateItems = items.filter(item => {
     if (filter != 'All' && item.productCategory !== filter) {
       return false;
     }
-
-    if (query) {
-      const searchTerm = query.toLowerCase();
-      const matchesName = item.productName.toLowerCase().includes(searchTerm);
-      const matchesCode = item.productCode.toLowerCase().includes(searchTerm);
-      if (!matchesName && !matchesCode) {
-        return false;
-      }
-    }
+    
     return true;
   });
 

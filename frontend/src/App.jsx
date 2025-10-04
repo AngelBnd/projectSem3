@@ -10,12 +10,6 @@ import InputSales from './components/pages/InputSales';
 import InputInventory from './components/pages/InputInventory';
 import { PopupProvider, usePopup } from './components/PopupContext';
 
-const GlobalPopupRenderer = () => {
-  const { isPopupOpen, popupContent } = usePopup();
-  if (!isPopupOpen) return null;
-  return popupContent.content; 
-};
-
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const location = useLocation();
@@ -41,8 +35,6 @@ function App() {
       {/* Remove the px/pt classes from the main tag */}
       <main className={`${mainColSpan} bg-[#F5F7FA]`}>
         <PopupProvider>
-          <GlobalPopupRenderer/>
-
           <Routes>
             <Route path="/login" element={<Login setAuthenticated={setAuthenticated} />} />
             <Route path="/register" element={<Register />} />

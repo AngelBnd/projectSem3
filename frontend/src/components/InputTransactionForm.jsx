@@ -4,14 +4,14 @@ import { useNavigate } from "react-router-dom";
 import { useRef } from "react";
 import { useDebounce } from "./Debounce";
 import { usePopup } from "./PopupContext";
-import { PopupOkay } from "./PopupComp";
+import { PopupOkay, PopupError } from "./PopupComp";
 
 // New component for individual product item in the list
 const ProductItem = ({ product, index, onProductChange, onDeleteProduct, onProductFocus, onProductBlur, activeProductIndex, mode}) => {
    
     const isFocused = activeProductIndex === index;
     const isEditMode = mode === 'edit';
-     const isProductSet = !!product.productName && product.productName.trim().length > 0;
+    const isProductSet = !!product.productName && product.productName.trim().length > 0;
     const isNewlyAddedAndBlank = !isProductSet && product.tempId && product.productCode === ""; 
     const showFinalDisplay = (isEditMode || isProductSet) && !isFocused;
     const showInput = isFocused || !isProductSet;
@@ -221,7 +221,7 @@ export default function InputTransactionForm({ mode, item, isEditMode, invoiceDa
         event.preventDefault();
 
         if (newProducts.length === 0) {
-            return openPopup(<PopupOkay message="Please add at least one product." />, null, 2500);;
+            return openPopup(<PopupError message="Please add at least one product." />, null, 2500);;
         };
 
         try {
@@ -236,7 +236,7 @@ export default function InputTransactionForm({ mode, item, isEditMode, invoiceDa
                     throw new Error("One or more products are incomplete or invalid.");
                 }
                 if (product.initialStock < quantity) {
-                    throw new Error(`Not enough stock for "${product.productName}". Only ${product.initialStock} available.`);
+                    return openPopup(<PopupError message={`Not enough stock for "${product.productName}". Only ${product.initialStock} available.`}/>, null, 2000);
                 }
                 
                 // If the product code is already in the accumulator, merge the quantities
@@ -297,7 +297,7 @@ export default function InputTransactionForm({ mode, item, isEditMode, invoiceDa
             const navigateBack = () => {
                 setTimeout(() => {
                     navigate(-1);
-                }, 1500); 
+                }, 1000); 
             };
 
             if(response.ok) {
@@ -310,12 +310,8 @@ export default function InputTransactionForm({ mode, item, isEditMode, invoiceDa
             
 
         } catch (error) {
-            openPopup(
-                <PopupOkay message={`Failed to save: ${error.message}`} />,
-                    null, 
-                    2500 // Error message displays longer
-                );
-            }
+            alert(`Failed to save: ${error.message}`);
+        }
     };
 
     
