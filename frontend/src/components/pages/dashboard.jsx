@@ -1,228 +1,153 @@
-import { Line } from "react-chartjs-2";
-import { useEffect, useState } from "react";
-import ChartBar from "../ChartBar";
-import CategoryPieChart from "../CategoryPieChart";
-import FilterDropdown from "../FilterButton";
-import RecentTransactionRow from "../recentTransactionRow";
-import TopSellingRow from "../TopSellingRow";
+import React, { useEffect, useState, useMemo } from "react";
+import { useNavigate } from 'react-router-dom';
+// Ensure these chart components exist and are imported correctly
+import ChartBar from "../ChartBar"; 
+import CategoryPieChart from "../CategoryPieChart"; 
+import FilterDropdown from "../FilterButton"; 
+import TopSellingProducts from "../TopSellingProducts"; 
+import RecentTransactionsTable from "../RecentTransactionsTable"; 
+
+// Helper function to format currency (Rp)
+const formatCurrency = (amount) => {
+  return `Rp ${new Intl.NumberFormat('id-ID', {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  }).format(amount || 0)}`;
+};
+
+// Component to render the top boxes
+const DashboardTopBoxes = ({ summary }) => {
+    // ... (unchanged DashboardTopBoxes code)
+    const { totalSales, totalProfit, lowStockItems, totalCustomers } = summary;
+
+    return (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+            <div className="bg-white p-4 shadow rounded-lg flex flex-col justify-center">
+                <h3 className="text-lg font-medium text-gray-500">Total Sales</h3>
+                <p className="text-2xl font-bold text-gray-900">{formatCurrency(totalSales)}</p>
+            </div>
+
+            <div className="bg-white p-4 shadow rounded-lg flex flex-col justify-center">
+                <h3 className="text-lg font-medium text-gray-500">Profit</h3>
+                <p className="text-2xl font-bold text-gray-900">{formatCurrency(totalProfit)}</p>
+            </div>
+
+            <div className="bg-white p-4 shadow rounded-lg flex flex-col justify-center">
+                <h3 className="text-lg font-medium text-gray-500">Low Stock Items</h3>
+                <p className="text-2xl font-bold text-red-600">{lowStockItems}</p>
+            </div>
+
+            <div className="bg-white p-4 shadow rounded-lg flex flex-col justify-center">
+                <h3 className="text-lg font-medium text-gray-500">Total Customers</h3>
+                <p className="text-2xl font-bold text-gray-900">{totalCustomers}</p>
+            </div>
+        </div>
+    );
+};
+
 
 export default function Dashboard(){
-    const [data, setData] = useState([]);
+    const navigate = useNavigate();
+    const [dashboardSummary, setDashboardSummary] = useState({
+        totalSales: 0,
+        totalProfit: 0,
+        lowStockItems: 0,
+        totalCustomers: 0,
+    });
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+    
+    // State for the Cashflow chart filter
     const [filterBarData, setFilterBarData] = useState('Monthly');
     const categoryFilters = ['Yearly', 'Monthly', 'Weekly'];
-    const dummyData = [ 
-    {
-        "invoiceID": "INV-20251003-001",
-        "customerName": "Rizky Firmansyah",
-        "totalQuantity": 4,
-        "totalAmount": 450000.00,
-        "currency": "Rp",
-        "invoiceDate": "2025-10-03",
-        "status": "Paid"
-    },
-    {
-        "invoiceID": "INV-20251003-002",
-        "customerName": "Siti Hartono",
-        "totalQuantity": 1,
-        "totalAmount": 125000.00,
-        "currency": "Rp",
-        "invoiceDate": "2025-10-03",
-        "status": "Paid"
-    },
-    {
-        "invoiceID": "INV-20251003-003",
-        "customerName": "Bambang W.",
-        "totalQuantity": 2,
-        "totalAmount": 28000.00,
-        "currency": "Rp",
-        "invoiceDate": "2025-10-03",
-        "status": "Canceled"
-    },
-    {
-        "invoiceID": "INV-20251002-015",
-        "customerName": "Melati Jaya Store",
-        "totalQuantity": 15,
-        "totalAmount": 1950000.00,
-        "currency": "Rp",
-        "invoiceDate": "2025-10-02",
-        "status": "Paid"
-    },
-    {
-        "invoiceID": "INV-20251002-016",
-        "customerName": "Toko Sejahtera",
-        "totalQuantity": 3,
-        "totalAmount": 75000.00,
-        "currency": "Rp",
-        "invoiceDate": "2025-10-02",
-        "status": "Paid"
-    }
-    ];
 
-    const productSalesDataDummy = [ 
-    {
-        "productName": "Signature Espresso Blend 1kg",
-        "quantitySold": 850
-    },
-    {
-        "productName": "Cold Brew Concentrate (Bottle)",
-        "quantitySold": 520
-    },
-    {
-        "productName": "Vanilla Syrup (1L)",
-        "quantitySold": 310
-    },
-    {
-        "productName": "Ceramic Mug - White (Box of 6)",
-        "quantitySold": 155
-    },
-    {
-        "productName": "Milk Frother (Pro Model)",
-        "quantitySold": 92
-    }
-    ];
+    useEffect(() => {
+        const token = localStorage.getItem('token');
+        if (!token) {
+            navigate('/login');
+            return;
+        }
 
-    const dashboardBoxes = [
-    { number: 0, label: "Total Sales" },
-    { number: 0, label: "Profit" },
-    { number: 0, label: "Low Stock Items" },
-    { number: 0, label: "Total Customers" },
-    ];
+        const fetchDashboardSummary = async () => {
+            try {
+                const response = await fetch('http://localhost:3000/api/dashboard/summary', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                    },
+                });
+                if (!response.ok) {
+                    throw new Error('Failed to fetch dashboard summary');
+                }
+                const data = await response.json();
+                
+                setDashboardSummary({
+                    totalSales: parseFloat(data.totalSales) || 0,
+                    totalProfit: parseFloat(data.totalProfit) || 0,
+                    lowStockItems: data.lowStockItems,
+                    totalCustomers: data.totalCustomers,
+                });
+            } catch (err) {
+                console.error("Dashboard summary fetch error:", err);
+                setError(err.message);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchDashboardSummary();
+    }, [navigate]);
+
+    if (loading) return <div>Loading Dashboard...</div>;
+    if (error) return <div>Error: {error}. Check your server console for details.</div>;
+
 
     return(
-    <div className="w-full text-black">
-      <div className="font-nunito font-bold text-4xl mb-[16px]">
-        Dashboard
-      </div>
+        <div className="w-full text-black">
+            <h1 className="text-3xl font-semibold mb-6">Dashboard</h1>
 
-      <div className="w-full flex flex-col gap-3 mb-[40px]">
-        <div className="w-full h-32 flex gap-2">
-            {dashboardBoxes.map((dashboardBox, index)=>(
-                <div
-                    key={index}
-                    className="bg-white w-full h-full rounded-lg shadow flex flex-col items-start justify-center px-5"
-                >
-                    <span className="text-3xl font-bold font-nunito text-black flex items-end gap-1">
-                    {/* {dashboardBox.label !== "Order Total" && (
-                        <span className="text-lg font-bold font-nunito text-black">Rp</span>
-                    )} */}
-                        {/* {dashboardBox.label === "Order Total"
-                        ? dashboardBox.number
-                        : dashboardBox.number.toLocaleString("id-ID", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} */}
-                        {dashboardBox.number}
-                    </span>
-                <span className="text-sm text-gray-600">{dashboardBox.label}</span>
-                </div>
+            {/* 1. Top Boxes */}
+            <DashboardTopBoxes summary={dashboardSummary} />
 
-            ))}
-        </div>
-
-        <div className=" w-full h-[300px] flex gap-2">
-            <div className="bg-white basis-2/3 rounded-lg shadow h-full px-8 py-6 flex flex-col gap-4 overflow-hidden box-border">
-                <div className="w-full flex justify-between">
-                    <div className="font-nunito text-xl font-bold mb-4">
-                        Cashflow
-                    </div>
-
-                    <FilterDropdown
-                    label="Monthly"
-                    options={categoryFilters}
-                    onSelect={(selectedOption) => setFilterBarData(selectedOption)}
-                    />
-                </div>
+            {/* 💡 2. NEW CHART SECTION: Uses the 2/3 and 1/3 split */}
+            <div className=" w-full h-[300px] flex gap-2 mb-6"> 
                 
-                {/* Chart Wrapper */}
-                <div className="flex-grow"> 
-                    <ChartBar
-                    timeFrame={filterBarData}
-                    />
-                </div>
-                
-            </div>
-
-            <div className="bg-white basis-1/3 rounded-lg shadow h-full px-8 py-6 flex flex-col overflow-hidden box-border">
-                <div className="font-nunito text-xl font-bold mb-4">
-                    Categories Sold
-                </div>
-                <div className="flex-grow"> 
-                    <CategoryPieChart/>
-                </div>
-            </div>
-        </div>
-
-        <div className=" w-full h-80 flex gap-2">
-            <div className="bg-white basis-1/3 rounded-lg shadow h-full px-8 py-6 flex flex-col overflow-hidden box-border">
-                <div className="flex justify-between">
-                    <div className="font-nunito text-xl font-bold mb-4">
-                        Top Selling Products
+                {/* Cashflow Chart (2/3 width) */}
+                <div className="bg-white basis-2/3 rounded-lg shadow h-full px-8 py-6 flex flex-col gap-4 overflow-hidden box-border">
+                    <div className="w-full flex justify-between items-center">
+                        <div className="font-nunito text-xl font-bold">
+                            Cashflow
+                        </div>
+                        <FilterDropdown
+                            label="Monthly"
+                            options={categoryFilters}
+                            onSelect={(selectedOption) => setFilterBarData(selectedOption)}
+                        />
                     </div>
-
-                    <FilterDropdown
-                    label="Filter"
-                    options={categoryFilters}
-                    onSelect={(selectedOption) => setFilter(selectedOption)}
-                    />
+                    
+                    {/* Chart Wrapper */}
+                    <div className="flex-grow"> 
+                        <ChartBar
+                            timeFrame={filterBarData}
+                        />
+                    </div>
                 </div>
 
-                <div className="flex-grow overflow-y-auto custom-scrollbar"> 
-
-                    <table className="table-auto w-full border-separate border-spacing-y-3 font-nunito text-[14px]">
-                        <thead className="text-gray-600 text-sm">
-                            <tr>
-                                <th className="w-1/2 px-6 py-2 font-bold text-center">Product Name</th>
-                                <th className="w-1/2 px-6 py-2 font-bold text-center">Quantity Sold</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            
-                            {productSalesDataDummy.map((item, index) => {
-                                return (
-                                    <TopSellingRow
-                                        key={item.productCode}
-                                        item={item}
-                                    />
-                                );
-                            })}
-                        </tbody>
-                    </table>
+                {/* Categories Sold Chart (1/3 width) */}
+                <div className="bg-white basis-1/3 rounded-lg shadow h-full px-8 py-6 flex flex-col overflow-hidden box-border">
+                    <div className="font-nunito text-xl font-bold mb-4">
+                        Categories Sold
+                    </div>
+                    <div className="flex-grow"> 
+                        <CategoryPieChart/>
+                    </div>
                 </div>
             </div>
 
-            <div className="bg-white basis-2/3 rounded-lg shadow h-full px-8 py-6 flex flex-col overflow-hidden box-border">
-                <div className="font-nunito text-xl font-bold ">
-                    Recent Transactions
-                </div>
-
-            <div className="flex-grow overflow-y-auto custom-scrollbar"> 
-
-                <table className="table-auto w-full border-separate border-spacing-y-3 font-nunito text-[14px]">
-                    <thead className="text-gray-600 text-sm">
-                        <tr>
-                            {/* Note: Columns are w-1/5 for 5 columns for even spacing, not w-1/6 */}
-                            <th className="w-1/5 px-6 py-2 font-bold text-center">Invoice ID</th>
-                            <th className="w-1/5 px-6 py-2 font-bold text-center">Name</th>
-                            <th className="w-1/5 px-6 py-2 font-bold text-center">Invoice Date</th>
-                            <th className="w-1/5 px-6 py-2 font-bold text-center">Quantity</th>
-                            <th className="w-1/5 px-6 py-2 font-bold text-center">Total</th>  
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {/* FIX: Ensure you add the return statement and key inside the map */}
-                        {dummyData.map((transaction, index) => {
-                            return (
-                                <RecentTransactionRow
-                                    key={transaction.invoiceID}
-                                    transaction={transaction}
-                                />
-                            );
-                        })}
-                    </tbody>
-                </table>
-            </div>
-
+            {/* 3. Bottom Section: Top Selling & Recent Transactions (Uses the 1/3 and 2/3 split) */}
+            <div className=" w-full h-80 flex gap-2">
+                <TopSellingProducts /> 
+                <RecentTransactionsTable />
             </div>
         </div>
-
-      </div>
-    </div>
     )
 }
