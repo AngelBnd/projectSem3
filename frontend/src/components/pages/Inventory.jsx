@@ -23,15 +23,15 @@ export default function Inventory() {
   // const debounceQuery = useDebounce(query, 300);
 
   const theBoxValues = [
-    { number: updateItems.length, label: "Total Items" },
+    { number: items.length, label: "Total Items" },
     {
-      number: updateItems.filter(
+      number: items.filter(
         (item) => parseInt(item.initialStock) <= parseInt(item.thresholdStock) && parseInt(item.initialStock)!=0
       ).length,
       label: "Low Stock Items",
     },
     {
-      number: updateItems.filter((item) => parseInt(item.initialStock) === 0).length,
+      number: items.filter((item) => parseInt(item.initialStock) === 0).length,
       label: "Out of Stock Items",
     },
   ];
@@ -47,7 +47,7 @@ export default function Inventory() {
         }
         return res.json();
       })
-      .then((data) => setUpdateItems(data))
+      .then((data) => setItems(data))
       .catch((err) => {
         console.error("Error fetching inventory:", err);
         if (err.message === 'Unauthorized access') {
@@ -104,6 +104,7 @@ export default function Inventory() {
   //   return true;
   // });
 
+
   const handleKeyDown = async (e) => {
     if (e.key === "Enter") {
       const token = localStorage.getItem('token');
@@ -114,6 +115,10 @@ export default function Inventory() {
       setUpdateItems(data);
     }
   };
+
+  useEffect(()=>{
+    setUpdateItems(items);
+  },[items])
 
   return (
     <div className="w-full text-black">
