@@ -394,7 +394,7 @@ app.get("/api/sales", authenticateToken, async (req, res) => {
   }
 });
 
-app.delete("api/sales/:invoiceId", authenticateToken, async (req, res) => {
+app.delete("/api/sales/:invoiceId", authenticateToken, async (req, res) => {
   const invoiceId = req.params.invoiceId;
   const userId = req.user.id;
 

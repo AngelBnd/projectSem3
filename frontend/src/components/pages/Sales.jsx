@@ -39,27 +39,24 @@ export default function Sales(){
     flatSalesData.filter(category => category !== 'Unknown Category')
   )];
 
-  // Update list of sales based on filters / search
-  // const updateSales = sales.filter(sale => {
-  //   const matchProduct = products.find(p => p.productCode === sale.productCode);
+  useEffect(() => {
+      const productMap = new Map(products.map(p => [p.productCode, p]));
 
-  //   if (!matchProduct) return false;
+      if (filter === 'All') {
+          setUpdateSales(sales);
+          return;
+      }
 
-  //   if(filter != 'All' && matchProduct.productCategory !== filter) {
-  //     return false;
-  //   }
+      const filtered = sales.filter(invoice => {
+          return (invoice.lineItems || []).some(lineItem => {
+              const product = productMap.get(lineItem.productCode);
+              return product && product.productCategory === filter;
+          });
+      });
 
-  //   if (query) {
-  //     const searchTerm = query.toLowerCase();
-  //     const matchesName = matchProduct.productName.toLowerCase().includes(searchTerm);
-  //     const matchesCode = matchProduct.productCode.toLowerCase().includes(searchTerm);
-  //     if (!matchesName && !matchesCode) {
-  //       return false;
-  //     }
-  //   }
+      setUpdateSales(filtered);
 
-  //   return true;
-  // });
+  }, [sales, filter, products]);
 
   const handleKeyDown = async (e) => {
     if (e.key === "Enter") {
@@ -107,7 +104,7 @@ export default function Sales(){
       orderTotal: orders,
       expenseTotal: expense,
     };
-  }, [updateSales, products]);
+  }, [sales, products]);
 
   const totals = [
     { number: profitTotal, label: "Profit Total" },
@@ -169,7 +166,7 @@ export default function Sales(){
       }),
     ])
     .then(([transactions, inventory]) => {
-      setUpdateSales(transactions);
+      setSales(transactions);
       setProducts(inventory);
     })
     .catch((err) => {
@@ -179,6 +176,10 @@ export default function Sales(){
       }
     });
   }, []);
+
+  useEffect(()=>{
+    setUpdateSales(sales);
+  },[sales])
 
   return (
     <div className="w-full text-black  ">
@@ -264,9 +265,6 @@ export default function Sales(){
                         })
                         .then(() => {
                           setSales((prev) => {
-                            return prev.filter((s) => String(s.invoiceId) !== String(invoiceId));
-                          });
-                          setStaticSales((prev) => {
                             return prev.filter((s) => String(s.invoiceId) !== String(invoiceId));
                           });
                         })
