@@ -21,20 +21,20 @@ const formatDate = (dateString) => {
 // Row Component (RecentTransactionRow)
 const RecentTransactionRow = ({ transaction }) => {
     return (
-        <tr>
-            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+        <tr className='shadow'>
+            <td className="w-1/5 px-6 py-4 text-sm font-medium text-gray-900">
                 {transaction.invoiceId}
             </td>
-            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+            <td className="w-1/5 px-6 py-4  text-center text-sm text-gray-500">
                 {transaction.customerName}
             </td>
-            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+            <td className="w-1/5 px-6 py-4  text-center text-sm text-gray-500">
                 {formatDate(transaction.invoiceDate)}
             </td>
-            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+            <td className="w-1/5 px-6 py-4 text-center text-sm text-gray-500">
                 {transaction.totalQuantity}
             </td>
-            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+            <td className="w-1/5 px-6 py-4 text-center text-sm text-gray-900">
                 {formatCurrency(transaction.totalAmount)}
             </td>
         </tr>
@@ -85,7 +85,7 @@ export default function RecentTransactionsTable() {
         Recent Transactions
       </div>
 
-      <div className="flex-grow overflow-y-auto custom-scrollbar"> 
+      <div className="flex-grow overflow-y-auto overflow-x-hidden custom-scrollbar"> 
         <table className="table-auto w-full border-separate border-spacing-y-3 font-nunito text-[14px]">
           <thead className="text-gray-600 text-sm">
             <tr>

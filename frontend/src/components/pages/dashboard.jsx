@@ -21,27 +21,35 @@ const DashboardTopBoxes = ({ summary }) => {
     const { totalSales, totalProfit, lowStockItems, totalCustomers } = summary;
 
     return (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
-            <div className="bg-white p-4 shadow rounded-lg flex flex-col justify-center">
-                <h3 className="text-lg font-medium text-gray-500">Total Sales</h3>
-                <p className="text-2xl font-bold text-gray-900">{formatCurrency(totalSales)}</p>
-            </div>
-
-            <div className="bg-white p-4 shadow rounded-lg flex flex-col justify-center">
-                <h3 className="text-lg font-medium text-gray-500">Profit</h3>
-                <p className="text-2xl font-bold text-gray-900">{formatCurrency(totalProfit)}</p>
-            </div>
-
-            <div className="bg-white p-4 shadow rounded-lg flex flex-col justify-center">
-                <h3 className="text-lg font-medium text-gray-500">Low Stock Items</h3>
-                <p className="text-2xl font-bold text-red-600">{lowStockItems}</p>
-            </div>
-
-            <div className="bg-white p-4 shadow rounded-lg flex flex-col justify-center">
-                <h3 className="text-lg font-medium text-gray-500">Total Customers</h3>
-                <p className="text-2xl font-bold text-gray-900">{totalCustomers}</p>
-            </div>
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2 mb-4">
+        <div className="bg-white px-6 py-8 shadow rounded-lg flex flex-col justify-center">
+            <p className="text-3xl font-nunito font-bold">
+                {formatCurrency(totalSales)}
+            </p>
+            <div className="text-md mt-1">Total Sales</div>
         </div>
+
+        <div className="bg-white px-6 py-8 shadow rounded-lg flex flex-col justify-center">
+            <p className="text-3xl font-nunito font-bold ">
+                {formatCurrency(totalProfit)}
+            </p>
+            <div className="text-md mt-1">Total Profit</div>
+        </div>
+
+        <div className="bg-white px-6 py-8 shadow rounded-lg flex flex-col justify-center">
+            <p className="text-3xl font-nunito font-bold ">
+                {lowStockItems}
+            </p>
+            <div className="text-md mt-1">Low Stock Items</div>
+        </div>
+
+        <div className="bg-white px-6 py-8 shadow rounded-lg flex flex-col justify-center">
+            <p className="text-3xl font-nunito font-bold">
+                {totalCustomers}
+            </p>
+            <div className="text-md mt-1">Total Customers</div>
+        </div>
+    </div>
     );
 };
 
@@ -102,14 +110,14 @@ export default function Dashboard(){
 
 
     return(
-        <div className="w-full text-black">
+        <div className="w-full text-black mb-6">
             <h1 className="text-3xl font-semibold mb-6">Dashboard</h1>
 
             {/* 1. Top Boxes */}
             <DashboardTopBoxes summary={dashboardSummary} />
 
             {/* 💡 2. NEW CHART SECTION: Uses the 2/3 and 1/3 split */}
-            <div className=" w-full h-[300px] flex gap-2 mb-6"> 
+            <div className=" w-full h-[300px] flex gap-2 mb-4"> 
                 
                 {/* Cashflow Chart (2/3 width) */}
                 <div className="bg-white basis-2/3 rounded-lg shadow h-full px-8 py-6 flex flex-col gap-4 overflow-hidden box-border">
