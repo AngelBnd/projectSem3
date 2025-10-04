@@ -15,9 +15,19 @@ export default function Sales(){
   const [products, setProducts] = useState([]);
   const [searchInput, setSearchInput] = useState("");
   const [updateSales, setUpdateSales] = useState([]);
-  
+  const [query , setQuery] = useState("")
+
   const [filter, setFilter] = useState('All'); // Filter category button
-  const timeFilters = ['This Year','This month','This Week'];
+  const [timeFilter, setTimeFilter] = useState('all_sales'); 
+    const timeFilters = [
+    { value: 'all_sales', label: 'All Sales' },
+    { value: 'last_7_days', label: 'Last Week' },
+    { value: 'last_30_days', label: 'Last Month' },
+    { value: 'last_365_days', label: 'Last Year' },
+    ];
+    
+
+  // const timeFilters = ['This Year','This month','This Week'];
 
   // const debounceQuery = useDebounce(query, 300);
 
@@ -151,31 +161,40 @@ export default function Sales(){
     const token = localStorage.getItem('token');
     const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
 
-    Promise.all([
-      fetch("http://localhost:3000/api/sales", { headers }).then((res) => {
-        if (!res.ok) {
-          throw new Error('Unauthorized access');
-        }
-        return res.json();
-      }),
-      fetch("http://localhost:3000/api/inventory", { headers }).then((res) => {
-        if (!res.ok) {
-          throw new Error('Unauthorized access');
-        }
-        return res.json();
-      }),
-    ])
-    .then(([transactions, inventory]) => {
-      setSales(transactions);
-      setProducts(inventory);
-    })
-    .catch((err) => {
-      console.error("Error fetching data:", err);
-      if (err.message === 'Unauthorized access') {
+    const fetchData = async () => {
+      try {
+        const params = new URLSearchParams();
+        if (timeFilter) params.append('period', timeFilter);
+        if (filter && filter !== 'All') params.append('category', filter);
+        if (query) params.append('search', query);
+
+        const salesUrl = `http://localhost:3000/api/sales?${params.toString()}`;
+        
+        const [inventoryResponse, salesResponse] = await Promise.all([
+          fetch("http://localhost:3000/api/inventory", { headers }),
+          fetch(salesUrl, { headers })
+        ]);
+
+  
+        if (!inventoryResponse.ok) throw new Error('Failed to fetch inventory');
+        if (!salesResponse.ok) throw new Error('Failed to fetch sales');
+
+        const inventory = await inventoryResponse.json();
+        const sales = await salesResponse.json();
+
+        setProducts(inventory);
+        setSales(sales);
+
+      } catch (err) {
+        console.error("Error fetching data:", err);
+        if (err.message === 'Unauthorized' || err.message === 'Unauthorized access') {
           window.location.href = '/login';
+        }
       }
-    });
-  }, []);
+    };
+
+    fetchData();
+  }, [timeFilter, filter, query]);
 
   useEffect(()=>{
     setUpdateSales(sales);
@@ -189,7 +208,12 @@ export default function Sales(){
         </div>
         <FilterDropdown
           label="Time"
-          options={timeFilters}
+          options={timeFilters.map(f => f.label)}
+          onSelect={(selectedLabel) => {
+            const selectedOption = timeFilters.find(f => f.label === selectedLabel);
+
+            if (selectedOption) setTimeFilter(selectedOption.value);
+            }}
         />
       </div>
 

@@ -375,8 +375,79 @@ app.put('/api/inventory/:id', authenticateToken, async (req, res) => {
 // GET all sales for the current user
 app.get("/api/sales", authenticateToken, async (req, res) => {
   try {
-    const allInvoices = await prisma.invoices.findMany({
-      where: { userId: req.user.id },
+    const { period, category, search } = req.query;
+
+    const whereClause = {
+      userId: req.user.id,
+    };
+
+    const lineItemConditions = [];
+
+    let startDate, endDate;
+    const now = new Date();
+
+    if (period && period.startsWith('last_') && period.endsWith('_days')) {
+        const parts = period.split('_'); 
+        const days = parseInt(parts[1], 10);
+
+        if (!isNaN(days) && days > 0) {
+            endDate = new Date(now);
+            endDate.setHours(23, 59, 59, 999);
+
+            startDate = new Date(now);
+            startDate.setDate(now.getDate() - (days - 1));
+            startDate.setHours(0, 0, 0, 0);
+        }
+    } else {
+    switch (period) {
+        case 'today':
+            startDate = new Date(now);
+            startDate.setHours(0, 0, 0, 0);
+            endDate = new Date(now);
+            endDate.setHours(23, 59, 59, 999);
+            break;
+    }
+  }
+
+    if (startDate && endDate) {
+      whereClause.invoiceDate = {
+        gte: startDate,
+        lte: endDate,
+      };
+    }
+    
+    if (category) {
+      lineItemConditions.push({
+        product: {
+          productCategory: {
+            equals: category,
+          },
+        },
+      });
+    }
+
+    if (search) {
+      lineItemConditions.push({
+        product: {
+          OR: [
+            { productName: { contains: search, mode: 'insensitive' } },
+            { productCode: { contains: search, mode: 'insensitive' } },
+          ],
+        },
+      });
+    }
+
+
+    if (lineItemConditions.length > 0) {
+      whereClause.lineItems = {
+        some: {
+          AND: lineItemConditions,
+        },
+      };
+    }
+
+    const filteredInvoices = await prisma.invoices.findMany({
+      where: whereClause, 
       include: {
         lineItems: {
           include: {
@@ -388,8 +459,11 @@ app.get("/api/sales", authenticateToken, async (req, res) => {
         invoiceDate: 'desc'
       }
     });
-    res.json(allInvoices);
+    
+    res.json(filteredInvoices);
+
   } catch (error) {
+    console.error("Error fetching invoices:", error); // Log the actual error
     res.status(500).json({ error: "Failed to fetch invoices." });
   }
 });
