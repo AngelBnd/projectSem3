@@ -1,4 +1,4 @@
-require('dotenv').config(); 
+require('dotenv').config();
 
 const express = require("express");
 const cors = require("cors");
@@ -350,22 +350,23 @@ app.put('/api/inventory/:id', authenticateToken, async (req, res) => {
 
 // GET all sales for the current user
 app.get("/api/sales", authenticateToken, async (req, res) => {
-  const userId = req.user.id;
-
   try {
-    const transactionsData = await prisma.invoices.findMany({
-      where:{
-        userId : userId
-      },
+    const allInvoices = await prisma.invoices.findMany({
+      where: { userId: req.user.id },
       include: {
-        lineItems: true,
+        lineItems: {
+          include: {
+            product: true 
+          }
+        }
+      },
+      orderBy: {
+        invoiceDate: 'desc'
       }
-    })
-    res.json(transactionsData);
-
-  }catch(error){
-      console.error("Error fetching transactions:", error);
-      res.status(500).json({ error: "Failed to retrieve transactions data." });
+    });
+    res.json(allInvoices);
+  } catch (error) {
+    res.status(500).json({ error: "Failed to fetch invoices." });
   }
 });
 
