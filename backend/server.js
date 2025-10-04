@@ -354,7 +354,9 @@ app.put('/api/inventory/:id', authenticateToken, async (req, res) => {
         productCategory: editedItem.productCategory,
         unitCost: parseFloat(editedItem.unitCost),
         sellingPrice: parseFloat(editedItem.sellingPrice),
-        initialStock: parseInt(editedItem.initialStock, 10),
+        initialStock: {
+          increment : editedItem.stockToAdd
+        },
         thresholdStock: parseInt(editedItem.thresholdStock, 10),
       },
     });

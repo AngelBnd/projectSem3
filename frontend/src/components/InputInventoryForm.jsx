@@ -31,9 +31,8 @@ export default function InputInventoryForm() {
         productCategory: item.productCategory || "",
         unitCost: item.unitCost || "",
         sellingPrice: item.sellingPrice || "",
-        initialStock: item.initialStock || "",
+        initialStock: "", // Empty in edit mode - represents stock to add
         thresholdStock: item.thresholdStock || "",
-
       });
     }
   }, [mode, item]);
@@ -52,7 +51,6 @@ export default function InputInventoryForm() {
 
       const method = mode === "edit" ? "PUT" : "POST";
 
-
       const token = localStorage.getItem('token');
       if (!token) {
         alert("Authentication token missing. Please log in again.");
@@ -64,13 +62,18 @@ export default function InputInventoryForm() {
         "Authorization": `Bearer ${token}` 
       };
 
+      // For edit mode, we only want to send the stock addition, not replace the entire stock
+      const submitData = mode === "edit" 
+        ? { ...formData, stockToAdd: parseInt(formData.initialStock) || 0 }
+        : formData;
+
       const response = await fetch(url, {
         method: method,
         headers: headers, 
-        body: JSON.stringify(formData),
+        body: JSON.stringify(submitData),
       });
 
-      if (response.status === 200 || response.status === 204|| response.status === 201 ) {
+      if (response.status === 200 || response.status === 204 || response.status === 201) {
         const resultData = await response.json(); 
         setFormData({
           productCode: "",
@@ -93,7 +96,7 @@ export default function InputInventoryForm() {
         };
 
         openPopup(
-          <PopupOkay message={`Inventory item saved! ${resultData.message || ''}`} />,
+          <PopupOkay message={`Inventory item ${mode === 'edit' ? 'updated' : 'saved'}! ${resultData.message || ''}`} />,
           navigateBack(), AUTO_CLOSE_MS);
       } else {
         const errorData = await response.json();
@@ -125,6 +128,7 @@ export default function InputInventoryForm() {
             placeholder="Product code"
             className="border p-2 rounded-2xl w-full bg-white text-black"
             required
+            disabled={mode === "edit"} // Disable editing product code in edit mode
           />
         </div>
 
@@ -220,22 +224,28 @@ export default function InputInventoryForm() {
         </div>
       </div>
 
-      {/* Initial Stock + Threshold */}
+      {/* Stock Fields */}
       <div className="flex gap-4">
         <div className="w-full flex gap-4">
           <div className="w-full">
             <label className="block text-sm font-semibold text-black font-nunito">
-              Initial Stock Level
+              {mode === "edit" ? "Stock to Add" : "Initial Stock Level"}
             </label>
             <input
               type="number"
               name="initialStock"
               value={formData.initialStock}
               onChange={handleChange}
-              placeholder="Initial Stock Level"
+              placeholder={mode === "edit" ? "Quantity to add" : "Initial Stock Level"}
               className="border p-2 rounded-2xl w-full bg-white text-black"
-              required
+              required={mode !== "edit"} // Not required in edit mode (can be 0)
+              min="0"
             />
+            {mode === "edit" && (
+              <p className="text-xs text-gray-500 mt-1">
+                Enter the quantity you want to add to current stock
+              </p>
+            )}
           </div>
 
           <div className="w-full">
@@ -259,7 +269,7 @@ export default function InputInventoryForm() {
       {/* Buttons */}
       <div className="flex justify-start mt-8">
         <div className="w-[200px] flex gap-2">
-          <Button>Save</Button>
+          <Button>{mode === "edit" ? "Update" : "Save"}</Button>
           <div 
             onClick={handleCancel}
             className="underline flex items-center text-[13px] px-3 text-black cursor-pointer hover:text-gray-600 transition-colors"
