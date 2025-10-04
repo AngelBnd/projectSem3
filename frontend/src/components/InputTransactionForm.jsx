@@ -18,35 +18,34 @@ const ProductItem = ({ product, index, onProductChange, onDeleteProduct, onProdu
 
     return (
         <div className="grid grid-cols-6 items-end gap-4 py-[4px] bg-transparent rounded-lg">
-            
             <div className="col-span-4 relative flex flex-col gap-1">
-             <p className="text-sm font-semibold text-gray-800 truncate leading-tight">
-               {product.productName || "Product Name"}
-             </p>
+                <p className="text-sm font-semibold text-gray-800 truncate leading-tight">
+                    {product.productName || "Product Name"}
+                </p>
              
-             {/* Product Code Input */}
-             <input
-               type="text"
-               name="productCode"
-               value={product.productCode}
-               onChange={(e) => onProductChange(index, e)}
-               onFocus={(e) => onProductFocus(index, e)}
-               onBlur={onProductBlur}
-               placeholder="Search by code or name"
-               autoComplete="off"
-               className={`w-full p-2 border rounded-md bg-white text-black focus:outline-none focus:ring-1 focus:ring-blue-400`}
-             />
-       </div>
+                {/* Product Code Input */}
+                <input
+                type="text"
+                name="productCode"
+                value={product.productCode}
+                onChange={(e) => onProductChange(index, e)}
+                onFocus={(e) => onProductFocus(index, e)}
+                onBlur={onProductBlur}
+                placeholder="Search by code or name"
+                autoComplete="off"
+                className={`w-full p-2 border rounded-md bg-white text-black focus:outline-none focus:ring-1 focus:ring-blue-400`}
+                />
+            </div>
 
 
             <div className="col-span-1">
                 <input
-                    type="number"
-                    name="quantitySold"
-                    value={product.quantitySold}
-                    onChange={(e) => onProductChange(index, e)}
-                    className="w-full p-2 text-center border rounded-md bg-white text-black focus:outline-none focus:ring-1 focus:ring-blue-400" 
-                    min="1"
+                type="number"
+                name="quantitySold"
+                value={product.quantitySold}
+                onChange={(e) => onProductChange(index, e)}
+                className="w-full p-2 text-center border rounded-md bg-white text-black focus:outline-none focus:ring-1 focus:ring-blue-400" 
+                min="1"
                 />
             </div>
 
@@ -55,7 +54,7 @@ const ProductItem = ({ product, index, onProductChange, onDeleteProduct, onProdu
                 <button
                     type="button"
                     onClick={() => onDeleteProduct(index)}
-                    className="p-2 text-red-500 rounded-md hover:bg-red-100 bg-transparent mx-auto"
+                        className="p-2 text-red-500 rounded-md hover:bg-red-100 bg-transparent mx-auto"
                 >
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M4 7l16 0" /><path d="M10 11l0 6" /><path d="M14 11l0 6" /><path d="M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12" /><path d="M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3" /></svg>
                 </button>
@@ -64,13 +63,11 @@ const ProductItem = ({ product, index, onProductChange, onDeleteProduct, onProdu
     );
 };
 
-export default function InputTransactionForm({ mode, item, isEditMode, invoiceData, setInvoiceData, newProducts, setNewProducts }) {
+export default function InputTransactionForm({ mode, item, isEditMode, invoiceData, setInvoiceData, newProducts, setNewProducts, useDiscount, setUseDiscount, discountValue, setDiscountValue }) {
     const [hasAddedProduct, setHasAddedProduct] = useState(false);
     const formRef = useRef(null);
     const bottomRef = useRef(null);
     const navigate = useNavigate();
-    const [useDiscount, setUseDiscount] = useState(false);
-    const [discountValue, setDiscountValue] = useState(0);
 
     const { openPopup } = usePopup();
 
@@ -83,6 +80,10 @@ export default function InputTransactionForm({ mode, item, isEditMode, invoiceDa
 
     useEffect(() => {
         const fetchAutofill = async () => {
+            if (debounceProduct !== newProducts[activeProductIndex]?.productCode) {
+                return; 
+            }
+
             console.log("Debounced:", debounceProduct);
             console.log("Active Item:", newProducts[activeProductIndex]);
 
@@ -343,7 +344,21 @@ export default function InputTransactionForm({ mode, item, isEditMode, invoiceDa
     };
 
     const handleDiscountChange = (e) => {
-        setDiscountValue(e.target.value);
+        const value = event.target.value;
+        const numericValue = Number(value);
+
+        // If the number is greater than 100, cap it at 100.
+        if (numericValue > 100) {
+            setDiscountValue('100');
+        } 
+        // Optional but recommended: If the number is less than 0, cap it at 0.
+        else if (numericValue < 0) {
+            setDiscountValue('0');
+        } 
+        // Otherwise, the value is valid, so update the state normally.
+        else {
+            setDiscountValue(value);
+        }
     };
 
     useEffect(()=>{
@@ -483,7 +498,7 @@ export default function InputTransactionForm({ mode, item, isEditMode, invoiceDa
                   <input
                       type="checkbox"
                       checked={useDiscount}
-                      onChange={(e) => setUseDiscount(e.target.checked)}
+                      onChange={(e) => setUseDiscount(e.target.value)}
                       className="w-4 h-4 rounded border-gray-300 bg-white text-blue-600 checked:bg-blue-600 checked:border-transparent"
                   />
                     <label className="text-sm font-semibold text-black p-2">Add Discount</label>

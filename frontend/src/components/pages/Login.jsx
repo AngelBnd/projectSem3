@@ -31,7 +31,7 @@ function Login({ setAuthenticated }) {
 
    localStorage.setItem('token', data.token);
    setAuthenticated(true);
-   navigate('/inventory');
+   navigate('/dashboard');
   } catch (err) {
    setError('An error occurred. Please try again.');
   }

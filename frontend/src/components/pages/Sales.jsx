@@ -10,14 +10,16 @@ import { useDebounce } from "../Debounce";
 
 export default function Sales(){
   const [sales, setSales] = useState([]);
-  const [staticSales, setStaticSales] = useState([]);
+  // const [staticSales, setStaticSales] = useState([]);
 
   const [products, setProducts] = useState([]);
-  const [query, setQuery] = useState(""); // Search items state
+  const [searchInput, setSearchInput] = useState("");
+  const [updateSales, setUpdateSales] = useState([]);
+  
   const [filter, setFilter] = useState('All'); // Filter category button
   const timeFilters = ['This Year','This month','This Week'];
 
-  const debounceQuery = useDebounce(query, 300);
+  // const debounceQuery = useDebounce(query, 300);
 
   const productMap = useMemo(() => {
     return new Map(products.map(p => [p.productCode, p]));
@@ -38,19 +40,38 @@ export default function Sales(){
   )];
 
   // Update list of sales based on filters / search
-  const updateSales = sales.filter(invoice => {
-    if (filter != 'All') {
-      const matchCategory = (invoice.lineItems || []).some(lineItem => {
-        const product = productMap.get(lineItem.productCode);
-        return product && product.productCategory === filter;
-      });
-      if(!matchCategory) {
-        return false;
-      }
-    }
+  // const updateSales = sales.filter(sale => {
+  //   const matchProduct = products.find(p => p.productCode === sale.productCode);
 
-    return true;
-  });
+  //   if (!matchProduct) return false;
+
+  //   if(filter != 'All' && matchProduct.productCategory !== filter) {
+  //     return false;
+  //   }
+
+  //   if (query) {
+  //     const searchTerm = query.toLowerCase();
+  //     const matchesName = matchProduct.productName.toLowerCase().includes(searchTerm);
+  //     const matchesCode = matchProduct.productCode.toLowerCase().includes(searchTerm);
+  //     if (!matchesName && !matchesCode) {
+  //       return false;
+  //     }
+  //   }
+
+  //   return true;
+  // });
+
+  const handleKeyDown = async (e) => {
+    if (e.key === "Enter") {
+      const token = localStorage.getItem('token');
+      const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
+
+      const res = await fetch(`/api/sales/search?q=${encodeURIComponent(searchInput)}`, { headers });
+      const data = await res.json();
+      setUpdateSales(data);
+
+    }
+  };
 
   const { profitTotal, orderTotal, expenseTotal } = useMemo(() => {
     let profit = 0;
@@ -60,7 +81,7 @@ export default function Sales(){
 
     const productMap = new Map(products.map(p => [p.productCode, p]));
 
-    staticSales.forEach((invoice) => { 
+    updateSales.forEach((invoice) => { 
         
         (invoice.lineItems || []).forEach((lineItem) => {
             const product = productMap.get(lineItem.productCode);
@@ -86,7 +107,7 @@ export default function Sales(){
       orderTotal: orders,
       expenseTotal: expense,
     };
-  }, [staticSales, products]);
+  }, [updateSales, products]);
 
   const totals = [
     { number: profitTotal, label: "Profit Total" },
@@ -133,54 +154,36 @@ export default function Sales(){
     const token = localStorage.getItem('token');
     const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
 
-    const salesUrl = debounceQuery
-      ? `http://localhost:3000/api/sales/search?q=${encodeURIComponent(debounceQuery)}`
-      : `http://localhost:3000/api/sales`;
-
-    const fetchData = async () => {
-      try {
-        const [salesRes, inventoryRes] = await Promise.all([
-          fetch(salesUrl, { headers }),
-          fetch("http://localhost:3000/api/inventory", { headers }),
-        ]);
-        if (!salesRes.ok || !inventoryRes.ok) {
-          throw new Error('Unauthorized access or network error during fetch.');
+    Promise.all([
+      fetch("http://localhost:3000/api/sales", { headers }).then((res) => {
+        if (!res.ok) {
+          throw new Error('Unauthorized access');
         }
-        
-        const [transactions, inventory] = await Promise.all([
-          salesRes.json(),
-          inventoryRes.json(),
-        ]);
-
-        setSales(transactions);
-        setProducts(inventory);
-
-        if (!debounceQuery) {
-          setStaticSales(transactions);
+        return res.json();
+      }),
+      fetch("http://localhost:3000/api/inventory", { headers }).then((res) => {
+        if (!res.ok) {
+          throw new Error('Unauthorized access');
         }
-
-      } catch (err) {
-        console.error("Error fetching data:", err);
-        if (err.message === 'Unauthorized access') {
+        return res.json();
+      }),
+    ])
+    .then(([transactions, inventory]) => {
+      setUpdateSales(transactions);
+      setProducts(inventory);
+    })
+    .catch((err) => {
+      console.error("Error fetching data:", err);
+      if (err.message === 'Unauthorized access') {
           window.location.href = '/login';
-        }
       }
-    };
-
-    fetchData();
-  }, [debounceQuery]);
-
-
-  useEffect(()=>{
-    console.log("ini yang gw mau perbaiki");
-    console.log(sales);
-
-  },[sales,products])
+    });
+  }, []);
 
   return (
     <div className="w-full text-black  ">
       <div className="w-full flex justify-between">
-        <div className="text-nunito font-bold text-4xl mb-[16px]">
+        <div className="font-nunito font-bold text-4xl mb-[16px]">
           Sales
         </div>
         <FilterDropdown
@@ -212,7 +215,7 @@ export default function Sales(){
         <div className="text-nunito text-2xl">Transactions</div>
 
         <div className="ml-auto flex gap-4  ">
-          <SearchBar onSearch = {setQuery}/>
+          <SearchBar setSearchInput={setSearchInput} handleKeyDown={handleKeyDown}/>
 
           <FilterDropdown
             label="Filter"

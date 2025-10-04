@@ -8,14 +8,13 @@ export default function TransactionRow({sale, products, onDelete }) {
     invoiceId,
     name,
     totalAmount,
-    lineItems
   } = sale;
 
   const token = localStorage.getItem('token');
   const headers = { 'Authorization': `Bearer ${token}` };
 
-  console.log(sale);
-  console.log(1111);
+  // console.log(sale);
+  // console.log(1111);
 
   const matchedProduct = products.find(
     (item) => item.productCode === sale.productCode
@@ -29,6 +28,7 @@ export default function TransactionRow({sale, products, onDelete }) {
   const dropdownRef = useRef(null);
   const dropdownMenuRef = useRef(null);
   const dropdownTriggerRef = useRef(null);
+  const [totalQuantity, setTotalQuantity] = useState(0);
 
   const handleToggleDropdown = (event) => {
     const rect = event.currentTarget.getBoundingClientRect();
@@ -40,7 +40,6 @@ export default function TransactionRow({sale, products, onDelete }) {
   };
 
   useEffect(()=>{
-    console.log(`testtt ${invoiceId}`)
     console.log(sale);
 
     fetch(`http://localhost:3000/api/lineitems/${encodeURIComponent(sale.invoiceId)}`, {
@@ -61,9 +60,22 @@ export default function TransactionRow({sale, products, onDelete }) {
       });
   },[])
 
-  const totalQuantity = (lineItems || []).reduce(
-    (sum, item) => sum + (parseInt(item.quantitySold || 0, 10)), 0
-  );
+
+  useEffect(() => {
+    if (lineItem.length > 0) {
+      const total = lineItem.reduce((sum, item) => sum + (item.quantitySold || 0), 0);
+      setTotalQuantity(total);
+    } else {
+      setTotalQuantity(0);
+    }
+  }, [lineItem]);
+
+
+  useEffect(() => {
+        console.log(`testtt ${invoiceId}`)
+        console.log('dissss', sale);
+      });
+
 
   useEffect(() => {
       function handleClickOutside(event) {
