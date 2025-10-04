@@ -155,6 +155,29 @@ app.get('/api/inventory/search', authenticateToken, async (req, res) => {
     }
 });
 
+app.get('/api/sales/search', authenticateToken, async (req, res) => {
+    try {
+        const { q } = req.query;
+        const userId = req.user.id; 
+
+        const sales = await prisma.invoices.findMany({
+            where: {
+                userId: userId,
+                OR: [
+                    { invoiceId: { contains: q } },
+                    { name: { contains: q } },
+                ],
+            },
+            take: 10,
+        });
+
+        res.json(sales);
+    } catch (error) {
+        console.error("Search API Error:", error);
+        res.status(500).json({ error: 'Failed to search for sales' });
+    }
+});
+
 
 app.get('/api/inventory/:productCode', authenticateToken, async (req, res) => {
   try {

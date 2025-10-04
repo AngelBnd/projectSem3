@@ -10,7 +10,9 @@ import { useEffect, useState, useMemo  } from "react";
 export default function Sales(){
   const [sales, setSales] = useState([]);
   const [products, setProducts] = useState([]);
-  const [query, setQuery] = useState(""); // Search items state
+  const [searchInput, setSearchInput] = useState("");
+  const [updateSales, setUpdateSales] = useState([]);
+  
   const [filter, setFilter] = useState('All'); // Filter category button
   const timeFilters = ['This Year','This month','This Week']
 
@@ -23,26 +25,38 @@ export default function Sales(){
   )];
 
   // Update list of sales based on filters / search
-  const updateSales = sales.filter(sale => {
-    const matchProduct = products.find(p => p.productCode === sale.productCode);
+  // const updateSales = sales.filter(sale => {
+  //   const matchProduct = products.find(p => p.productCode === sale.productCode);
 
-    if (!matchProduct) return false;
+  //   if (!matchProduct) return false;
 
-    if(filter != 'All' && matchProduct.productCategory !== filter) {
-      return false;
+  //   if(filter != 'All' && matchProduct.productCategory !== filter) {
+  //     return false;
+  //   }
+
+  //   if (query) {
+  //     const searchTerm = query.toLowerCase();
+  //     const matchesName = matchProduct.productName.toLowerCase().includes(searchTerm);
+  //     const matchesCode = matchProduct.productCode.toLowerCase().includes(searchTerm);
+  //     if (!matchesName && !matchesCode) {
+  //       return false;
+  //     }
+  //   }
+
+  //   return true;
+  // });
+
+  const handleKeyDown = async (e) => {
+    if (e.key === "Enter") {
+      const token = localStorage.getItem('token');
+      const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
+
+      const res = await fetch(`/api/sales/search?q=${encodeURIComponent(searchInput)}`, { headers });
+      const data = await res.json();
+      setUpdateSales(data);
+
     }
-
-    if (query) {
-      const searchTerm = query.toLowerCase();
-      const matchesName = matchProduct.productName.toLowerCase().includes(searchTerm);
-      const matchesCode = matchProduct.productCode.toLowerCase().includes(searchTerm);
-      if (!matchesName && !matchesCode) {
-        return false;
-      }
-    }
-
-    return true;
-  });
+  };
 
   const { profitTotal, orderTotal, expenseTotal } = useMemo(() => {
     let profit = 0;
@@ -108,24 +122,16 @@ export default function Sales(){
       }),
     ])
     .then(([transactions, inventory]) => {
-      setSales(transactions);
+      setUpdateSales(transactions);
       setProducts(inventory);
     })
     .catch((err) => {
       console.error("Error fetching data:", err);
-      // Optional: Handle redirection to login page if needed
       if (err.message === 'Unauthorized access') {
-          // You might want to handle this more globally with a context or a higher-order component
           window.location.href = '/login';
       }
     });
   }, []);
-
-  useEffect(()=>{
-    console.log("ini yang gw mau perbaiki");
-    console.log(sales);
-
-  },[sales,products])
 
   return (
     <div className="w-full text-black  ">
@@ -162,7 +168,7 @@ export default function Sales(){
         <div className="text-nunito text-2xl">Transactions</div>
 
         <div className="ml-auto flex gap-4  ">
-          <SearchBar onSearch = {setQuery}/>
+          <SearchBar setSearchInput={setSearchInput} handleKeyDown={handleKeyDown}/>
 
           <FilterDropdown
             label="Filter"
@@ -189,10 +195,10 @@ export default function Sales(){
             </tr>
           </thead>
             <tbody>
-              {sales.length === 0 ? (
+              {updateSales.length === 0 ? (
                 <NotFound />
               ) : (
-                sales.map((sale) => (
+                updateSales.map((sale) => (
                   <TransactionRow
                     key={sale.invoiceId}
                     sale={sale}
