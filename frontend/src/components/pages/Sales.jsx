@@ -12,7 +12,14 @@ export default function Sales(){
   const [products, setProducts] = useState([]);
   const [query, setQuery] = useState(""); // Search items state
   const [filter, setFilter] = useState('All'); // Filter category button
-  const timeFilters = ['This Year','This month','This Week']
+  const [timeFilter, setTimeFilter] = useState('all_sales'); 
+  const timeFilters = [
+  { value: 'all_sales', label: 'All Sales' },
+  { value: 'last_7_days', label: 'Last Week' },
+  { value: 'last_30_days', label: 'Last Month' },
+  { value: 'last_365_days', label: 'Last Year' },
+];
+  
 
   // Filter categories based on the transactions list shown
   const categoryFilters = ['All', ...new Set(
@@ -90,36 +97,42 @@ export default function Sales(){
   const testRows = new Array(12).fill(null);
 
   useEffect(() => {
+  const token = localStorage.getItem('token');
+  const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
+
+  fetch("http://localhost:3000/api/inventory", { headers })
+    .then(res => {
+        if (!res.ok) throw new Error('Unauthorized');
+        return res.json();
+    })
+    .then(inventory => setProducts(inventory))
+    .catch(err => console.error("Error fetching products:", err));
+  }, []); // <-- Empty array means it runs only once.
+
+  useEffect(() => {
     const token = localStorage.getItem('token');
     const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
 
-    Promise.all([
-      fetch("http://localhost:3000/api/sales", { headers }).then((res) => {
-        if (!res.ok) {
-          throw new Error('Unauthorized access');
-        }
+  // Build the dynamic URL based on the current filter states
+    const params = new URLSearchParams();
+    if (timeFilter) params.append('period', timeFilter);
+    if (filter && filter !== 'All') params.append('category', filter);
+    if (query) params.append('search', query);
+
+    const url = `http://localhost:3000/api/sales?${params.toString()}`;
+
+    fetch(url, { headers })
+      .then((res) => {
+        if (!res.ok) throw new Error('Failed to fetch sales');
         return res.json();
-      }),
-      fetch("http://localhost:3000/api/inventory", { headers }).then((res) => {
-        if (!res.ok) {
-          throw new Error('Unauthorized access');
-        }
-        return res.json();
-      }),
-    ])
-    .then(([transactions, inventory]) => {
-      setSales(transactions);
-      setProducts(inventory);
-    })
-    .catch((err) => {
-      console.error("Error fetching data:", err);
-      // Optional: Handle redirection to login page if needed
-      if (err.message === 'Unauthorized access') {
-          // You might want to handle this more globally with a context or a higher-order component
-          window.location.href = '/login';
-      }
-    });
-  }, []);
+      })
+      .then((transactions) => {
+        setSales(transactions);
+      })
+      .catch((err) => {
+        console.error("Error fetching sales data:", err);
+      });
+    }, [timeFilter, filter, query]);
 
   useEffect(()=>{
     console.log("ini yang gw mau perbaiki");
@@ -136,6 +149,8 @@ export default function Sales(){
         <FilterDropdown
           label="Time"
           options={timeFilters}
+          value={timeFilter}
+          onSelect={(selectedOption) => setTimeFilter(selectedOption)}
         />
       </div>
 

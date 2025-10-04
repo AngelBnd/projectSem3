@@ -20,6 +20,7 @@
 
         useEffect(() => {
             console.log("Products in Invoice:", JSON.stringify(products, null, 2));
+            console.log("Invoice Data :", JSON.stringify(invoiceData, null, 2));
         }, [products]);
 
         const discountAmount = useDiscount ? (subtotal * (discountValue / 100)) : 0;

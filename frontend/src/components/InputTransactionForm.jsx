@@ -319,21 +319,6 @@ export default function InputTransactionForm({ mode, item, isEditMode, invoiceDa
             }
     };
 
-    
-    // useEffect(() => {
-    // if (mode === 'edit' && item) {
-    //   if (item.discount > 0) {
-    //     setUseDiscount(true);
-    //     setDiscountValue(item.discount || 0);
-    //   }
-    //   const existingProducts = item.lineItems.map(line => ({
-    //     ...line.product, // Contains quantitySold, etc.
-    //     ...line, // Contains productCode, productName, etc.
-    //   }));
-    //   setNewProducts(existingProducts);
-    // }
-    // }, [isEditMode, item, setNewProducts]);
-
     useEffect(() => {
         if (!isEditMode) {
         setInvoiceData(prevData => ({
@@ -351,15 +336,12 @@ export default function InputTransactionForm({ mode, item, isEditMode, invoiceDa
         const value = event.target.value;
         const numericValue = Number(value);
 
-        // If the number is greater than 100, cap it at 100.
         if (numericValue > 100) {
             setDiscountValue('100');
         } 
-        // Optional but recommended: If the number is less than 0, cap it at 0.
         else if (numericValue < 0) {
             setDiscountValue('0');
         } 
-        // Otherwise, the value is valid, so update the state normally.
         else {
             setDiscountValue(value);
         }
