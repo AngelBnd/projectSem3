@@ -13,14 +13,14 @@ const stockStatuses = ["Low stock", "Good", "Out of Stock", "Low stock"];
 
 export default function Inventory() {
   const [items, setItems] = useState([]);
-  const [searchInput, setSearchInput] = useState(""); 
+  const [searchInput, setSearchInput] = useState(''); 
   const [updateItems, setUpdateItems] = useState([])
   
+  const [categories, setCategories] = useState([]);
+  const [selectedCategory, setSelectedCategory] = useState('All');
+  const [searchTrigger, setSearchTrigger] = useState('');
 
-  const [filter, setFilter] = useState('All');
-  const categoryFilters = ['All', ...new Set(updateItems.map(item => item.productCategory))];
-
-  // const debounceQuery = useDebounce(query, 300);
+  const categoryFilters = ['All', ...categories];
 
   const theBoxValues = [
     { number: items.length, label: "Total Items" },
@@ -40,21 +40,81 @@ export default function Inventory() {
     const token = localStorage.getItem('token');
     const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
 
-    fetch("http://localhost:3000/api/inventory", { headers })
+    fetch("http://localhost:3000/api/inventory/categories", { headers })
       .then((res) => {
         if (!res.ok) {
-          throw new Error('Unauthorized access');
+          console.error("Category fetch failed with status:", res.status);
+          throw new Error(`Failed to fetch categories: HTTP ${res.status}`);
+        }
+        return res.json();
+      })
+      .then((data) => setCategories(data))
+      .catch((err) => {
+        console.error("Error fetching categories:", err.message);
+      });
+  }, []);
+
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
+
+    fetch("http://localhost:3000/api/inventory/", { headers })
+      .then((res) => {
+        if (!res.ok) {
+          console.error("Category fetch failed with status:", res.status);
+          throw new Error(`Failed to fetch categories: HTTP ${res.status}`);
         }
         return res.json();
       })
       .then((data) => setItems(data))
       .catch((err) => {
-        console.error("Error fetching inventory:", err);
-        if (err.message === 'Unauthorized access') {
-          window.location.href = '/login';
-        }
+        console.error("Error fetching categories:", err.message);
       });
   }, []);
+
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
+
+    let url;
+
+    if(searchTrigger) {
+      url = `http://localhost:3000/api/inventory/search?q=${encodeURIComponent(searchTrigger)}`;
+    } else {
+      url = `http://localhost:3000/api/inventory`;
+
+      if(selectedCategory && selectedCategory !== 'All') {
+        url += `?category=${encodeURIComponent(selectedCategory)}`;
+      }
+    }
+
+    const fetchdata = async () => {
+      try {
+        const res = await fetch(url, { headers });
+
+        if(!res.ok) {
+          const errorData = await res.json();
+          const errorMessage = errorData.error || `HTTP error! status: ${res.status}`;
+          throw new Error(errorMessage);
+        }
+
+        const data = await res.json();
+        
+        setUpdateItems(data);
+
+        if(searchTrigger) {
+          setSelectedCategory("All");
+        }
+
+      } catch(error) {
+        console.error("Error fetching inventory:", error.message);
+      }
+    };
+
+    fetchdata();
+  }, [searchTrigger, selectedCategory]);
+
+  // const updateItems = items;
 
   // useEffect(() => {
   //   const token = localStorage.getItem('token');
@@ -107,18 +167,24 @@ export default function Inventory() {
 
   const handleKeyDown = async (e) => {
     if (e.key === "Enter") {
-      const token = localStorage.getItem('token');
-      const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
+      // const token = localStorage.getItem('token');
+      // const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
 
-      const res = await fetch(`/api/inventory/search?q=${encodeURIComponent(searchInput)}`, { headers });
-      const data = await res.json();
-      setUpdateItems(data);
+      // const res = await fetch(`/api/inventory/search?q=${encodeURIComponent(searchInput)}`, { headers });
+      // const data = await res.json();
+      // setUpdateItems(data);
+
+      if(searchInput === '') {
+        setSearchTrigger('');
+      } else {
+        setSearchTrigger(searchInput);
+      }
     }
   };
 
-  useEffect(()=>{
-    setUpdateItems(items);
-  },[items])
+  // useEffect(()=>{
+  //   setUpdateItems(items);
+  // },[items])
 
   return (
     <div className="w-full text-black">
@@ -147,12 +213,18 @@ export default function Inventory() {
           <SearchBar 
           setSearchInput={setSearchInput} 
           handleKeyDown={handleKeyDown}
+          value={searchInput}
           />
 
           <FilterDropdown
             label="Filter"
             options={categoryFilters}
-            onSelect={(selectedOption) => setFilter(selectedOption)}
+            onSelect={(selectedOption) => {
+              setSearchTrigger('');
+              setSearchInput('');
+              setSelectedCategory(selectedOption);
+            }}
+            selectedValue={selectedCategory}
           />
 
           <Link to="/inventory/input">
@@ -197,6 +269,7 @@ export default function Inventory() {
                       .then(() => {
                         // The filter logic on the frontend is still correct
                         setItems((prev) => prev.filter((i) => String(i.productCode) !== String(code)));
+                        setUpdateItems((prev) => prev.filter((i) => String(i.productCode) !== String(code)));
                       })
                       .catch((err) => {
                         console.error("Delete failed:", err);

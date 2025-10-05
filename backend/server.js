@@ -179,38 +179,45 @@ app.get('/api/sales/search', authenticateToken, async (req, res) => {
 });
 
 
-app.get('/api/inventory/:productCode', authenticateToken, async (req, res) => {
-  try {
-    const { productCode } = req.params;
-    const userId = req.user.id;
+// app.get('/api/inventory/:productCode', authenticateToken, async (req, res) => {
+//   try {
+//     const { productCode } = req.params;
+//     const userId = req.user.id;
 
-    const findProduct = await prisma.products.findFirst({
-      where: {
-        productCode: productCode,
-        userId: userId,
-      },
-    });
+//     const findProduct = await prisma.products.findFirst({
+//       where: {
+//         productCode: productCode,
+//         userId: userId,
+//       },
+//     });
 
-    if(findProduct) {
-      res.status(200).json(findProduct);
-    } else {
-      res.status(404).json({ error: 'Product not found or does not belong to the user' });
-    }
-  } catch (error) {
-    console.error('Error fetching product from database:', error);
-    res.status(500).json({ error: 'Failed to retrieve product data' });
-  }
-});
+//     if(findProduct) {
+//       res.status(200).json(findProduct);
+//     } else {
+//       res.status(404).json({ error: 'Product not found or does not belong to the user' });
+//     }
+//   } catch (error) {
+//     console.error('Error fetching product from database:', error);
+//     res.status(500).json({ error: 'Failed to retrieve product data' });
+//   }
+// });
 
 // GET all inventory items for the current user
 app.get("/api/inventory", authenticateToken, async (req, res) => {
   const userId = req.user.id;
+  const { category } = req.query;
+
+  const whereClaus = {
+    userId: userId
+  };
+
+  if(category && category !== 'All') {
+    whereClaus.productCategory = category;
+  }
 
   try{
       const inventoryData = await prisma.products.findMany({
-        where: {
-          userId : userId
-        },
+        where: whereClaus,
         orderBy: {
           lastUpdated: "asc"
         }
@@ -228,6 +235,36 @@ app.get("/api/inventory", authenticateToken, async (req, res) => {
   //   const userInventory = inventory.filter(item => item.userId === userId);
   //   res.json(userInventory);
   // });
+});
+
+app.get("/api/inventory/categories", authenticateToken, async (req, res) => {
+  const userId = req.user.id;
+
+  try {
+    const categories = await prisma.products.findMany({
+      where: {
+        userId: userId,
+        productCategory: {
+          not: null,
+          not: ''
+        }
+      },
+      distinct: ['productCategory'],
+      select: {
+        productCategory: true
+      },
+      orderBy: {
+        productCategory: 'asc'
+      }
+    });
+
+    const categoryList = categories.map(c => c.productCategory);
+
+    res.json(categoryList);
+  } catch (error) {
+    console.error("Error fetching distinct categories: ", error);
+    res.status(500).json({error: "Failed to retrieve product categories"});
+  }
 });
 
 // GET single inventory item by product code (Read One)
@@ -429,14 +466,22 @@ app.get("/api/sales", authenticateToken, async (req, res) => {
     }
 
     if (search) {
-      lineItemConditions.push({
-        product: {
-          OR: [
-            { productName: { contains: search, mode: 'insensitive' } },
-            { productCode: { contains: search, mode: 'insensitive' } },
-          ],
+      whereClause.OR = [
+        { name: { contains: search } },
+        { subject: { contains: search } },
+        {
+          lineItems: {
+            some: {
+              product: {
+                OR: [
+                  { productName: { contains: search } },
+                  { productCode: { contains: search } },
+                ],
+              },
+            },
+          },
         },
-      });
+      ];
     }
 
 
@@ -467,6 +512,36 @@ app.get("/api/sales", authenticateToken, async (req, res) => {
   } catch (error) {
     console.error("Error fetching invoices:", error); // Log the actual error
     res.status(500).json({ error: "Failed to fetch invoices." });
+  }
+});
+
+app.get("/api/sales/categories", authenticateToken, async (req, res) => {
+  const userId = req.user.id;
+
+  try {
+    const categories = await prisma.products.findMany({
+      where: {
+        userId: userId,
+        productCategory: {
+          not: null,
+          not: ''
+        }
+      },
+      distinct: ['productCategory'],
+      select: {
+        productCategory: true
+      },
+      orderBy: {
+        productCategory: 'asc'
+      }
+    });
+
+    const categoryList = categories.map(c => c.productCategory);
+
+    res.json(categoryList);
+  } catch (error) {
+    console.error("Error fetching distinct categories: ", error);
+    res.status(500).json({error: "Failed to retrieve product categories"});
   }
 });
 
