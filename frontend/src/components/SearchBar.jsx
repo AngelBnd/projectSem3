@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-export default function SearchBar ({setQuery, setSearchInput, handleKeyDown}) {
+export default function SearchBar ({setQuery, setSearchInput, handleKeyDown, value}) {
 
   const handleChange = (e) => {
     const value = e.target.value;
@@ -19,6 +19,7 @@ export default function SearchBar ({setQuery, setSearchInput, handleKeyDown}) {
         className="ml-2 bg-transparent text-lato text-[14px] focus:outline-none text-gray-600 w-full placeholder:text-gray-400 font-medium"
         onChange = {handleChange}
         onKeyDown={handleKeyDown}
+        value={value}
       />
     </div>
   );

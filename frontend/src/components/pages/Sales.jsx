@@ -10,22 +10,24 @@ import { useDebounce } from "../Debounce";
 
 export default function Sales(){
   const [sales, setSales] = useState([]);
-  // const [staticSales, setStaticSales] = useState([]);
+  const [updateSales, setUpdateSales] = useState([]);
 
   const [products, setProducts] = useState([]);
   const [searchInput, setSearchInput] = useState("");
-  const [updateSales, setUpdateSales] = useState([]);
-  const [query , setQuery] = useState("")
 
-  const [filter, setFilter] = useState('All'); // Filter category button
+  const [categories, setCategories] = useState([]);
+  const [selectedCategory, setSelectedCategory] = useState('All');
+  const [searchTrigger, setSearchTrigger] = useState('');
+
+  const categoryFilters = ['All', ...categories];
+
   const [timeFilter, setTimeFilter] = useState('all_sales'); 
-    const timeFilters = [
-    { value: 'all_sales', label: 'All Sales' },
-    { value: 'last_7_days', label: 'Last Week' },
-    { value: 'last_30_days', label: 'Last Month' },
-    { value: 'last_365_days', label: 'Last Year' },
-    ];
-    
+  const timeFilters = [
+  { value: 'all_sales', label: 'All Sales' },
+  { value: 'last_7_days', label: 'Last Week' },
+  { value: 'last_30_days', label: 'Last Month' },
+  { value: 'last_365_days', label: 'Last Year' },
+  ];
 
   // const timeFilters = ['This Year','This month','This Week'];
 
@@ -35,48 +37,41 @@ export default function Sales(){
     return new Map(products.map(p => [p.productCode, p]));
   }, [products]);
 
-  const flatSalesData = useMemo(() => {
-    return sales.flatMap((invoice) => {
-      return (invoice.lineItems || []).map((lineItem) => {
-        const product = productMap.get(lineItem.productCode);
-        return product ? product.productCategory : 'Unknown category';
-      });
-    });
-  }, [sales, productMap]);
-  
-  // Filter categories based on the transactions list shown
-  const categoryFilters = ['All', ...new Set(
-    flatSalesData.filter(category => category !== 'Unknown Category')
-  )];
+  // const flatSalesData = useMemo(() => {
+  //   return sales.flatMap((invoice) => {
+  //     return (invoice.lineItems || []).map((lineItem) => {
+  //       const product = productMap.get(lineItem.productCode);
+  //       return product ? product.productCategory : 'Unknown category';
+  //     });
+  //   });
+  // }, [sales, productMap]);
 
-  useEffect(() => {
-      const productMap = new Map(products.map(p => [p.productCode, p]));
+  // useEffect(() => {
+  //     const productMap = new Map(products.map(p => [p.productCode, p]));
 
-      if (filter === 'All') {
-          setUpdateSales(sales);
-          return;
-      }
+  //     if (filter === 'All') {
+  //         setUpdateSales(sales);
+  //         return;
+  //     }
 
-      const filtered = sales.filter(invoice => {
-          return (invoice.lineItems || []).some(lineItem => {
-              const product = productMap.get(lineItem.productCode);
-              return product && product.productCategory === filter;
-          });
-      });
+  //     const filtered = sales.filter(invoice => {
+  //         return (invoice.lineItems || []).some(lineItem => {
+  //             const product = productMap.get(lineItem.productCode);
+  //             return product && product.productCategory === filter;
+  //         });
+  //     });
 
-      setUpdateSales(filtered);
+  //     setUpdateSales(filtered);
 
-  }, [sales, filter, products]);
+  // }, [sales, filter, products]);
 
   const handleKeyDown = async (e) => {
     if (e.key === "Enter") {
-      const token = localStorage.getItem('token');
-      const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
-
-      const res = await fetch(`/api/sales/search?q=${encodeURIComponent(searchInput)}`, { headers });
-      const data = await res.json();
-      setUpdateSales(data);
-
+      if (searchInput === '') {
+        setSearchTrigger('')
+      } else {
+        setSearchTrigger(searchInput);
+      }
     }
   };
 
@@ -88,8 +83,7 @@ export default function Sales(){
 
     const productMap = new Map(products.map(p => [p.productCode, p]));
 
-    updateSales.forEach((invoice) => { 
-        
+    sales.forEach((invoice) => { 
         (invoice.lineItems || []).forEach((lineItem) => {
             const product = productMap.get(lineItem.productCode);
 
@@ -162,28 +156,46 @@ export default function Sales(){
     const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
 
     const fetchData = async () => {
-      try {
-        const params = new URLSearchParams();
-        if (timeFilter) params.append('period', timeFilter);
-        if (filter && filter !== 'All') params.append('category', filter);
-        if (query) params.append('search', query);
+      let salesUrl;
+      const categoryUrl = `http://localhost:3000/api/sales/categories`;
 
-        const salesUrl = `http://localhost:3000/api/sales?${params.toString()}`;
-        
-        const [inventoryResponse, salesResponse] = await Promise.all([
+      const params = new URLSearchParams();
+
+      if(searchTrigger) {
+        if(searchTrigger) params.append('search', searchTrigger);
+        if (timeFilter && timeFilter !== 'all_sales') params.append('period', timeFilter);
+        if (selectedCategory && selectedCategory !== 'All') params.append('category', selectedCategory);
+
+      } else {
+        if (timeFilter && timeFilter !== 'all_sales') params.append('period', timeFilter);
+        if (selectedCategory && selectedCategory !== 'All') params.append('category', selectedCategory);
+      }
+
+      salesUrl = `http://localhost:3000/api/sales?${params.toString()}`;
+      
+      try {
+        const [inventoryResponse, salesResponse, categoryResponse] = await Promise.all([
           fetch("http://localhost:3000/api/inventory", { headers }),
-          fetch(salesUrl, { headers })
+          fetch(salesUrl, { headers }),
+          fetch(categoryUrl, { headers })
         ]);
 
-  
-        if (!inventoryResponse.ok) throw new Error('Failed to fetch inventory');
-        if (!salesResponse.ok) throw new Error('Failed to fetch sales');
+        if (!inventoryResponse.ok || !salesResponse.ok || !categoryResponse.ok) {
+          throw new Error('Failed to fetch initial data');
+        }
 
         const inventory = await inventoryResponse.json();
         const sales = await salesResponse.json();
+        const categoriesList = await categoryResponse.json();
 
         setProducts(inventory);
         setSales(sales);
+        setCategories(categoriesList);
+        setUpdateSales(sales);
+
+        if (searchTrigger) {
+          setSelectedCategory('All');
+        }
 
       } catch (err) {
         console.error("Error fetching data:", err);
@@ -194,8 +206,8 @@ export default function Sales(){
     };
 
     fetchData();
-  }, [timeFilter, filter, query]);
-
+  }, [timeFilter, selectedCategory, searchTrigger]);
+  
   useEffect(()=>{
     setUpdateSales(sales);
   },[sales])
@@ -209,11 +221,15 @@ export default function Sales(){
         <FilterDropdown
           label="Time"
           options={timeFilters.map(f => f.label)}
+          selectedValue={timeFilters.find(f => f.value === timeFilter)?.label || 'All Sales'}
           onSelect={(selectedLabel) => {
             const selectedOption = timeFilters.find(f => f.label === selectedLabel);
-
-            if (selectedOption) setTimeFilter(selectedOption.value);
-            }}
+            if (selectedOption) {
+              setTimeFilter(selectedOption.value);
+              setSearchTrigger(''); // Reset search when time changes
+              setSearchInput('');
+            }
+          }}
         />
       </div>
 
@@ -240,12 +256,17 @@ export default function Sales(){
         <div className="text-nunito text-2xl">Transactions</div>
 
         <div className="ml-auto flex gap-4  ">
-          <SearchBar setSearchInput={setSearchInput} handleKeyDown={handleKeyDown}/>
+          <SearchBar setSearchInput={setSearchInput} handleKeyDown={handleKeyDown} value={searchInput}/>
 
           <FilterDropdown
             label="Filter"
             options={categoryFilters}
-            onSelect={(selectedOption) => setFilter(selectedOption)}
+            onSelect={(selectedOption) => {
+              setSelectedCategory(selectedOption);
+              setSearchTrigger('');
+              setSearchInput('');
+            }}
+            selectedValue={selectedCategory}
           />
 
           <Link to="/sales/input">
@@ -288,9 +309,8 @@ export default function Sales(){
                           return res.json();
                         })
                         .then(() => {
-                          setSales((prev) => {
-                            return prev.filter((s) => String(s.invoiceId) !== String(invoiceId));
-                          });
+                          setSales((prev) => prev.filter((s) => String(s.invoiceId) !== String(invoiceId)));
+                          setUpdateSales((prev) => prev.filter((s) => String(s.invoiceId) !== String(invoiceId)));
                         })
                         .catch((err) => {
                           console.error("Delete failed:", err);
