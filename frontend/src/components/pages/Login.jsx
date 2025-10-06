@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Button from '../Button'; 
-import loginImage from '../../assets/horse.jpg'; 
+import loginImage from '../../assets/loginimage.jpg'; 
 
 function Login({ setAuthenticated }) {
  const [username, setUsername] = useState('');
@@ -80,7 +80,7 @@ function Login({ setAuthenticated }) {
         {error && <p className="mt-4 text-red-500 text-sm text-center">{error}</p>}
       </div>
       <div className="w-1/2 hidden md:block relative"> {/* Added 'relative' here */}
-        <img src={loginImage} alt="Anime characters" className="w-full h-full object-cover" />
+        <img src={loginImage} alt="Login Panel" className="w-full h-full object-cover" />
         <div className="absolute inset-x-0 bottom-0 h-full bg-gradient-to-t from-white to-transparent"></div>
       </div>
   </div>

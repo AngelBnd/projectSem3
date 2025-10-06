@@ -1,19 +1,58 @@
 import { createPortal } from "react-dom";
 import { Link } from "react-router-dom";
-import { forwardRef } from "react";
+// 1. Import useState and useLayoutEffect from React
+import { forwardRef, useState, useLayoutEffect } from "react";
 import { usePopup } from "./PopupContext.jsx";
-import { PopupOption, PopupOkay } from "./PopupComp.jsx";
+import { PopupOption } from "./PopupComp.jsx";
 
-const Dropdown = forwardRef(({ 
-  isOpen, 
-  position, 
-  onClose, 
-  item, 
+const Dropdown = forwardRef(({
+  isOpen,
+  position,
+  onClose,
+  item,
   type = "product", // Default to product type
   onDelete
 }, ref) => {
+  // 2. State to hold the calculated style of the dropdown.
+  // It's initially positioned but hidden, so we can measure it without a visual flicker.
+  const [dropdownStyle, setDropdownStyle] = useState({ visibility: 'hidden' });
+  const [marginClass, setMarginClass] = useState("mt-2");
+
+  useLayoutEffect(() => {
+    // This effect runs when the dropdown is opened and its element is available.
+    if (isOpen && ref.current && position) {
+      const dropdownRect = ref.current.getBoundingClientRect();
+      const windowHeight = window.innerHeight;
+
+      // Check if the dropdown would overflow the bottom of the viewport
+      const isOverflowing = position.top + dropdownRect.height > windowHeight;
+
+      if (isOverflowing) {
+        // --- Open Upwards ---
+        // Calculate the new 'top' to position the dropdown above the trigger point.
+        const top = position.top - dropdownRect.height - 35;
+        setDropdownStyle({
+          position: "absolute",
+          top: `${top}px`,
+          left: `${position.left}px`,
+          visibility: 'visible' // Make it visible in the correct position
+        });
+        setMarginClass("mb-2"); // Use margin-bottom for spacing
+      } else {
+        // --- Open Downwards (Default) ---
+        setDropdownStyle({
+          position: "absolute",
+          top: `${position.top}px`,
+          left: `${position.left}px`,
+          visibility: 'visible' // Make it visible in the correct position
+        });
+        setMarginClass("mt-2"); // Use margin-top for spacing
+      }
+    }
+  }, [isOpen, position, ref]); // Rerun effect if these props change
+
   if (!isOpen) return null;
-  
+
   const { openPopup } = usePopup();
 
   // Configuration based on dropdown type
@@ -25,7 +64,7 @@ const Dropdown = forwardRef(({
       deleteText: "Delete"
     },
     transaction: {
-      editLink: "/sales/input", // Adjust path as needed
+      editLink: "/sales/input",
       editState: { mode: "edit", item },
       editText: "Edit",
       deleteText: "Delete"
@@ -53,12 +92,9 @@ const Dropdown = forwardRef(({
   return createPortal(
     <div
       ref={ref}
-      style={{
-        position: "absolute",
-        top: position.top,
-        left: position.left,
-      }}
-      className="mt-2 w-36 bg-white border border-gray-200 rounded-md shadow-lg z-50"
+      // 3. Apply the calculated style and dynamic margin class
+      style={dropdownStyle}
+      className={`w-36 bg-white border border-gray-200 rounded-md shadow-lg z-50 ${marginClass}`}
     >
       <div className="py-1">
         <Link
