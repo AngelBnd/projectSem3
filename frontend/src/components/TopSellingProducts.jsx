@@ -23,17 +23,36 @@ export default function TopSellingProducts() {
     const [filter, setFilter] = useState('All'); 
     const categoryFilters = ['All', 'This Month', 'Last 30 Days']; 
 
+    const getPeriodParam = (filterValue) => {
+        switch (filterValue) {
+            case 'This Month':
+                return 'this_month';
+            case 'Last 30 Days':
+                return 'last_30_days';
+            case 'All':
+            default:
+                return null;
+        }
+    };
+
     useEffect(() => {
         const token = localStorage.getItem('token');
+        const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
         if (!token) return;
 
         const fetchTopSellingProducts = async () => {
+            setLoading(true);
+            setError(null);
+
+            const periodParams = getPeriodParam(filter);
+            let topSellUrl = 'http://localhost:3000/api/dashboard/top-selling-products';
+
+            if(periodParams) {
+                topSellUrl = `${topSellUrl}?period=${periodParams}`;
+            }
+
             try {
-                const response = await fetch('http://localhost:3000/api/dashboard/top-selling-products', {
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                    },
-                });
+                const response = await fetch(topSellUrl, { headers });
                 if (!response.ok) {
                     throw new Error('Failed to fetch top-selling products');
                 }
@@ -48,23 +67,23 @@ export default function TopSellingProducts() {
         };
 
         fetchTopSellingProducts();
-    }, []);
+    }, [filter]);
 
     if (loading) return <div className="basis-1/3 bg-white p-6 shadow rounded-lg h-full flex flex-col justify-center items-center">Loading...</div>;
     if (error) return <div className="basis-1/3 bg-white p-6 shadow rounded-lg h-full flex flex-col justify-center items-center">Error: {error}</div>;
 
     return (
         <div className="bg-white basis-1/3 rounded-lg shadow h-full px-8 py-6 flex flex-col overflow-hidden box-border">
-            <div className="flex justify-between">
-                <div className="font-nunito text-xl font-bold mb-4">
+            <div className="flex justify-between mb-2">
+                <div className="font-nunito text-xl font-bold flex items-center">
                     Top Selling Products
                 </div>
-                    {/* 
+                    
                 <FilterDropdown
-                    label="Filter"
+                    label={filter}
                     options={categoryFilters}
                     onSelect={(selectedOption) => setFilter(selectedOption)}
-                /> */}
+                />
             </div>
 
             <div className="flex-grow overflow-y-auto custom-scrollbar"> 

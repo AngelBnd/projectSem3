@@ -153,8 +153,12 @@ export default function Dashboard(){
 
             {/* 3. Bottom Section: Top Selling & Recent Transactions (Uses the 1/3 and 2/3 split) */}
             <div className=" w-full h-80 flex gap-2">
-                <TopSellingProducts /> 
-                <RecentTransactionsTable />
+                <div className="w-1/2">
+                    <TopSellingProducts /> 
+                </div>
+                <div className="w-1/2">
+                    <RecentTransactionsTable />
+                </div>
             </div>
         </div>
     )
