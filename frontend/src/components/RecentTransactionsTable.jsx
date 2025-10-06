@@ -22,19 +22,19 @@ const formatDate = (dateString) => {
 const RecentTransactionRow = ({ transaction }) => {
     return (
         <tr className='shadow'>
-            <td className="w-1/5 px-6 py-4 text-sm font-medium text-gray-900">
+            <td className="w-1/5 px-4 py-4 text-sm font-medium text-gray-900">
                 {transaction.invoiceId}
             </td>
-            <td className="w-1/5 px-6 py-4  text-center text-sm text-gray-500">
+            <td className="w-1/5 px-4 py-4  text-center text-sm text-gray-500">
                 {transaction.customerName}
             </td>
-            <td className="w-1/5 px-6 py-4  text-center text-sm text-gray-500">
+            <td className="w-1/5 px-4 py-4  text-center text-sm text-gray-500">
                 {formatDate(transaction.invoiceDate)}
             </td>
-            <td className="w-1/5 px-6 py-4 text-center text-sm text-gray-500">
+            <td className="w-1/5 px-4 py-4 text-center text-sm text-gray-500">
                 {transaction.totalQuantity}
             </td>
-            <td className="w-1/5 px-6 py-4 text-center text-sm text-gray-900">
+            <td className="w-1/5 px-4 py-4 text-center text-sm text-gray-900">
                 {formatCurrency(transaction.totalAmount)}
             </td>
         </tr>

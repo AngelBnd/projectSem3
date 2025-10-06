@@ -23,15 +23,15 @@ export default function Inventory() {
   const categoryFilters = ['All', ...categories];
 
   const theBoxValues = [
-    { number: items.length, label: "Total Items" },
+    { number: updateItems.length, label: "Total Items" },
     {
-      number: items.filter(
+      number: updateItems.filter(
         (item) => parseInt(item.initialStock) <= parseInt(item.thresholdStock) && parseInt(item.initialStock)!=0
       ).length,
       label: "Low Stock Items",
     },
     {
-      number: items.filter((item) => parseInt(item.initialStock) === 0).length,
+      number: updateItems.filter((item) => parseInt(item.initialStock) === 0).length,
       label: "Out of Stock Items",
     },
   ];

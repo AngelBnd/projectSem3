@@ -25,7 +25,7 @@ function FilterDropdown({ label, options, onSelect }) {
   };
 
   return (
-    <div className="relative inline-block " ref={dropdownRef}>
+    <div className="relative inline-block h-fit" ref={dropdownRef}>
       {/* Button */}
       <button
         onClick={() => setOpen(!open)}

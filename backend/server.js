@@ -1066,11 +1066,59 @@ app.get("/api/dashboard/summary", authenticateToken, async (req, res) => {
 app.get("/api/dashboard/top-selling-products", authenticateToken, async (req, res) => {
   const userId = req.user.id;
   try {
+    const { period } = req.query;
+
+    let startDate = null;
+    const now = new Date();
+
+    const startOfDay = (date) => {
+      date.setHours(0, 0, 0, 0);
+      return date;
+    };
+    
+    const endOfDay = (date) => {
+      date.setHours(23, 59, 59, 999);
+      return date;
+    };
+
+    let endDate = endOfDay(new Date(now));
+    
+    if(period =='last_30_days') {
+      startDate = new Date(now);
+      startDate.setDate(now.getDate() - 29);
+      startDate = startOfDay(startDate);
+
+    } else if(period == 'this_month') {
+      startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+      startDate = startOfDay(startDate);
+    }
+
+    const invoiceWhere = {userId: userId};
+
+    if(startDate) {
+      invoiceWhere.invoiceDate = {
+        gte: startDate,
+        lte: endDate
+      };
+    }
+
+    const relevantInvoices = await prisma.invoices.findMany({
+      where: invoiceWhere,
+      select: {
+        invoiceId: true, // We only need the IDs
+      },
+    });
+    const relevantInvoiceIds = relevantInvoices.map(inv => inv.invoiceId);
+
+    if (relevantInvoiceIds.length === 0) {
+      return res.json([]);
+    }
+    
     // Aggregate by productCode and sum quantity sold
     const topProducts = await prisma.lineItems.groupBy({
       by: ['productCode'],
       where: {
-        invoice: { userId: userId },
+        invoiceId: { in: relevantInvoiceIds },
       },
       _sum: {
         quantitySold: true,
