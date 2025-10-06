@@ -21,12 +21,12 @@ export default function TopSellingProducts() {
     const [error, setError] = useState(null);
 
     const [filter, setFilter] = useState('All'); 
-    const categoryFilters = ['All', 'This Month', 'Last 30 Days']; 
+    const categoryFilters = ['All', 'Last 7 Days', 'Last 30 Days']; 
 
     const getPeriodParam = (filterValue) => {
         switch (filterValue) {
-            case 'This Month':
-                return 'this_month';
+            case 'Last 7 Days':
+                return 'last_7_days';
             case 'Last 30 Days':
                 return 'last_30_days';
             case 'All':

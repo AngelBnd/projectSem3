@@ -85,7 +85,7 @@ export default function RecentTransactionsTable() {
         Recent Transactions
       </div>
 
-      <div className="flex-grow overflow-y-auto overflow-x-hidden custom-scrollbar"> 
+      <div className="flex-grow overflow-y-auto overflow-x-auto custom-scrollbar"> 
         <table className="table-auto w-full border-separate border-spacing-y-3 font-nunito text-[14px]">
           <thead className="text-gray-600 text-sm">
             <tr>

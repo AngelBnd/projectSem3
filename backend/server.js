@@ -1088,8 +1088,9 @@ app.get("/api/dashboard/top-selling-products", authenticateToken, async (req, re
       startDate.setDate(now.getDate() - 29);
       startDate = startOfDay(startDate);
 
-    } else if(period == 'this_month') {
-      startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+    } else if(period == 'last_7_days') {
+      startDate = new Date(now);
+      startDate.setDate(now.getDate() - 6);
       startDate = startOfDay(startDate);
     }
 
