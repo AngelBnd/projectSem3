@@ -34,7 +34,7 @@ export default function TransactionRow({sale, products, onDelete }) {
   useEffect(()=>{
     console.log(sale);
 
-    fetch(`http://localhost:3000/api/lineitems/${encodeURIComponent(sale.invoiceId)}`, {
+    fetch(`http://localhost:3000/api/invoices/lineitems/${encodeURIComponent(sale.invoiceId)}`, {
       method: "GET",
       headers: headers,
     })
