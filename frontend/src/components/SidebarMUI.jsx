@@ -3,7 +3,7 @@ import React from 'react';
 import { Drawer, Toolbar, Divider, List, ListItem, ListItemText, Box } from '@mui/material';
 import { Link } from 'react-router-dom';
 
-export const drawerWidth = 240; // single source of truth
+export const drawerWidth = 240;
 
 const SidebarMUI = ({ mobileOpen, handleDrawerToggle, isMobile }) => {
   const navList = (
