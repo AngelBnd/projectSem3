@@ -8,6 +8,13 @@ import Sales from "./components/pages/Sales";
 import Login from "./components/pages/Login";
 import Register from "./components/pages/Register";
 import ProtectedRoute from "./components/pages/ProtectedRoute";
+import Products from "./components/pages/ProductsPage";
+import BreadcrumbsMUI from "./components/BreadcrumbsMUI";
+import AvatarSettings from "./components/AvatarSettings";
+
+const SettingsIcon = ()=>(
+  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-settings"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M10.325 4.317c.426 -1.756 2.924 -1.756 3.35 0a1.724 1.724 0 0 0 2.573 1.066c1.543 -.94 3.31 .826 2.37 2.37a1.724 1.724 0 0 0 1.065 2.572c1.756 .426 1.756 2.924 0 3.35a1.724 1.724 0 0 0 -1.066 2.573c.94 1.543 -.826 3.31 -2.37 2.37a1.724 1.724 0 0 0 -2.572 1.065c-.426 1.756 -2.924 1.756 -3.35 0a1.724 1.724 0 0 0 -2.573 -1.066c-1.543 .94 -3.31 -.826 -2.37 -2.37a1.724 1.724 0 0 0 -1.065 -2.572c-1.756 -.426 -1.756 -2.924 0 -3.35a1.724 1.724 0 0 0 1.066 -2.573c-.94 -1.543 .826 -3.31 2.37 -2.37c1 .608 2.296 .07 2.572 -1.065z" /><path d="M9 12a3 3 0 1 0 6 0a3 3 0 0 0 -6 0" /></svg>
+)
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -26,10 +33,10 @@ function App() {
   };
 
   return (
-    <div className="flex min-h-screen bg-gray-100 !w-screen">
+    <div className="flex min-h-screen bg-gray-100 w-full overflow-x-hidden w-screen">
       {showSidebar && (
         <aside
-          className={`hidden md:block w-60 bg-white border-r border-gray-200 flex-shrink-0`}
+          className={`hidden md:block w-60 bg-white border-r border-gray-200 fixed top-0 left-0 h-screen z-20`}
         >
           <SidebarMUI 
           mobileOpen={mobileOpen}
@@ -39,7 +46,7 @@ function App() {
       )}
 
       <main
-        className={`flex-1 min-w-0 overflow-y-auto bg-white border-l border-gray-300`} 
+        className="flex-1 min-w-0 overflow-y-auto !overflow-x-hidden bg-white border-l bg-[#F5F7FA]"
       >
         {showSidebar && (
           <div className="md:hidden p-2">
@@ -53,20 +60,23 @@ function App() {
         )}
 
   
-        <div className="relative min-h-screen flex-1 min-w-0">
+        <div className="relative min-h-screen flex-1">
           {/* Transparent red overlay to visualize columns */}
-          <div className="absolute inset-0 grid grid-cols-9 gap-[12px] pointer-events-none z-0 px-[60px]">
+          <div className="absolute inset-0 grid grid-cols-9 gap-[12px] pointer-events-none z-0 px-[60px] md:ml-60">
             {Array.from({ length: 9 }).map((_, i) => (
-              <div
-                key={i}
-                className="bg-red-500/10 "
-              ></div>
+              <div key={i} className="bg-red-500/10 w-full h-full"></div>
             ))}
           </div>
 
           {/* Actual content */}
-          <div className="relative grid grid-cols-9 gap-[12px] z-10 px-[60px]">
-            <div className="col-span-9 ">
+          <div className="relative grid grid-cols-9 gap-[12px] z-10 px-[60px] md:ml-60">
+            {/* Header */}
+            <div className="col-span-9 pt-8 h-[60px] flex justify-between items-center mb-2">
+              <BreadcrumbsMUI />
+              <AvatarSettings />
+            </div>
+
+            <div className="col-span-9 grid">
               <Routes>
                 <Route
                   path="/login"
@@ -98,6 +108,14 @@ function App() {
                   }
                 />
                 <Route
+                  path="/products"
+                  element={
+                    <ProtectedRoute isAuthenticated={isAuthenticated}>
+                      <Products />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
                   path="/"
                   element={
                     <Navigate
@@ -110,6 +128,7 @@ function App() {
             </div>
           </div>
         </div>
+
       </main>
     </div>
   );
