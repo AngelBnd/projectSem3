@@ -3,6 +3,9 @@ import FilterTabs from "../FilterTabs"; // adjust path
 import { Box, Grid, Card, CardContent, Typography } from "@mui/material";
 import SearchBar from "../SearchBar";
 import Button from "../Button";
+import { PlusIcon, ExportIcon } from "../SvgIcons";
+import ViewSwitch from "../ViewSwitch";
+import FilterButtonV2 from "../FilterButtonV2";
 
 // PLACEHOLDER
 const products = [
@@ -34,22 +37,46 @@ export default function ProductsPage() {
   return (
     <div className="grid grid-cols-9 gap-3 w-full text-black mb-10 !overflow-x-hidden">
       <div className="col-span-9 flex flex-col mb-2 w-full"> 
-        <h1 className="text-3xl font-semibold font-nunito">Products</h1>
-        <h3 className="text-[#777B7C]">Overview of your store's products</h3>
+        <h1 className="text-2xl font-semibold font-nunito">Products</h1>
+        <h3 className="text-[#777B7C] text-sm">Overview of your store's products</h3>
       </div>
       
-     <div className="col-span-9 flex flex-col justify-start items-start gap-4 md:flex-row md:justify-between md:items-start">
+     <div className="col-span-9 flex flex-col justify-start items-start gap-4 sm:flex-row sm:justify-between sm:items-start">
         <FilterTabs
           tabs={tabs}
           data={products}
-          // onChange={(newData) => setFilteredProducts(newData)}
+          onChange={(newData) => setFilteredProducts(newData)}
         />
         
-        <Button
-        onClick={()=>{}}
-        children={"teasdasdsst"}
-        />
+        <div className="flex gap-3">
+          <Button
+            onClick={()=>{}}
+            children={"Export"}
+            icon={ExportIcon}
+            variant="outline"
+          />
+          <Button
+          onClick={()=>{}}
+          children={"teasdasdsst"}
+          icon={PlusIcon}
+          />
+        </div>
       </div>
+
+      <div className="col-span-9 flex flex-col justify-start items-start gap-3 sm:flex-row sm:justify-between sm:items-center">
+          <div className="flex gap-2 w-full sm:w-auto items-center"> 
+            <SearchBar
+            variant="canScan"
+            />
+            <ViewSwitch/> 
+          </div>
+          
+          <div className="sm:ml-auto"> 
+            <FilterButtonV2
+              children={"Filter"}
+            />
+          </div>
+        </div>
 
     </div>
   );
