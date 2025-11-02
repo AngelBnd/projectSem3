@@ -11,7 +11,7 @@ const BreadcrumbsMUI = () => {
     <Breadcrumbs
       separator={<NavigateNextIcon fontSize="small" />}
       aria-label="breadcrumb"
-      sx={{ mb: 4, fontFamily: "Lato, sans-serif" }} 
+      sx={{ mb: 0, fontFamily: "Lato, sans-serif" }} 
     >
       <RouterLink
         to="/"

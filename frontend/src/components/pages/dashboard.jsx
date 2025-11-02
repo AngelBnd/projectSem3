@@ -92,8 +92,8 @@ export default function Dashboard() {
   return (
     <div className="grid grid-cols-9 gap-3 w-full text-black mb-10 !overflow-x-hidden">
       <div className="col-span-9 flex flex-col mb-2"> 
-        <h1 className="text-3xl font-semibold font-nunito">Dashboard</h1>
-        <h3 className="text-[#777B7C]">Overview of your store's performance</h3>
+        <h1 className="text-2xl font-semibold font-nunito">Dashboard</h1>
+        <h3 className="text-[#777B7C] text-sm">Overview of your store's performance</h3>
       </div>  
       
 
