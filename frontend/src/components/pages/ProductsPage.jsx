@@ -6,6 +6,7 @@ import Button from "../Button";
 import { PlusIcon, ExportIcon } from "../SvgIcons";
 import ViewSwitch from "../ViewSwitch";
 import FilterButtonV2 from "../FilterButtonV2";
+import DataTable from '../DataTable';
 
 // PLACEHOLDER
 const products = [
@@ -13,6 +14,48 @@ const products = [
   { id: 2, name: "Product B", category: "clothing" },
   { id: 3, name: "Product C", category: "electronics" },
   { id: 4, name: "Product D", category: "clothing" },
+];
+
+
+// 1. DEFINE MOCK DATA (In a real app, this comes from an API)
+const productRows = [
+  { id: 1, name: 'Laptop Pro', stock: 15, price: 1200.00 },
+  { id: 2, name: 'Wireless Mouse', stock: 250, price: 25.50 },
+  { id: 3, name: '4K Monitor', stock: 5, price: 450.00 },
+];
+
+// 2. DEFINE COLUMN CONFIGURATION (Unique to the Products page)
+const productColumns = [
+  { field: 'id', headerName: 'ID', width: 90 },
+  { field: 'name', headerName: 'Product Name', flex: 1, minWidth: 250 },
+  { field: 'stock', headerName: 'Stock', width: 120, type: 'number', align: 'right' },
+  { 
+    field: 'price', 
+    headerName: 'Price', 
+    width: 150, 
+    type: 'number',
+    valueFormatter: (params) => {
+
+      if (params.value == null || !isFinite(params.value)) {
+        return ''; // Return an empty string or '--' if the price is invalid or missing
+      }
+    }
+  },
+  {
+    field: 'actions',
+    headerName: 'Actions',
+    sortable: false,
+    width: 100,
+    renderCell: (params) => (
+      // Custom actions for this specific row
+      <Button 
+        variant="ghost" 
+        onClick={() => alert(`Editing product ${params.row.id}`)}
+      >
+        Edit
+      </Button>
+    ),
+  },
 ];
 
 // PLACEHOLDER FILTER TABS
@@ -33,7 +76,15 @@ const tabs = [
 
 export default function ProductsPage() {
   const [filteredProducts, setFilteredProducts] = useState(products);
+  const [data, setData] = React.useState(productRows);
+  const [loading, setLoading] = React.useState(false);
 
+  
+  const addProductButton = (
+    <Button icon={PlusIcon} onClick={() => alert('Opening add form')}>
+      Add Product
+    </Button>
+  );
   return (
     <div className="grid grid-cols-9 gap-3 w-full text-black mb-10 !overflow-x-hidden">
       <div className="col-span-9 flex flex-col mb-2 w-full"> 
@@ -76,6 +127,17 @@ export default function ProductsPage() {
               children={"Filter"}
             />
           </div>
+        </div>
+
+        <div className="col-span-9">
+          <DataTable
+            title="Product Inventory"
+            rows={data}
+            columns={productColumns}
+            loading={loading}
+            CustomToolbar={addProductButton}
+            gridProps={{ checkboxSelection: true }} 
+          />
         </div>
 
     </div>
