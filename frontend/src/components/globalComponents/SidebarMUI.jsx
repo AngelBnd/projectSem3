@@ -1,5 +1,5 @@
 // components/SidebarMUI.jsx
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Drawer,
   Toolbar,
@@ -15,7 +15,7 @@ import {
   Button
 } from "@mui/material";
 import { Link } from "react-router-dom";
-import { DashboardIcon, SalesIcon, InventoryIcon, ChevronDownIcon, CardboardIcon, UsersIcon, SettingsIcon, LogOutIcon } from "../../assets/SvgIcons";
+import { DashboardIcon, SalesIcon, InventoryIcon, ChevronDownIcon, CardboardIcon, UsersIcon, SettingsIcon, LogOutIcon, PurchaseOrdersIcon } from "../../assets/SvgIcons";
 
 import { ExpandLess, ExpandMore } from "@mui/icons-material";
 
@@ -38,11 +38,19 @@ const SidebarFooter = () => (
 );
 
 const SidebarMUI = ({ mobileOpen, handleDrawerToggle }) => {
+  const [user, setUser] = useState({ username: '', role: '' });
   const [openInventory, setOpenInventory] = useState(false);
 
   const handleInventoryClick = () => {
     setOpenInventory(!openInventory);
   };
+
+  useEffect(() => {
+  const storedUser = localStorage.getItem('user');
+  if (storedUser) {
+    setUser(JSON.parse(storedUser));
+  }
+  }, []);
 
   const navList = (
     <div>
@@ -122,23 +130,31 @@ const SidebarMUI = ({ mobileOpen, handleDrawerToggle }) => {
 
         <Collapse in={openInventory} timeout="auto" unmountOnExit>
           <List component="div" disablePadding>
-            <ListItem button sx={{ pl: 6 }} component={Link} to="/inventory/AuditLogs">
+            <ListItem button sx={{ pl: 6 }} component={Link} to="/inventory/auditLogs">
               <ListItemText primary="Audit Logs" />
             </ListItem>
-            <ListItem button sx={{ pl: 6 }} component={Link} to="/inventory/InvMovement">
+            <ListItem button sx={{ pl: 6 }} component={Link} to="/inventory/invMovement">
               <ListItemText primary="Inv Movement" />
             </ListItem>
-            <ListItem button sx={{ pl: 6 }} component={Link} to="/inventory/Suppliers">
+            <ListItem button sx={{ pl: 6 }} component={Link} to="/inventory/suppliers">
               <ListItemText primary="Suppliers" />
             </ListItem>
           </List>
         </Collapse>
 
-        <ListItem button component={Link} to="/users">
+        {user.role === 'Admin' && (
+          <ListItem button component={Link} to="/users">
+            <ListItemIcon sx={{ minWidth: 28, mr: 1.5 }}>
+              <UsersIcon />
+            </ListItemIcon>
+            <ListItemText primary="Users" />
+          </ListItem>
+        )}
+        <ListItem button component={Link} to="/purchaseOrders">
           <ListItemIcon sx={{ minWidth: 28, mr: 1.5 }}>
-            <UsersIcon />
+            <PurchaseOrdersIcon />
           </ListItemIcon>
-          <ListItemText primary="Users" />
+          <ListItemText primary="Purchase Orders" />
         </ListItem>
       </List>
     </div>
