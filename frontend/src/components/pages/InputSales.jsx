@@ -1,10 +1,10 @@
 import { useState, useEffect } from "react";
-import InputTransactionForm from "../InputTransactionForm";
-import Button from "..//Button";
+import InputTransactionForm from "../../components/localComponents/InputTransactionForm";
+import Button from "../../components/globalComponents/Button";
 import { useLocation, useNavigate } from "react-router-dom";
 import { jsPDF } from "jspdf";
 import { handleDownloadPdf } from "../../functions/savepdf";
-import Invoice from "../Invoice";
+import Invoice from "../../components/localComponents/Invoice";
 
 export default function InputSales() {
   const location = useLocation();
@@ -132,12 +132,13 @@ export default function InputSales() {
   };
 
   return (
-    <div>
-      <div className="text-nunito font-bold text-4xl mb-[16px] text-black pb-10 font-nunito">
-        {isEditMode ? "Edit Transaction" : "Add a Transaction"}
+    <div className="grid grid-cols-9 gap-3 w-full text-black mb-10 !overflow-x-hidden">
+      <div className="col-span-9 flex flex-col mb-2 w-full"> 
+        <h1 className="text-2xl font-semibold font-nunito">Create an Invoice</h1>
+        <h3 className="text-[#777B7C] text-sm">Create an Invoice</h3>
       </div>
 
-      <div className=" w-full h-[540px] flex gap-12 relative">
+      <div className="col-span-9 md:col-span-4 w-full h-[800px] flex gap-12 relative">
         <div className="w-[50em] h-full ">
           <InputTransactionForm 
             invoiceData={invoiceData} 
@@ -153,15 +154,22 @@ export default function InputSales() {
             setDiscountValue={setDiscountValue}
           />
         </div>
-
-        {/* INVOICE */}
-      <Invoice
-        invoiceData={invoiceData}
-        products={newProducts}
-        useDiscount={useDiscount}
-        discountValue={discountValue} // As a percentage
-    />
       </div>
+
+      <div className="col-span-9 md:col-span-5 flex justify-center items-start h-[800px] overflow-y-auto">
+        <div className="bg-[#E9EBF0] w-full p-9 rounded-md flex flex-col gap-2 rounded-md">
+          <div className="font-nunito text-lg font-bold">
+            Invoice Preview
+          </div>
+          <Invoice
+            invoiceData={invoiceData}
+            products={newProducts}
+            useDiscount={useDiscount}
+            discountValue={discountValue} 
+          />
+        </div>
+      </div>
+
     </div>
   );
 }

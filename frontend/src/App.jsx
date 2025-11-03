@@ -10,7 +10,8 @@
   import ProtectedRoute from "./components/pages/ProtectedRoute";
   import Products from "./components/pages/ProductsPage";
   import BreadcrumbsMUI from "./components/globalComponents/BreadcrumbsMUI";
-  import AvatarSettings from "./components/globalComponents/AvatarSettings";
+  import AvatarSettings from "./components/globalComponents/AvatarSettings";  
+  import InputSales from "./components/pages/InputSales";
 
   function App() {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -111,6 +112,14 @@
                     element={
                       <ProtectedRoute isAuthenticated={isAuthenticated}>
                         <SalesPage />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/sales/input"
+                    element={
+                      <ProtectedRoute isAuthenticated={isAuthenticated}>
+                        <InputSales />
                       </ProtectedRoute>
                     }
                   />

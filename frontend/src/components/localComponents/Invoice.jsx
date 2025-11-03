@@ -1,6 +1,6 @@
     import React from 'react';
     import { useState } from 'react';
-    import Button from './Button'; // Assuming you have a Button component
+    import Button from '../globalComponents/Button'; 
     import { useEffect } from 'react';
     import handleDownloadPdf from '../../functions/handleDownloadPdf';
 
@@ -124,7 +124,7 @@
                     </div>
 
                     {/* Download Button */}
-                    <div className="flex justify-center mt-12">
+                    {/* <div className="flex justify-center mt-12">
                         <div
                         className='flex items-center gap-2  text-blue-500 hover:text-blue-600 transition-colors underline bg-white cursor-pointer'
                         onClick={()=>{
@@ -137,7 +137,7 @@
                             <svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-download"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2 -2v-2" /><path d="M7 11l5 5l5 -5" /><path d="M12 4l0 12" /></svg>
                             <span>Download Invoice</span>
                         </div>
-                    </div>
+                    </div> */}
                 </div>
             </div>
         );
