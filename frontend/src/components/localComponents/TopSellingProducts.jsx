@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import FilterDropdown from './FilterButton'; // Assuming you have this imported
+import FilterDropdown from '../globalComponents/FilterButton'; // Assuming you have this imported
 
 const TopSellingRow = ({ product }) => {
     return (

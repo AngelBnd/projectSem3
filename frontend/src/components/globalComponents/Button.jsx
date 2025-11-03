@@ -2,13 +2,14 @@ import React from 'react';
 
 const variantStyles = {
   primary: 'bg-[#3376FC] text-white hover:bg-blue-600 border border-[#3376FC]',
-  outline: 'bg-white hover:bg-gray-50 border border-gray-300',
-  secondary: 'bg-white hover:bg-gray-100 border border-gray-300 shadow-sm',
-  ghost: 'bg-transparent hover:bg-gray-100 border border-transparent', 
+  white: 'bg-white hover:bg-gray-50 border border-gray-300',
+  primaryAlt: 'bg-[#36383C] text-white hover:bg-gray-600 border border-gray-300 shadow-sm',
+  secondary : 'bg-transparent hover:bg-gray-100 border border-2 border-[#36383C]', 
+  tertiary : 'bg-transparent hover:bg-gray-100 border shadow-none underline', 
   danger: 'bg-red-500 text-white hover:bg-red-600 border border-red-500',
 };
 
-const defaultHasBorder = ['primary', 'outline', 'secondary', 'danger'];
+const defaultHasBorder = ['primary', 'white', 'primaryAlt', 'danger', 'secondary'];
 
 
 function Button({ 
@@ -43,7 +44,7 @@ function Button({
     >
       {IconComponent && (
         <span className="mr-2 flex items-center">
-          <IconComponent />
+          <IconComponent className="w-4 h-4 text-inherit fill-current stroke-current" />
         </span>
       )}
       

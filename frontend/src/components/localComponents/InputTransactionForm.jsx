@@ -2,9 +2,9 @@ import { useState, useEffect } from "react";
 import Button from "./Button";
 import { useNavigate } from "react-router-dom";
 import { useRef } from "react";
-import { useDebounce } from "./Debounce";
-import { usePopup } from "./PopupContext";
-import { PopupOkay, PopupError } from "./PopupComp";
+import { useDebounce } from "../globalComponents/Debounce";
+import { usePopup } from "../globalComponents/PopupContext";
+import { PopupOkay, PopupError } from "../globalComponents/PopupComp";
 
 // New component for individual product item in the list
 const ProductItem = ({ product, index, onProductChange, onDeleteProduct, onProductFocus, onProductBlur, activeProductIndex, mode}) => {

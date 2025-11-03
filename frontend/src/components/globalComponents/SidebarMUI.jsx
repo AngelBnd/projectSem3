@@ -15,7 +15,7 @@ import {
   Button
 } from "@mui/material";
 import { Link } from "react-router-dom";
-import { DashboardIcon, SalesIcon, InventoryIcon, ChevronDownIcon, CardboardIcon, UsersIcon, SettingsIcon } from "./SvgIcons";
+import { DashboardIcon, SalesIcon, InventoryIcon, ChevronDownIcon, CardboardIcon, UsersIcon, SettingsIcon, LogOutIcon } from "../../assets/SvgIcons";
 
 import { ExpandLess, ExpandMore } from "@mui/icons-material";
 
@@ -23,26 +23,16 @@ export const drawerWidth = 240;
 
 
 const SidebarFooter = () => (
-  <div className="px-7 pb-8 pt-[20px] mt-auto flex items-center justify-between border-t border-gray-200">
+  <div className="px-7 pb-8 pt-[20px] mt-auto flex items-center justify-between border-t border-gray-200 text-black">
     <div className="flex items-center">
-      <div className="w-10 h-10 rounded-full overflow-hidden inline-block mr-2">
-        <img
-          src="/path/to/profile.jpg"
-          alt="User"
-          className="w-full h-full object-cover bg-gray-500"
-        />
-      </div>
-      <div>
-        <div className="text-black text-sm font-nunito">Usernamenya</div>
-        <div className="text-gray-500 text-xs">Rolenya</div>
-      </div>
+      Log out
     </div>
 
     <div
-      className="cursor-pointer p-1"
-      onClick={() => console.log('Open settings')}
+      className="cursor-pointer"
+      onClick={() => console.log('Log out function here')}
     >
-      <SettingsIcon/>
+      <LogOutIcon/>
     </div>
   </div>
 );

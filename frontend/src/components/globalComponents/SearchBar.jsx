@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ScanIcon } from './SvgIcons';
+import { ScanIcon } from '../../assets/SvgIcons';
 
 export default function SearchBar ({setQuery, setSearchInput, handleKeyDown, value, variant}) {
 

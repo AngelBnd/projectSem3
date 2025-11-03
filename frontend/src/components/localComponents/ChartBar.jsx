@@ -1,8 +1,8 @@
 import { Bar } from "react-chartjs-2";
 import { useEffect, useState } from "react";
-import aggregateSalesValueByMonth from '../functions/aggregateSalesValueByMonth.js';
-import aggregateSalesValueByYear from '../functions/aggregateSalesValueByYear.js';
-import aggregateSalesValueByCurrentWeekDaily from "../functions/aggregateSalesValueByWeekly.js";
+import aggregateSalesValueByMonth from '../../functions/aggregateSalesValueByMonth.js';
+import aggregateSalesValueByYear from '../../functions/aggregateSalesValueByYear.js';
+import aggregateSalesValueByCurrentWeekDaily from "../../functions/aggregateSalesValueByWeekly.js";
 
 export default function ChartBar({timeFrame}) {
   const [salesData, setSalesData] = useState([]);

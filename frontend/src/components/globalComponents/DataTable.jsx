@@ -17,7 +17,7 @@ const CardDataGrid = styled(DataGrid)(({ theme }) => ({
   },
 
   '& .MuiDataGrid-columnHeader': {
-    backgroundColor: 'transparent',
+    backgroundColor: '#F3F4F7',
     paddingLeft: theme.spacing(2),
     fontWeight: 'normal',
     color: '#000',

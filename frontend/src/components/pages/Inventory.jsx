@@ -1,12 +1,12 @@
-import Button from "../Button";
-import FilterDropdown from "../FilterButton";
-import SearchBar from "../SearchBar";
-import BadgeStatus from "../BadgeStatus";
-import InventoryRow from "../InventoryRow";
-import NotFound from "../NotFound";
+import Button from "../globalComponents/Button";
+import FilterDropdown from "../globalComponents/FilterButton";
+import SearchBar from "../globalComponents/SearchBar";
+import BadgeStatus from "../globalComponents/BadgeStatus";
+import InventoryRow from "../localComponents/InventoryRow";
+import NotFound from "../globalComponents/NotFound";
 import { Link } from "react-router-dom";
 import { useEffect, useState, useSyncExternalStore } from "react";
-import { useDebounce } from "../Debounce";
+import { useDebounce } from "../globalComponents/Debounce";
 
 // Assuming these are still valid based on your backend logic
 const stockStatuses = ["Low stock", "Good", "Out of Stock", "Low stock"];

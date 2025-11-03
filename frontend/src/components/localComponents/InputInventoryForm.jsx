@@ -1,8 +1,8 @@
 import { useState,useEffect } from "react";
 import Button from "./Button";
 import { useLocation, useNavigate } from "react-router-dom"; 
-import { usePopup } from "./PopupContext.jsx";
-import { PopupOption, PopupOkay } from "./PopupComp.jsx";
+import { usePopup } from "../globalComponents/PopupContext.jsx";
+import { PopupOption, PopupOkay } from "../globalComponents/PopupComp.jsx";
 
 export default function InputInventoryForm() {
   const navigate = useNavigate();
