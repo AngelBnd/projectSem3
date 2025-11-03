@@ -4,7 +4,7 @@
   import SidebarMUI from "./components/globalComponents/SidebarMUI";
   import Dashboard from "./components/pages/Dashboard";
   import Inventory from "./components/pages/Inventory";
-  import Sales from "./components/pages/Sales";
+  import SalesPage from "./components/pages/SalesPage";
   import Login from "./components/pages/Login";
   import Register from "./components/pages/Register";
   import ProtectedRoute from "./components/pages/ProtectedRoute";
@@ -110,7 +110,7 @@
                     path="/sales"
                     element={
                       <ProtectedRoute isAuthenticated={isAuthenticated}>
-                        <Sales />
+                        <SalesPage />
                       </ProtectedRoute>
                     }
                   />

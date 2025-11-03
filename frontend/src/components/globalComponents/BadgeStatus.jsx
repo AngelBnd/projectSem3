@@ -12,6 +12,7 @@ const STATUS_STYLES = {
   Paid: { bg: "bg-blue-100", text: "text-blue-700" },
   "On the Way": { bg: "bg-indigo-100", text: "text-indigo-700" },
   Completed: { bg: "bg-green-100", text: "text-green-700" },
+  Delivered: { bg: "bg-green-100", text: "text-green-700" },
   Cancelled: { bg: "bg-red-100", text: "text-red-700" },
 
   // Audit Logs
