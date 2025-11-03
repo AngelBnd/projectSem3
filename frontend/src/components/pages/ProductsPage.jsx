@@ -1,12 +1,15 @@
 import React, { useState } from "react";
-import FilterTabs from "../FilterTabs"; // adjust path
+import FilterTabs from "../globalComponents/FilterTabs"; // adjust path
 import { Box, Grid, Card, CardContent, Typography } from "@mui/material";
-import SearchBar from "../SearchBar";
-import Button from "../Button";
-import { PlusIcon, ExportIcon } from "../SvgIcons";
-import ViewSwitch from "../ViewSwitch";
-import FilterButtonV2 from "../FilterButtonV2";
-import DataTable from '../DataTable';
+import SearchBar from "../globalComponents/SearchBar";
+import Button from "../globalComponents/Button";
+import { PlusIcon, ExportIcon } from "../../assets/SvgIcons";
+import ViewSwitch from "../globalComponents/ViewSwitch";
+import FilterButtonV2 from "../globalComponents/FilterButtonV2";
+import DataTable from '../globalComponents/DataTable';
+import { IconButton, Tooltip } from "@mui/material";
+import { LookFurtherMoreIntoWhatIsClickedIcon, ThreeDotsIcon } from "../../assets/SvgIcons";
+import Badge from "../globalComponents/BadgeStatus";
 
 // PLACEHOLDER
 const products = [
@@ -46,16 +49,54 @@ const productColumns = [
     headerName: 'Actions',
     sortable: false,
     width: 100,
+    align: 'center',
+    headerAlign: 'center',
     renderCell: (params) => (
-      // Custom actions for this specific row
-      <Button 
-        variant="ghost" 
-        onClick={() => alert(`Editing product ${params.row.id}`)}
+      <Box
+        sx={{
+          display: 'flex',
+          alignItems: 'center', 
+          justifyContent: 'center', 
+          gap: 1.2,
+          height: '100%',
+        }}
       >
-        Edit
-      </Button>
+        <Tooltip title="Edit Product">
+          <IconButton
+            onClick={() => alert(`Editing product ${params.row.id}`)}
+            sx={{
+              backgroundColor: 'rgba(51, 118, 252, 0.1)',
+              color: '#3376FC',
+              '&:hover': { backgroundColor: 'rgba(51, 118, 252, 0.18)' },
+              width: 28,   
+              height: 28, 
+              p: 0.7,     
+            }}
+          >
+            <LookFurtherMoreIntoWhatIsClickedIcon
+              sx={{ fontSize: 12 }}
+            />
+          </IconButton>
+        </Tooltip>
+
+        <Tooltip title="More Actions">
+          <IconButton
+            sx={{
+              backgroundColor: 'rgba(51, 118, 252, 0.1)', 
+              color: '#3376FC',
+              '&:hover': { backgroundColor: 'rgba(51, 118, 252, 0.18)' },
+              width: 28,
+              height: 28,
+              p: 0.7,
+            }}
+          >
+            <ThreeDotsIcon sx={{ fontSize: 14 }} /> {/* ✅ smaller icon */}
+          </IconButton>
+        </Tooltip>
+      </Box>
     ),
-  },
+  }
+
 ];
 
 // PLACEHOLDER FILTER TABS
@@ -95,21 +136,22 @@ export default function ProductsPage() {
      <div className="col-span-9 flex flex-col justify-start items-start gap-4 sm:flex-row sm:justify-between sm:items-start">
         <FilterTabs
           tabs={tabs}
-          data={products}
-          onChange={(newData) => setFilteredProducts(newData)}
+          // data={products}
+          // onChange={(newData) => setFilteredProducts(newData)}
         />
         
-        <div className="flex gap-3">
+        <div className="flex gap-3 items-center">
           <Button
             onClick={()=>{}}
-            children={"Export"}
+            children={"white"}
             icon={ExportIcon}
-            variant="outline"
+            variant="white"
           />
           <Button
-          onClick={()=>{}}
-          children={"teasdasdsst"}
-          icon={PlusIcon}
+            onClick={()=>{}}
+            children={"Add a Product"}
+            icon={PlusIcon}
+            variant="primary"
           />
         </div>
       </div>
@@ -139,6 +181,7 @@ export default function ProductsPage() {
             gridProps={{ checkboxSelection: true }} 
           />
         </div>
+        
 
     </div>
   );

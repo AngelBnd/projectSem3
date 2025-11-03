@@ -1,6 +1,6 @@
 // components/ViewSwitch.jsx
 import React, { useState } from 'react';
-import { ListIcon, GridIcon } from './SvgIcons'; 
+import { ListIcon, GridIcon } from '../../assets/SvgIcons'; 
 
 function ViewSwitch({ initialView = 'list', onViewChange }) {
   const [activeView, setActiveView] = useState(initialView);

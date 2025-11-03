@@ -1,11 +1,11 @@
-import FilterDropdown from "../FilterButton";
-import SearchBar from "../SearchBar";
-import TransactionRow from "../TransactionRow";
+import FilterDropdown from "../globalComponents/FilterButton";
+import SearchBar from "../globalComponents/SearchBar";
+import TransactionRow from "../localComponents/TransactionRow";
 import { Link } from "react-router-dom";
-import Button from "../Button";
-import NotFound from "../NotFound";
+import Button from "../globalComponents/Button";
+import NotFound from "../globalComponents/NotFound";
 import { useEffect, useState, useMemo  } from "react";
-import { useDebounce } from "../Debounce";
+import { useDebounce } from "../globalComponents/Debounce";
 
 
 export default function Sales(){

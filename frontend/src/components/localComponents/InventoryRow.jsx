@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
-import BadgeStatus from "./BadgeStatus";
-import Dropdown from "./Dropdown";
+import BadgeStatus from "../globalComponents/BadgeStatus";
+import Dropdown from "../globalComponents/Dropdown";
 import { useNavigate } from "react-router-dom";
 
 export default function InventoryRow({ item, onDelete }) {

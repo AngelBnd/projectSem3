@@ -1,5 +1,5 @@
 import React from 'react';
-import { FilterIcon } from './SvgIcons';
+import { FilterIcon } from '../../assets/SvgIcons';
 
 
 const defaultHasBorder = ['primary', 'outline', 'secondary', 'danger'];

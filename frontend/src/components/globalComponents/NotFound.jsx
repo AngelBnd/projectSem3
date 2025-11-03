@@ -1,4 +1,4 @@
-import IMG from "../assets/notFound.jpeg";
+import IMG from "../../assets/notFound.jpeg";
 
 export default function notFound (){
     return (

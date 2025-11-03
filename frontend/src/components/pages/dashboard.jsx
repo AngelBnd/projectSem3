@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import ChartBar from "../ChartBar";
-import CategoryPieChart from "../CategoryPieChart";
-import FilterDropdown from "../FilterButton";
-import TopSellingProducts from "../TopSellingProducts";
-import RecentTransactionsTable from "../RecentTransactionsTable";
+import ChartBar from "../localComponents/ChartBar";
+import CategoryPieChart from "../localComponents/CategoryPieChart";
+import FilterDropdown from "../globalComponents/FilterButton";
+import TopSellingProducts from "../localComponents/TopSellingProducts";
+import RecentTransactionsTable from "../localComponents/RecentTransactionsTable";
 
 const formatCurrency = (amount) =>
   `Rp ${new Intl.NumberFormat("id-ID", {
@@ -17,22 +17,22 @@ const DashboardTopBoxes = ({ summary }) => {
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-2">
-      <div className="bg-white p-6 shadow rounded-2xl flex flex-col justify-center">
+      <div className="bg-white p-6 shadow rounded-md flex flex-col justify-center">
         <p className="text-3xl font-nunito font-bold">{formatCurrency(totalSales)}</p>
         <span className="text-gray-600 mt-1">Total Sales</span>
       </div>
 
-      <div className="bg-white p-6 shadow rounded-2xl flex flex-col justify-center">
+      <div className="bg-white p-6 shadow rounded-md flex flex-col justify-center">
         <p className="text-3xl font-nunito font-bold">{formatCurrency(totalProfit)}</p>
         <span className="text-gray-600 mt-1">Total Profit</span>
       </div>
 
-      <div className="bg-white p-6 shadow rounded-2xl flex flex-col justify-center">
+      <div className="bg-white p-6 shadow rounded-md flex flex-col justify-center">
         <p className="text-3xl font-nunito font-bold">{lowStockItems}</p>
         <span className="text-gray-600 mt-1">Low Stock Items</span>
       </div>
 
-      <div className="bg-white p-6 shadow rounded-2xl flex flex-col justify-center">
+      <div className="bg-white p-6 shadow rounded-md flex flex-col justify-center">
         <p className="text-3xl font-nunito font-bold">{totalCustomers}</p>
         <span className="text-gray-600 mt-1">Total Customers</span>
       </div>
@@ -104,7 +104,7 @@ export default function Dashboard() {
       <div className="col-span-9"> 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 mb-2 ">
           {/* Cashflow Chart */}
-          <div className="lg:col-span-2 bg-white rounded-2xl shadow p-6 flex flex-col min-h-[340px]">
+          <div className="lg:col-span-2 bg-white rounded-md shadow p-6 flex flex-col min-h-[340px]">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl font-bold font-nunito">Cashflow</h2>
               <FilterDropdown
@@ -119,7 +119,7 @@ export default function Dashboard() {
           </div>
 
           {/* Categories Sold Chart */}
-          <div className="bg-white rounded-2xl shadow p-6 flex flex-col">
+          <div className="bg-white rounded-md shadow p-6 flex flex-col">
             <h2 className="text-xl font-bold font-nunito mb-4">Categories Sold</h2>
             <div className="flex-grow">
               <CategoryPieChart />
@@ -130,10 +130,10 @@ export default function Dashboard() {
 
       <div className="col-span-9 overflow-x-hidden">
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <div className="bg-white rounded-2xl shadow p-6">
+        <div className="bg-white rounded-md shadow p-6">
           <TopSellingProducts />
         </div>
-        <div className="bg-white rounded-2xl shadow p-6">
+        <div className="bg-white rounded-md shadow p-6">
           <RecentTransactionsTable />
         </div>
       </div>
