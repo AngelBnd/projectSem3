@@ -61,9 +61,9 @@ const productColumns = [
           height: '100%',
         }}
       >
-        <Tooltip title="Edit Product">
+        <Tooltip title="View inv">
           <IconButton
-            onClick={() => alert(`Editing product ${params.row.id}`)}
+            onClick={() => alert(`Viewing inv ${params.row.id}`)}
             sx={{
               backgroundColor: 'rgba(51, 118, 252, 0.1)',
               color: '#3376FC',
@@ -152,7 +152,6 @@ export default function ProductsPage() {
             children={"Add a Product"}
             icon={PlusIcon}
             variant="primary"
-            iconPosition="right"
           />
         </div>
       </div>

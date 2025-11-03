@@ -17,15 +17,15 @@ export default function SearchBar ({setQuery, setSearchInput, handleKeyDown, val
         flex items-center rounded-md w-[420px] max-w-md bg-[#EAECF0] 
        'px-1 py-1'  `}
     >
-      <div className={`${isScanVariant ? 'px-3' : 'px-0'} flex items-center`}>
+      <div className={`${isScanVariant ? 'px-3' : 'px-3'} flex items-center`}>
         <svg xmlns="http://www.w3.org/2000/svg" id="Isolation_Mode" data-name="Isolation Mode" viewBox="0 0 24 24" width="16" height="16"><path d="M18.9,16.776A10.539,10.539,0,1,0,16.776,18.9l5.1,5.1L24,21.88ZM10.5,18A7.5,7.5,0,1,1,18,10.5,7.507,7.507,0,0,1,10.5,18Z"/></svg>
       </div>
 
       <input
         type="text"
         placeholder="Search by product code or name..."
-        className={`bg-transparent text-lato text-[14px] focus:outline-none text-gray-600 w-full placeholder:text-gray-400 font-medium 
-                    ${isScanVariant ? 'ml-0 pr-2' : 'ml-2 pr-0'}`} 
+        className={`bg-transparent text-lato text-[14px] py-3 focus:outline-none text-gray-600 w-full placeholder:text-gray-400 font-medium 
+                    ${isScanVariant ? 'ml-0 pr-2' : 'ml-2 pr-2'}`} 
         onChange = {handleChange}
         onKeyDown={handleKeyDown}
         value={value}

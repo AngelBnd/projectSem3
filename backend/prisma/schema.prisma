@@ -8,7 +8,7 @@ generator client {
 }
   
 // Workflow / approval status for products
-enum ProductApprovalStatus {
+enum ApprovalStatus {
   PENDING
   APPROVED
   REJECTED
@@ -28,12 +28,6 @@ enum InvoiceStatus {
   CANCELLED   // invoice cancelled
 }
 
-// Workflow / approval status for invoices (optional if admin approval is needed)
-enum InvoiceApprovalStatus {
-  PENDING
-  APPROVED
-  REJECTED
-}
 
 model Store {
   id         Int        @id @default(autoincrement())
@@ -128,7 +122,7 @@ model ProductVariant {
   barcode     String?   @unique
   sellingPrice Decimal  @db.Decimal(10, 2)
   status         ProductStatus        @default(INACTIVE)          // business status
-  approvalStatus ProductApprovalStatus @default(PENDING)          // workflow status
+  approvalStatus ApprovalStatus @default(PENDING)          // workflow status
 
   isDefault   Boolean  @default(false)
 
@@ -166,6 +160,7 @@ model Invoice {
   invoiceSubtotal Decimal   @db.Decimal(10, 2)
   totalAmount     Decimal   @db.Decimal(10, 2)
   discountPrice   Decimal   @db.Decimal(10, 2)
+  approvalStatus ApprovalStatus @default(PENDING) 
 
   // FK to User who made it
   createdBy   Int
