@@ -29,6 +29,12 @@ function Login({ setAuthenticated }) {
     return;
    }
 
+  localStorage.setItem('user', JSON.stringify({
+    username: data.user.username, 
+    role: data.user.role || 'User', 
+    id: data.user.id
+  }));   
+
    localStorage.setItem('token', data.token);
    setAuthenticated(true);
    navigate('/dashboard');
