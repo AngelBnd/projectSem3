@@ -152,6 +152,7 @@ export default function ProductsPage() {
             children={"Add a Product"}
             icon={PlusIcon}
             variant="primary"
+            iconPosition="right"
           />
         </div>
       </div>
