@@ -32,25 +32,33 @@ router.post('/register', async (req, res) => {
 
 // Login
 router.post('/login', async (req, res) => {
-  const { username, password } = req.body;
+  const { username, password } = req.body; 
+  if (!username || !password)
+    return res.status(400).json({ error: 'Username and password are required' });
+
   try {
-    const user = await prisma.users.findUnique({ where: { username } });
+    const user = await prisma.user.findUnique({
+      where: { username },
+      include: {
+        role: true,  
+      },
+    });
+
     if (!user) return res.status(404).json({ error: 'User not found' });
 
     const isValid = await bcrypt.compare(password, user.password);
     if (!isValid) return res.status(401).json({ error: 'Invalid credentials' });
 
     const token = jwt.sign(
-      { id: user.id, username: user.username },
+      { id: user.id, username: user.username, roleId: user.roleId },
       JWT_SECRET,
       { expiresIn: '1h' }
     );
 
-    res.json({ success: true, token });
+    res.json({ success: true, token, user: { id: user.id, username: user.username, name: user.name, role: user.role?.name } });
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: 'Login failed' });
   }
 });
-
 module.exports = router;

@@ -6,76 +6,190 @@ datasource db {
 generator client {
   provider = "prisma-client-js"
 }
-
-// entities
-
-model Users {
-  id       Int    @id @default(autoincrement())
-  username String @unique
-  password String
-
-  products Products[]
-  invoices Invoices[]
+  
+// Workflow / approval status for products
+enum ProductApprovalStatus {
+  PENDING
+  APPROVED
+  REJECTED
 }
 
-model Products {
-  id Int @id @default(autoincrement())
-  productCode String @unique
-
-  productName     String
-  productCategory String
-  productBrand    String
-
-  sellingPrice Decimal @db.Decimal(10, 2)
-  unitCost     Decimal @db.Decimal(10, 2)
-
-  initialStock   Int @default(0)
-  thresholdStock Int @default(0)
-
-  // DEFINING FK
-  userId Int
-  user   Users @relation(fields: [userId], references: [id])
-
-  lastUpdated DateTime @updatedAt
-
-  lineItems LineItems[] // Products can be on many LineItems
-  // stockAdjustments StockAdjustment[] 
+// Business status for products
+enum ProductStatus {
+  ACTIVE
+  INACTIVE
 }
 
-model Invoices {
-  id Int @id @default(autoincrement())
-  invoiceId String @unique
+// Business / payment / delivery status for invoices
+enum InvoiceStatus {
+  PENDING     // waiting for payment
+  DELIVERED   // goods delivered
+  COMPLETED   // fully paid
+  CANCELLED   // invoice cancelled
+}
 
-  invoiceDate DateTime @default(now())
+// Workflow / approval status for invoices (optional if admin approval is needed)
+enum InvoiceApprovalStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
 
-  name String
-  subject String
+model Store {
+  id         Int        @id @default(autoincrement())
+  name       String
+  storeTag   String     @unique
+  ownerId    Int?        @unique
+  owner      User?       @relation("StoreOwner", fields: [ownerId], references: [id])
 
+  users      User[]     @relation("StoreUsers")
+  products   Product[]
+  invoices   Invoice[]
+  createdAt  DateTime   @default(now())
+}
+
+model User {
+  id          Int       @id @default(autoincrement())
+  email       String    @unique
+  password    String
+  username    String    @unique
+
+  // Role
+  roleId      Int
+  role        Role      @relation(fields: [roleId], references: [id])
+
+  // Store membership
+  storeId     Int
+  store       Store @relation("StoreUsers", fields: [storeId], references: [id])
+
+  ownedStore Store? @relation("StoreOwner")
+  createdProducts Product[] @relation("UserCreatedProducts")
+  createdInvoices Invoice[] @relation("UserCreatedInvoices")
+  createdVariants ProductVariant[] @relation("UserCreatedVariants")
+
+  createdAt   DateTime  @default(now())
+}
+
+model Role {
+  id              Int              @id @default(autoincrement())
+  name            String           @unique
+  description     String?
+  rolePermissions RolePermission[]
+  users           User[]           
+}
+
+model Permission {
+  id              Int               @id @default(autoincrement())
+  entity          String           
+  action          String            
+  description     String?        
+  rolePermissions RolePermission[]
+
+  @@unique([entity, action])        // ensures no duplicate permissions for the same entity/action
+}
+model RolePermission {
+  role         Role       @relation(fields: [roleId], references: [id])
+  roleId       Int
+  permission   Permission @relation(fields: [permissionId], references: [id])
+  permissionId Int
+
+  @@id([roleId, permissionId])
+}
+
+model Product {
+  id          Int       @id @default(autoincrement()) 
+  storeId     Int
+  store       Store     @relation(fields: [storeId], references: [id])
+
+
+  categoryId  Int
+  category    Category  @relation(fields: [categoryId], references: [id])
+  brandId     Int
+  brand       Brand     @relation(fields: [brandId], references: [id])
+
+  name        String
+  type        String
+  description String?
+  status         ProductStatus        @default(INACTIVE)          // business status
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  createdById Int
+  createdBy   User @relation("UserCreatedProducts", fields: [createdById], references: [id])
+
+  variants    ProductVariant[]
+}
+
+model ProductVariant {
+  id          Int      @id @default(autoincrement()) 
+  productId   Int
+  product     Product  @relation(fields: [productId], references: [id])
+
+  sku         String    @unique
+  barcode     String?   @unique
+  sellingPrice Decimal  @db.Decimal(10, 2)
+  status         ProductStatus        @default(INACTIVE)          // business status
+  approvalStatus ProductApprovalStatus @default(PENDING)          // workflow status
+
+  isDefault   Boolean  @default(false)
+
+  createdAt   DateTime @default(now())
+
+  createdById Int
+  createdBy   User @relation("UserCreatedVariants", fields: [createdById], references: [id])
+
+  lineItems  LineItem[] @relation("VariantLineItems", fields: [], references: [])
+  @@unique([productId, isDefault])
+}
+
+model Brand {
+  id    Int     @id @default(autoincrement())
+  name  String  @unique 
+  products Product[]
+}
+
+model Category {
+  id    Int     @id @default(autoincrement())
+  name  String  @unique
+  products Product[]
+}
+
+
+model Invoice {
+  id              Int       @id @default(autoincrement())
+  invoiceId       String    @unique
+
+  invoiceDate     DateTime  @default(now())
+  name            String
+  subject         String
   paymentMethod   String
-  invoiceSubtotal Decimal @db.Decimal(10, 2)
-  totalAmount     Decimal @db.Decimal(10, 2)
-  discountPrice   Decimal @db.Decimal(10, 2)
 
-  // DEFINING FK
-  userId Int
-  user   Users @relation(fields: [userId], references: [id])
+  invoiceSubtotal Decimal   @db.Decimal(10, 2)
+  totalAmount     Decimal   @db.Decimal(10, 2)
+  discountPrice   Decimal   @db.Decimal(10, 2)
 
-  lineItems LineItems[]
+  // FK to User who made it
+  createdBy   Int
+  user      User @relation("UserCreatedInvoices", fields: [createdBy], references: [id])
+
+  // FK to Store
+  storeId         Int
+  store           Store     @relation(fields: [storeId], references: [id])
+
+  lineItems       LineItem[]
 }
 
-model LineItems {
-  id Int @id @default(autoincrement())
-  invoiceId String
-  invoice   Invoices @relation(fields: [invoiceId], references: [invoiceId])
+model LineItem {
+  id            Int        @id @default(autoincrement())
 
-  productCode String
-  product     Products @relation(fields: [productCode], references: [productCode])
+  invoiceId     String
+  invoice       Invoice    @relation(fields: [invoiceId], references: [invoiceId])
 
-  quantitySold Int
+  sku           String
+  productVariant ProductVariant @relation("VariantLineItems", fields: [sku], references: [sku])
 
-  sellingPrice Decimal @db.Decimal(10, 2)
+  quantitySold  Int
+  sellingPrice  Decimal    @db.Decimal(10, 2)
+  lineSubtotal  Decimal    @db.Decimal(10, 2)
 
-  lineSubtotal Decimal @db.Decimal(10, 2)
-
-  @@unique([productCode, invoiceId])
+  @@unique([sku, invoiceId])
 }

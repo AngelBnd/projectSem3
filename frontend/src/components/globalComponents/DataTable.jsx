@@ -122,6 +122,33 @@ export default function DataTable({
           slots={{
             toolbar: GridToolbar,
           }}
+          slotProps={{
+              toolbar: {
+                  sx: {
+                      '& .MuiDataGrid-menu .MuiInputBase-input': {
+                          color: '#000 !important',
+                      },
+      
+                      '& .MuiDataGrid-menu .MuiMenuItem-root': {
+                          color: '#000 !important', 
+                          '& .MuiTypography-root': { 
+                              color: '#000 !important', 
+                          },
+                      },
+                      
+                      '& .MuiDataGrid-menu .MuiCheckbox-root': {
+                          color: '#000 !important', 
+                      },
+                      '& .MuiDataGrid-menu .MuiSvgIcon-root': {
+                          color: '#000 !important', 
+                      },
+
+                      '& .MuiDataGrid-menu .MuiButton-root': { 
+                          color: '#000 !important',
+                      },
+                  },
+              },
+          }}
           {...gridProps}
         />
       </Box>
