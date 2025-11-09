@@ -332,6 +332,7 @@ model ProductVariants {
   productStatus    ProductStatus
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
+  image            String
 
   salesOrderItems        SalesOrderItems[]
   purchaseOrderItems     PurchaseOrderItems[]
