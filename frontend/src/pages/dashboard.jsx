@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import ChartBar from "../localComponents/ChartBar";
-import CategoryPieChart from "../localComponents/CategoryPieChart";
-import FilterDropdown from "../globalComponents/FilterButton";
-import TopSellingProducts from "../localComponents/TopSellingProducts";
-import RecentTransactionsTable from "../localComponents/RecentTransactionsTable";
+import ChartBar from "../components/localComponents/ChartBar";
+import CategoryPieChart from "../components/localComponents/CategoryPieChart";
+import FilterDropdown from "../components/globalComponents/FilterButton";
+import TopSellingProducts from "../components/localComponents/TopSellingProducts";
+import RecentTransactionsTable from "../components/localComponents/RecentTransactionsTable";
 
 const formatCurrency = (amount) =>
   `Rp ${new Intl.NumberFormat("id-ID", {

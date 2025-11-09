@@ -1,15 +1,15 @@
 import React, { useState } from "react";
-import FilterTabs from "../globalComponents/FilterTabs"; // adjust path
+import FilterTabs from "../components/globalComponents/FilterTabs"; // adjust path
 import { Box, Grid, Card, CardContent, Typography } from "@mui/material";
-import SearchBar from "../globalComponents/SearchBar";
-import Button from "../globalComponents/Button";
-import { PlusIcon, ExportIcon } from "../../assets/SvgIcons";
-import ViewSwitch from "../globalComponents/ViewSwitch";
-import FilterButtonV2 from "../globalComponents/FilterButtonV2";
-import DataTable from '../globalComponents/DataTable';
+import SearchBar from "../components/globalComponents/SearchBar";
+import Button from "../components/globalComponents/Button";
+import { PlusIcon, ExportIcon } from "../../src/assets/SvgIcons";
+import ViewSwitch from "../components/globalComponents/ViewSwitch";
+import FilterButtonV2 from "../components/globalComponents/FilterButtonV2";
+import DataTable from '../components/globalComponents/DataTable';
 import { IconButton, Tooltip } from "@mui/material";
-import { LookFurtherMoreIntoWhatIsClickedIcon, ThreeDotsIcon } from "../../assets/SvgIcons";
-import Badge from "../globalComponents/BadgeStatus";
+import { LookFurtherMoreIntoWhatIsClickedIcon, ThreeDotsIcon } from "../../src/assets/SvgIcons";
+import Badge from "../components/globalComponents/BadgeStatus";
 
 // PLACEHOLDER
 const products = [

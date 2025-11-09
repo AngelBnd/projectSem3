@@ -212,9 +212,6 @@ model Users {
   storeId      Int?    
   store        Stores? @relation(fields: [storeId], references: [storeId])
   
-  roleId       Int?    
-  role         Roles?  @relation(fields: [roleId], references: [roleId])
-  
   username     String  @unique
   email        String  @unique
   passwordHash String
@@ -222,7 +219,7 @@ model Users {
   requestedStoreTag String?
   requestedAt   DateTime @default(now())
   approvedAt    DateTime?
-  approvedBy    Int?
+  approvedBy    Int? 
   
   approvedByUser Users? @relation("ApprovedBy", fields: [approvedBy], references: [userId])
   
@@ -252,7 +249,6 @@ model Roles {
   updatedAt  DateTime @updatedAt
 
   // Opposite relations
-  users      Users[]
   userRoles  UserRoles[]
   rolePermissions RolePermissions[]
 

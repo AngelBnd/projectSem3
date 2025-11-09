@@ -1,6 +1,7 @@
 import { Pie } from "react-chartjs-2";
 import { useEffect, useState } from "react";
-import aggregateCategories from '../../functions/aggregateCategories.js'; 
+import { aggregateCategories } from '../../utils/aggregation';
+
 const generateColors = (count) => {
     const colors = [
         '#3376FC', '#FDB45C', '#9ACD32', '#4BC0C0', '#9966FF', 
