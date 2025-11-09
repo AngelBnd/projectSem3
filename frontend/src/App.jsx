@@ -13,6 +13,7 @@
   import AvatarSettings from "../src/components/globalComponents/AvatarSettings";  
   import InputSales from "./pages/InputSales";
   import SalesDetails from "./pages/SalesDetails";
+  import CreateProduct from "../src/pages/CreateProduct";
 
   function App() {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -137,6 +138,14 @@
                     element={
                       <ProtectedRoute isAuthenticated={isAuthenticated}>
                         <Products />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/create-product"
+                    element={
+                      <ProtectedRoute isAuthenticated={isAuthenticated}>
+                        <CreateProduct />
                       </ProtectedRoute>
                     }
                   />
