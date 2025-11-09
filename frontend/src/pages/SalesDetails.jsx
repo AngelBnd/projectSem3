@@ -1,11 +1,10 @@
 import { useState, useEffect } from "react";
-import InputTransactionForm from "../../components/localComponents/InputTransactionForm";
-import Button from "../../components/globalComponents/Button";
+import InputTransactionForm from "../components/localComponents/InputTransactionForm";
+import Button from "../components/globalComponents/Button";
 import { useLocation, useNavigate } from "react-router-dom";
 import { jsPDF } from "jspdf";
-import { handleDownloadPdf } from "../../functions/savepdf";
-import Invoice from "../../components/localComponents/Invoice";
-import InvoiceTimeline from "../localComponents/InvoiceTimeline";
+import Invoice from "../components/localComponents/Invoice";
+import InvoiceTimeline from "../components/localComponents/InvoiceTimeline";
 
 export default function SalesDetails({}) {
   const location = useLocation();

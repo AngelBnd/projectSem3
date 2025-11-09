@@ -2,7 +2,7 @@
     import { useState } from 'react';
     import Button from '../globalComponents/Button'; 
     import { useEffect } from 'react';
-    import handleDownloadPdf from '../../functions/handleDownloadPdf';
+    import { handleDownloadPdf } from '../../utils/files';
 
     
 

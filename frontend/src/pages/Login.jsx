@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import Button from '../globalComponents/Button'; 
-import loginImage from '../../assets/loginimage.jpg'; 
+import Button from '../components/globalComponents/Button'; 
+import loginImage from '../../src/assets/loginimage.jpg'; 
 
 function Login({ setAuthenticated }) {
  const [username, setUsername] = useState('');
@@ -17,7 +17,7 @@ function Login({ setAuthenticated }) {
    const response = await fetch('http://localhost:3000/api/auth/login', {
     method: 'POST',
     headers: {
-     'Content-Type': 'application/json',
+     'Content-Type': 'application/json'
     },
     body: JSON.stringify({ username, password }),
    });
@@ -29,17 +29,15 @@ function Login({ setAuthenticated }) {
     return;
    }
 
-  localStorage.setItem('user', JSON.stringify({
-    username: data.user.username, 
-    role: data.user.role || 'User', 
-    id: data.user.id
-  }));   
-
    localStorage.setItem('token', data.token);
+   localStorage.setItem('user', JSON.stringify(data.user));
+
    setAuthenticated(true);
    navigate('/dashboard');
+
   } catch (err) {
-   setError('An error occurred. Please try again.');
+    console.error('Login error:', err);
+    setError('An error occurred. Please try again.');
   }
  };
 

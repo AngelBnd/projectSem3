@@ -1,12 +1,18 @@
 import { SettingsIcon, NotificationsIcon } from "../../assets/SvgIcons"
 import { useEffect, useState } from "react";
+import { getCurrentUser } from "../../utils/auth";
 
 export default function AvatarSettings (){
     const [user, setUser] = useState({ username: "", role: "" });
     useEffect(() => {
-        const storedUser = localStorage.getItem("user");
-        if (storedUser) {
-        setUser(JSON.parse(storedUser));
+        const currentUser = getCurrentUser();
+        console.log(currentUser)
+
+        if(currentUser){
+            setUser({
+            username: currentUser.username,
+            role: currentUser.primaryRole
+            });
         }
     }, []);
 

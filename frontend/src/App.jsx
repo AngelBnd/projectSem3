@@ -2,17 +2,17 @@
   import React, { useState, useEffect } from "react";
   import { Routes, Route, Navigate, useLocation } from "react-router-dom";
   import SidebarMUI from "./components/globalComponents/SidebarMUI";
-  import Dashboard from "./components/pages/Dashboard";
-  import Inventory from "./components/pages/Inventory";
-  import SalesPage from "./components/pages/SalesPage";
-  import Login from "./components/pages/Login";
-  import Register from "./components/pages/Register";
-  import ProtectedRoute from "./components/pages/ProtectedRoute";
-  import Products from "./components/pages/ProductsPage";
-  import BreadcrumbsMUI from "./components/globalComponents/BreadcrumbsMUI";
-  import AvatarSettings from "./components/globalComponents/AvatarSettings";  
-  import InputSales from "./components/pages/InputSales";
-  import SalesDetails from "./components/pages/SalesDetails";
+  import Dashboard from "./pages/dashboard";
+  import Inventory from "./pages/Inventory";
+  import SalesPage from "./pages/SalesPage";
+  import Login from "./pages/Login";
+  import Register from "./pages/Register";
+  import ProtectedRoute from "./pages/ProtectedRoute";
+  import Products from "./pages/ProductsPage";
+  import BreadcrumbsMUI from "../src/components/globalComponents/BreadcrumbsMUI";
+  import AvatarSettings from "../src/components/globalComponents/AvatarSettings";  
+  import InputSales from "./pages/InputSales";
+  import SalesDetails from "./pages/SalesDetails";
 
   function App() {
     const [isAuthenticated, setIsAuthenticated] = useState(false);

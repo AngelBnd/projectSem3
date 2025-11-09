@@ -32,7 +32,8 @@ router.post('/register', async (req, res) => {
 
 // Login
 router.post('/login', async (req, res) => {
-  const { username, password } = req.body; 
+  const { username, password } = req.body;
+
   if (!username || !password)
     return res.status(400).json({ error: 'Username and password are required' });
 
@@ -40,8 +41,18 @@ router.post('/login', async (req, res) => {
     const user = await prisma.users.findUnique({
       where: { username },
       include: {
-        role: true,  
-      },
+        userRoles: {
+          include: {
+            role: {  
+              include: {
+                rolePermissions: {
+                  include: { permission: true }
+                }
+              }
+            }
+          }
+        }
+      }
     });
 
     if (!user) return res.status(404).json({ error: 'User not found' });
@@ -49,13 +60,29 @@ router.post('/login', async (req, res) => {
     const isValid = await bcrypt.compare(password, user.passwordHash);
     if (!isValid) return res.status(401).json({ error: 'Invalid credentials' });
 
-    const token = jwt.sign(
-      { id: user.id, username: user.username, roleId: user.roleId },
-      JWT_SECRET,
-      { expiresIn: '1h' }
+    const permissions = user.userRoles.flatMap(userRole =>
+      userRole.role.rolePermissions.map(rp => 
+        `${rp.permission.module}:${rp.permission.permission}`
+      )
     );
 
-    res.json({ success: true, token, user: { id: user.id, username: user.username, name: user.name, role: user.role?.name } });
+    const roleNames = user.userRoles.map(ur => ur.role.roleName);
+    const primaryRole = user.userRoles.find(ur => ur.isPrimary)?.role.roleName || roleNames[0];
+
+    const token = jwt.sign({ userId: user.userId, username: user.username, primaryRole, permissions }, JWT_SECRET, { expiresIn: '1h' });
+
+    res.json({
+      success: true,
+      token,
+      user: {
+        id: user.userId,
+        username: user.username,
+        roles: roleNames,
+        primaryRole,
+        permissions
+      }
+    });
+
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: 'Login failed' });

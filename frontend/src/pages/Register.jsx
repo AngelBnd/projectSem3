@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import Button from '../globalComponents/Button';
-import loginImage from '../../assets/loginimage.jpg'; 
+import Button from '../components/globalComponents/Button';
+import loginImage from '../../src/assets/loginimage.jpg'; 
 
 function Register() {
  const [username, setUsername] = useState('');
