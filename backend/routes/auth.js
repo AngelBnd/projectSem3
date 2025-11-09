@@ -37,7 +37,7 @@ router.post('/login', async (req, res) => {
     return res.status(400).json({ error: 'Username and password are required' });
 
   try {
-    const user = await prisma.user.findUnique({
+    const user = await prisma.users.findUnique({
       where: { username },
       include: {
         role: true,  
@@ -46,7 +46,7 @@ router.post('/login', async (req, res) => {
 
     if (!user) return res.status(404).json({ error: 'User not found' });
 
-    const isValid = await bcrypt.compare(password, user.password);
+    const isValid = await bcrypt.compare(password, user.passwordHash);
     if (!isValid) return res.status(401).json({ error: 'Invalid credentials' });
 
     const token = jwt.sign(
