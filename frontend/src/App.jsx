@@ -2,25 +2,31 @@
   import React, { useState, useEffect } from "react";
   import { Routes, Route, Navigate, useLocation } from "react-router-dom";
   import SidebarMUI from "./components/globalComponents/SidebarMUI";
-  import Dashboard from "./pages/dashboard";
-  import Inventory from "./pages/Inventory";
-  import SalesPage from "./pages/SalesPage";
-  import Login from "./pages/Login";
-  import Register from "./pages/Register";
   import ProtectedRoute from "./pages/ProtectedRoute";
-  import Products from "./pages/ProductsPage";
   import BreadcrumbsMUI from "../src/components/globalComponents/BreadcrumbsMUI";
   import AvatarSettings from "../src/components/globalComponents/AvatarSettings";  
-  import InputSales from "./pages/InputSales";
-  import SalesDetails from "./pages/SalesDetails";
-  import CreateProduct from "../src/pages/CreateProduct";
+  import { 
+    Dashboard,
+    Inventory,
+    SalesPage,
+    Login,
+    Products,
+    InputSales,
+    SalesDetails,
+    CreateProduct,
+    Register,
+    Users
+  } from './pages';
+  import { ThemeProvider } from "@emotion/react";
+  import theme from "./theme";
 
   function App() {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [mobileOpen, setMobileOpen] = useState(false);
     const location = useLocation(); 
-    const showSidebar =
-      isAuthenticated && !["/login", "/register"].includes(location.pathname);
+    const pathname = location.pathname.toLowerCase();
+    const hideSidebar = pathname.startsWith("/login") || pathname.startsWith("/register");
+    const showSidebar = isAuthenticated && !hideSidebar;
 
     useEffect(() => {
       const token = localStorage.getItem("token");
@@ -32,6 +38,7 @@
     };
 
     return (
+      <ThemeProvider theme={theme}>
       <div className="flex min-h-screen w-screen !overflow-x-hidden ">
         {showSidebar && (
           <aside
@@ -45,7 +52,7 @@
         )}
 
         <main
-          className={`flex-1 min-w-0 overflow-y-auto  bg-white border-l bg-[#F5F7FA] md:ml-60
+          className={`flex-1 min-w-0 overflow-y-auto  bg-white border-l bg-[#F5F7FA] 
              ${
                 showSidebar ? "md:ml-60" : "md:ml-0"
               }`
@@ -66,27 +73,41 @@
     
           <div className="relative min-h-screen flex-1 bg-[#F3F4F7] !overflow-x-hidden min-w-0 ">
             {/* Transparent red overlay to visualize columns */}
-            <div className="absolute inset-0 grid grid-cols-9 gap-[12px] pointer-events-none z-0 px-[60px]">
-              {Array.from({ length: 9 }).map((_, i) => (
+            <div
+              className={`absolute inset-0 pointer-events-none z-0 ${
+                showSidebar
+                  ? "grid grid-cols-9 gap-[12px] px-[60px]"
+                  : "grid grid-cols-12 gap-3 px-[60px]"
+              }`}
+            >
+              {Array.from({ length: 12 }).map((_, i) => (
                 <div key={i} className="bg-red-500/10 w-full h-full"></div>
               ))}
             </div>
 
             {/* Actual content */}
             <div
-              className={`relative grid grid-cols-9 gap-[12px] z-10 ${
-                showSidebar ? "px-[60px]" : "px-4"
+              className={`relative z-10 ${
+                showSidebar
+                  ? "grid grid-cols-9 gap-[12px] px-[60px]"    
+                  : "grid grid-cols-12 gap-3 px-[60px]"        
               }`}
             >
 
               {showSidebar && (
                 <div className="col-span-9 pt-8 h-[60px] flex justify-between items-center mb-2">
                   <BreadcrumbsMUI />
-                  <AvatarSettings />
+                  <AvatarSettings /> 
                 </div>
               )}
 
-              <div className="col-span-9 grid ">
+              <div
+              className={`grid ${
+                showSidebar
+                  ? "col-span-9"    
+                  : "col-span-12 "        
+              }`}
+              > 
                 <Routes>
                   <Route
                     path="/login"
@@ -150,6 +171,14 @@
                     }
                   />
                   <Route
+                    path="/users"
+                    element={
+                      <ProtectedRoute isAuthenticated={isAuthenticated}>
+                        <Users />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
                     path="/"
                     element={
                       <Navigate
@@ -165,6 +194,7 @@
 
         </main>
       </div>
+      </ThemeProvider>
     );
   }
 

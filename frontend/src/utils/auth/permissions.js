@@ -6,7 +6,6 @@ export const getUserPermissions = () => {
   return user?.permissions || [];
 };
 
-
 export const hasPermission = (module, action) => {
   const permissions = getUserPermissions();
   return permissions.includes(`${module}:${action}`);

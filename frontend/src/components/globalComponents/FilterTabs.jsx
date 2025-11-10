@@ -1,34 +1,36 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Tabs, Tab, Box } from "@mui/material";
 
-export default function FilterTabs({ tabs, data, onChange }) {
+export default function FilterTabs({ tabs, activeTab: propActiveTab, onChange }) {
   const [activeTab, setActiveTab] = useState(0);
   const tabsRef = useRef(null);
   const [pillStyle, setPillStyle] = useState({});
 
   const handleTabChange = (event, newValue) => {
     setActiveTab(newValue);
+    if (onChange) {
+      onChange(tabs[newValue].label);
+    }
     event.currentTarget.blur();
   };
-
-  useEffect(() => {
-    if (onChange) {
-      const filteredData = tabs[activeTab].filterFn(data);
-      onChange(filteredData, activeTab);
-    }
-  }, [activeTab, data, tabs, onChange]);
 
   useEffect(() => {
     const tabNodes = tabsRef.current?.querySelectorAll(".MuiTab-root");
     if (tabNodes && tabNodes[activeTab]) {
       const node = tabNodes[activeTab];
       setPillStyle({
-        width: node.offsetWidth,
+        width: node.offsetWidth,  
         transform: `translateX(${node.offsetLeft}px)`,
         height: node.offsetHeight,
       });
     }
   }, [activeTab, tabsRef.current]);
+
+  useEffect(() => {
+    if (propActiveTab !== undefined && propActiveTab !== activeTab) {
+      setActiveTab(propActiveTab);
+    }
+  }, [propActiveTab]);
 
   return (
     <Box
