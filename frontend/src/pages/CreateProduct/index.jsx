@@ -20,7 +20,7 @@ export default function CreateProduct() {
   }, [step]);
   return (
     <div className="grid grid-cols-9 gap-3 w-full text-black mb-10 !overflow-x-hidden ">
-        <div className="col-span-2 flex flex-col space-y-4 mt-12 font-nunito">
+        <div className="col-span-2 flex flex-col space-y-4 mt-24 font-nunito">
         {steps.map((s) => (
           <div key={s.id} className="flex items-center space-x-4">
             <div className="w-20 h-3 flex justify-end items-center ">
@@ -61,7 +61,7 @@ export default function CreateProduct() {
   <div className="flex justify-between">
         <div>
           <Button
-            onClick={() => setStep(1)}
+            onClick={() => setStep(1)}  
             children={"Cancel"} 
             variant="tertiary"
             iconPosition="left" 
