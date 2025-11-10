@@ -3,14 +3,15 @@ import { useEffect, useState } from "react";
 import { getCurrentUser } from "../../utils/auth";
 
 export default function AvatarSettings (){
-    const [user, setUser] = useState({ username: "", role: "" });
+    const [user, setUser] = useState({ firstName: "", lastName:"", role: "" });
     useEffect(() => {
         const currentUser = getCurrentUser();
         console.log(currentUser)
 
         if(currentUser){
             setUser({
-            username: currentUser.username,
+            firstName: currentUser.firstName,
+            lastName: currentUser.lastName,
             role: currentUser.primaryRole
             });
         }
@@ -32,7 +33,7 @@ export default function AvatarSettings (){
                 />
                 </div>
                 <div>
-                <div className="text-black text-sm font-nunito">{user.username}</div>
+                <div className="text-black text-sm font-nunito">{user.firstName + " " + user.lastName}</div>
                 <div className="text-gray-500 text-xs">{user.role}</div>
                 </div>
             </div>

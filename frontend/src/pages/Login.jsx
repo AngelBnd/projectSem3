@@ -4,7 +4,7 @@ import Button from '../components/globalComponents/Button';
 import loginImage from '../../src/assets/loginimage.jpg'; 
 
 function Login({ setAuthenticated }) {
- const [username, setUsername] = useState('');
+ const [email, setEmail] = useState('');
  const [password, setPassword] = useState('');
  const [error, setError] = useState('');
  const navigate = useNavigate();
@@ -19,7 +19,7 @@ function Login({ setAuthenticated }) {
     headers: {
      'Content-Type': 'application/json'
     },
-    body: JSON.stringify({ username, password }),
+    body: JSON.stringify({ email, password }),
    });
 
    const data = await response.json();
@@ -48,13 +48,13 @@ function Login({ setAuthenticated }) {
         <h2 className="text-4xl font-semibold mb-6 text-gray-800">Log in</h2>
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
-          <label htmlFor="username" className="block text-sm font-medium text-gray-700">Username</label>
+          <label htmlFor="Email" className="block text-sm font-medium text-gray-700">Email</label>
             <input
-              id="username"
+              id="Email"
               type="text"
-              placeholder="Username"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
+              placeholder="Email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               required
               className="border p-2 rounded-2xl w-full text-black bg-white focus:outline-none focus:ring-2 focus:ring-blue-400 shadow-sm"
             />

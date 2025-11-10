@@ -14,10 +14,12 @@ async function main() {
   // Create admin user first without storeId (since it's nullable now)
   const adminUser = await prisma.users.create({
     data: {
-      email: 'admin@example.com',
-      username: 'Admin',
+      email: "admin@example.com",
+      firstName: "Admin",
+      lastName: "User",
+      phoneNumber: "081234567890", 
       passwordHash: adminPassword,
-      status: 'ACTIVE', // Admin is automatically active
+      status: "ACTIVE"
     },
   });
 
@@ -26,7 +28,7 @@ async function main() {
     data: {
       storeName: 'Dev Store',
       storeTag: 'DEV_STORE',
-      ownerId: adminUser.userId, // Set owner immediately
+      ownerId: adminUser.userId,
     },
   });
 
@@ -49,8 +51,9 @@ async function main() {
   await prisma.users.update({
     where: { userId: adminUser.userId },
     data: {
-      storeId: store.storeId,
-      roleId: adminRole.roleId,
+      store : {
+        connect : { storeId : store.storeId}
+      }
     }
   });
 
@@ -121,11 +124,13 @@ async function main() {
   // Create regular user (will be in PENDING_APPROVAL status by default)
   const regularUser = await prisma.users.create({
     data: {
-      email: 'user@dev.com',
-      username: 'Regular User',
+      email: "user@dev.com",
+      firstName: "Regular",
+      lastName: "User",
+      phoneNumber: "081234567891", 
       passwordHash: userPassword,
-      requestedStoreTag: 'DEV_STORE', // They requested to join this store
-      status: 'PENDING_APPROVAL', // Waiting for admin approval
+      requestedStoreTag: "DEV_STORE",
+      status: "PENDING_APPROVAL", 
     },
   });
 

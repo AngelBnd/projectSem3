@@ -212,8 +212,11 @@ model Users {
   storeId      Int?    
   store        Stores? @relation(fields: [storeId], references: [storeId])
   
-  username     String  @unique
-  email        String  @unique
+  firstName    String @default("")
+  lastName     String @default("")
+  email        String   @unique
+  phoneNumber  String?  
+
   passwordHash String
   status       UserStoreStatus @default(PENDING_APPROVAL)
   requestedStoreTag String?
@@ -332,7 +335,7 @@ model ProductVariants {
   productStatus    ProductStatus
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
-  image            String
+  image            String?
 
   salesOrderItems        SalesOrderItems[]
   purchaseOrderItems     PurchaseOrderItems[]

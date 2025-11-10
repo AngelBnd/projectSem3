@@ -32,14 +32,14 @@ router.post('/register', async (req, res) => {
 
 // Login
 router.post('/login', async (req, res) => {
-  const { username, password } = req.body;
+  const { email, password } = req.body;
 
-  if (!username || !password)
-    return res.status(400).json({ error: 'Username and password are required' });
+  if (!email || !password)
+    return res.status(400).json({ error: 'Email and password are required' });
 
   try {
     const user = await prisma.users.findUnique({
-      where: { username },
+      where: { email },
       include: {
         userRoles: {
           include: {
@@ -69,14 +69,27 @@ router.post('/login', async (req, res) => {
     const roleNames = user.userRoles.map(ur => ur.role.roleName);
     const primaryRole = user.userRoles.find(ur => ur.isPrimary)?.role.roleName || roleNames[0];
 
-    const token = jwt.sign({ userId: user.userId, username: user.username, primaryRole, permissions }, JWT_SECRET, { expiresIn: '1h' });
+    const token = jwt.sign(
+      {
+        userId: user.userId,
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        primaryRole,
+        permissions
+      },
+      JWT_SECRET,
+      { expiresIn: '1h' }
+    );
 
     res.json({
       success: true,
       token,
       user: {
         id: user.userId,
-        username: user.username,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
         roles: roleNames,
         primaryRole,
         permissions
