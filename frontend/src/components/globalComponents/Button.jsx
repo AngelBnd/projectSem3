@@ -18,7 +18,8 @@ function Button({
   icon: IconComponent, 
   variant = 'primary', 
   hasBorder,
-  iconPosition = 'left' 
+  iconPosition = 'left',
+  fullWidth = false, 
 }) {
 
   let styles = variantStyles[variant] || variantStyles.primary;
@@ -37,6 +38,7 @@ function Button({
         px-3 py-[5px] rounded-md shadow active:bg-inherit  
         transition font-nunito text-semibold text-[14px] 
         flex items-center justify-center 
+        ${fullWidth ? 'w-full' : ''} 
         ${styles} 
         ${className}
       `}
