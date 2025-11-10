@@ -1,12 +1,12 @@
 import React from 'react';
 
 const variantStyles = {
-  primary: 'bg-[#3376FC] text-white hover:bg-blue-600 border border-[#3376FC]',
-  white: 'bg-white hover:bg-gray-50 border border-gray-300',
-  primaryAlt: 'bg-[#36383C] text-white hover:bg-gray-600 border border-gray-300 shadow-sm',
-  secondary: 'bg-transparent hover:bg-gray-100 border border-2 border-[#36383C]', 
-  tertiary: 'bg-transparent hover:bg-gray-100 border shadow-none underline', 
-  danger: 'bg-red-500 text-white hover:bg-red-600 border border-red-500',
+  primary: 'bg-[#3376FC] text-white hover:bg-blue-600 active:bg-[#3376FC] border border-[#3376FC]',
+  white: 'bg-white hover:bg-gray-50 active:bg-white border border-gray-300',
+  primaryAlt: 'bg-[#36383C] text-white hover:bg-gray-600 active:bg-[#36383C] border border-gray-300 shadow-sm',
+  secondary: 'bg-transparent  hover:bg-transparent active:bg-transparent border border-2 border-[#36383C]',
+  tertiary: 'bg-transparent  hover:bg-transparent !active:bg-transparent border shadow-none underline',
+  danger: 'bg-red-500 text-white hover:bg-red-600 active:bg-red-500 border border-red-500',
 };
 
 const defaultHasBorder = ['primary', 'white', 'primaryAlt', 'danger', 'secondary'];
@@ -34,7 +34,7 @@ function Button({
       onClick={onClick}
       className={`
         focus:outline-none !focus:ring-0 !focus-visible:outline-none 
-        px-3 py-[5px] rounded-md shadow 
+        px-3 py-[5px] rounded-md shadow active:bg-inherit  
         transition font-nunito text-semibold text-[14px] 
         flex items-center justify-center 
         ${styles} 
