@@ -1,10 +1,14 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Tabs, Tab, Box } from "@mui/material";
+import { Tabs, Tab, Box, useTheme, useMediaQuery } from "@mui/material";
+
 
 export default function FilterTabs({ tabs, activeTab: propActiveTab, onChange }) {
   const [activeTab, setActiveTab] = useState(0);
   const tabsRef = useRef(null);
   const [pillStyle, setPillStyle] = useState({});
+
+  const theme = useTheme();
+  const isSmallScreen = useMediaQuery(theme.breakpoints.down("sm"));
 
   const handleTabChange = (event, newValue) => {
     setActiveTab(newValue);
@@ -14,17 +18,28 @@ export default function FilterTabs({ tabs, activeTab: propActiveTab, onChange })
     event.currentTarget.blur();
   };
 
-  useEffect(() => {
+  const updatePill = () => {
     const tabNodes = tabsRef.current?.querySelectorAll(".MuiTab-root");
     if (tabNodes && tabNodes[activeTab]) {
       const node = tabNodes[activeTab];
       setPillStyle({
-        width: node.offsetWidth,  
+        width: node.offsetWidth,
         transform: `translateX(${node.offsetLeft}px)`,
         height: node.offsetHeight,
       });
     }
-  }, [activeTab, tabsRef.current]);
+  };
+
+  useEffect(() => {
+    const handleResize = () => {
+      updatePill();
+    };
+
+    updatePill();
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, [activeTab, tabs, isSmallScreen]);
 
   useEffect(() => {
     if (propActiveTab !== undefined && propActiveTab !== activeTab) {
@@ -32,13 +47,16 @@ export default function FilterTabs({ tabs, activeTab: propActiveTab, onChange })
     }
   }, [propActiveTab]);
 
+  
   return (
     <Box
       sx={{
         display: "inline-flex",
         bgcolor: "#EAECF0",
-        p: 0.7,
+        p: 0.5,
         borderRadius: "4px",
+         
+        overflowX: "auto", 
       }}
     >
       <Box sx={{ position: "relative", width: "100%" }}>
@@ -52,7 +70,7 @@ export default function FilterTabs({ tabs, activeTab: propActiveTab, onChange })
             boxShadow: "0 1px 2px #B9B3C0",
             transition: "transform 0.3s ease, width 0.3s ease",
             transform: pillStyle.transform || "translateX(0px)",
-            width: pillStyle.width || 126,
+            width: pillStyle.width || "auto",
             height: pillStyle.height || "100%",
             zIndex: 0,
             pointerEvents: "none",
@@ -68,7 +86,7 @@ export default function FilterTabs({ tabs, activeTab: propActiveTab, onChange })
           sx={{
             minHeight: 32,
             "& .MuiTabs-flexContainer": { gap: 0 },
-            position: "relative", // pill is relative to this
+            position: "relative", 
             zIndex: 1,
           }}
         >
@@ -82,7 +100,7 @@ export default function FilterTabs({ tabs, activeTab: propActiveTab, onChange })
                 fontFamily: "Lato, sans-serif",
                 fontSize: "14px",
                 textTransform: "none",
-                width: 126,
+                minWidth: isSmallScreen ? 80 : 126,
                 minHeight: "auto",
                 padding: "6px 4px",
                 borderRadius: "4px",

@@ -155,8 +155,8 @@ export default function Register(){
     },[formData])
 
     return(
-    <div className="grid grid-cols-12 gap-3 w-full text-black mb-10 !overflow-x-hidden mt-20 ">
-        <div className="col-span-2 flex flex-col space-y-4 mt-24 font-nunito">
+    <div className="grid grid-cols-4 md:grid-cols-12 gap-3 w-full text-black mb-10 !overflow-x-hidden mt-20 ">
+        <div className="col-span-4 flex items-center mb-4 md:mb-0 md:justify-start md:col-span-2 flex flex-col space-y-4 mt-24 font-nunito">
         {steps.map((s) => (
           <div key={s.id} className="flex items-center space-x-4">
             <div className="w-20 h-3 flex justify-end items-center ">
@@ -177,7 +177,7 @@ export default function Register(){
         ))}
       </div>
 
-    <div  className="col-span-6 col-start-4 bg-red h-[800px] overflow-y-auto custom-scrollbar rounded-md shadow flex flex-col">
+    <div  className="col-span-4 md:col-span-6 md:col-start-4 bg-red h-[800px] overflow-y-auto custom-scrollbar rounded-md shadow flex flex-col">
       <div className="flex flex-col flex-none  items-center justify-center w-full mb-3">
         <div className="text-sm text-gray-500">
           Register

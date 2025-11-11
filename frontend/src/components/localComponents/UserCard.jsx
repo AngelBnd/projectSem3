@@ -23,7 +23,7 @@ export const UserCard = ({ employee, onApprove, onReject }) => {
                 </div>
             </div>
 
-            <div className="flex flex-col gap-3 text-sm text-gray-700 border-t pt-4 mb-5">
+           <div className={`flex flex-col gap-3 text-sm text-gray-700 border-t pt-4 ${showActions ? "mb-5" : ""}`}>
                 <div className="flex gap-2 text-gray-500 items-center">
                     <EmailIcon className={" w-5 h-5"}/>
                     {employee.email}
