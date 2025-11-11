@@ -87,7 +87,7 @@
                     />
                 </div>
 
-                <div className="col-span-9 grid grid-cols-4 gap-3">
+                <div className="col-span-9 grid grid-cols-2 lg:grid-cols-4 gap-3">
                     {filteredUsers.map((user) => (
                     <UserCard
                         key={user.userId}
