@@ -5,6 +5,7 @@ import { useRef } from "react";
 import { useDebounce } from "../globalComponents/Debounce";
 import { usePopup } from "../globalComponents/PopupContext";
 import { PopupOkay, PopupError } from "../globalComponents/PopupComp";
+import FilterTabs from "../globalComponents/FilterTabs";
 
 // New component for individual product item in the list
 const ProductItem = ({ product, index, onProductChange, onDeleteProduct, onProductFocus, onProductBlur, activeProductIndex, mode}) => {
@@ -64,11 +65,60 @@ const ProductItem = ({ product, index, onProductChange, onDeleteProduct, onProdu
     );
 };
 
+const ServiceItem = ({ service, index, onServiceChange, onDeleteService }) => {
+  return (
+    <div className="grid grid-cols-6 items-end gap-4 py-[4px] bg-transparent rounded-lg">
+      {/* Service Name Input */}
+      <div className="col-span-3">
+        <input
+          type="text"
+          name="serviceName"
+          value={service.serviceName}
+          onChange={(e) => onServiceChange(index, e)}
+          placeholder="Service Description"
+          className="w-full p-2 border rounded-md bg-white text-black focus:outline-none focus:ring-1 focus:ring-blue-400"
+        />
+      </div>
+      
+      {/* Service Price Input */}
+      <div className="col-span-2">
+        <input
+          type="number"
+          name="price"
+          value={service.price}
+          onChange={(e) => onServiceChange(index, e)}
+          placeholder="Price"
+          className="w-full p-2 text-right border rounded-md bg-white text-black focus:outline-none focus:ring-1 focus:ring-blue-400"
+          min="0"
+        />
+      </div>
+
+      <div className="col-span-1 flex justify-end">
+        <button
+          type="button"
+          onClick={() => onDeleteService(index)}
+            className="p-2 text-red-500 rounded-md hover:bg-red-100 bg-transparent mx-auto"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M4 7l16 0" /><path d="M10 11l0 6" /><path d="M14 11l0 6" /><path d="M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12" /><path d="M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3" /></svg>
+        </button>
+      </div>
+    </div>
+  );
+};
+
 export default function InputTransactionForm({ mode, item, isEditMode, invoiceData, setInvoiceData, newProducts, setNewProducts, useDiscount, setUseDiscount, discountValue, setDiscountValue }) {
     const [hasAddedProduct, setHasAddedProduct] = useState(false);
+    const [newServices, setNewServices] = useState([]);
+    const [activeTab, setActiveTab] = useState("Products");
+
     const formRef = useRef(null);
     const bottomRef = useRef(null);
     const navigate = useNavigate();
+
+    const tabs = [
+        { label: "Products" },
+        { label: "Services" }
+    ];
 
     // const { openPopup } = usePopup();
 
@@ -219,6 +269,32 @@ export default function InputTransactionForm({ mode, item, isEditMode, invoiceDa
         setNewProducts(updatedProducts);
     };
 
+    const handleAddService = () => {
+        if (activeTab !== "Services") return;
+        const newBlankService = {
+        serviceName: "",
+        price: 0,
+        tempId: Date.now(), 
+        };
+        setNewServices([...newServices, newBlankService]);
+        setHasAddedProduct(true); 
+     };
+
+    const handleDeleteService = (indexToRemove) => {
+        setNewServices(newServices.filter((_, index) => index !== indexToRemove));
+    };
+
+    const handleServiceChange = (index, e) => {
+        const { name, value } = e.target;
+        const updatedServices = [...newServices];
+        
+        updatedServices[index] = { 
+        ...updatedServices[index], 
+        [name]: name === 'price' ? parseFloat(value) || 0 : value
+        };
+        setNewServices(updatedServices);
+    };
+
     const handleSubmit = async (event) => {
         event.preventDefault();
 
@@ -258,6 +334,20 @@ export default function InputTransactionForm({ mode, item, isEditMode, invoiceDa
             // Convert the normalized object back into an array for the backend payload
             const validatedProducts = Object.values(normalizedProducts);
             
+            const validatedServices = newServices.map(service => {
+                const name = service.serviceName.trim();
+                const price = parseFloat(service.price) || 0;
+
+                if (!name || name.length === 0 || price <= 0) {
+                    throw new Error("One or more services are incomplete or have an invalid price.");
+                }
+
+                return {
+                    serviceName: name,
+                    price: price,
+                };
+            });
+
             // If the normalized array is empty after validation (should be caught by the length check, but for safety)
             if (validatedProducts.length === 0) {
                  throw new Error("No valid products were submitted.");
@@ -267,8 +357,8 @@ export default function InputTransactionForm({ mode, item, isEditMode, invoiceDa
             const finalInvoice = {
                 ...invoiceData,
                 discount: useDiscount ? discountValue : 0,
-                // The 'products' array now has unique productCode entries
                 products: validatedProducts, 
+                services: validatedServices,
             };
 
             
@@ -284,7 +374,7 @@ export default function InputTransactionForm({ mode, item, isEditMode, invoiceDa
                 method: `${method}`, 
                 headers: { 
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}` 
+                'Authorization': `Bearer ${token}`  
                 },
                 body: JSON.stringify(finalInvoice),
             });
@@ -349,14 +439,13 @@ export default function InputTransactionForm({ mode, item, isEditMode, invoiceDa
     },[item])
 
     // The form's overall layout and styling based on the screenshot
-    return (
-        <div className="flex flex-col h-full">
+   return (<div className="flex flex-col h-full">
             <form ref={formRef} onSubmit={handleSubmit} className="relative flex flex-col flex-grow gap-4 overflow-y-auto custom-scrollbar">
-                <div className="bg-white p-4 py-6 rounded-md shadow-md">  
+                <div className="bg-white p-4 py-6 rounded-md shadow-md items-start justify-content-start"> 
                     <div className="font-nunito text-lg font-bold mb-4">
                         Order Details
                     </div>
-                    {/* General Information Section */}
+                    {/* General Information Section (remains the same) */}
                     <div className="flex flex-col gap-4">
                         <div className="w-full">
                             <label className="block text-sm font-semibold text-black font-nunito">Name</label>
@@ -371,41 +460,41 @@ export default function InputTransactionForm({ mode, item, isEditMode, invoiceDa
                         </div>
                         <div className="w-full">
                             <label className="block text-sm font-semibold text-black font-nunito">Subject</label>
-                            <input
-                                type="text"
-                                name="subject"
-                                value={invoiceData.subject || ""}
-                                onChange={(e) => setInvoiceData({ ...invoiceData, subject: e.target.value })}
-                                className="border p-2 rounded-xl w-full text-black bg-white focus:outline-none focus:ring-1 focus:ring-blue-400 shadow-sm"
-                                placeholder="Subject"
-                            />
+                                <input
+                                    type="text"
+                                    name="subject"
+                                    value={invoiceData.subject || ""}
+                                    onChange={(e) => setInvoiceData({ ...invoiceData, subject: e.target.value })}
+                                    className="border p-2 rounded-xl w-full text-black bg-white focus:outline-none focus:ring-1 focus:ring-blue-400 shadow-sm"
+                                    placeholder="Subject"
+                                />
                         </div>
                         <div className="w-full">
-                            <label className="block text-sm font-semibold text-black font-nunito">Invoice Date</label>
-                            <div className="relative">
-                                <input
+                            <label className="block text-sm font-semibold text-black font-nunito">Order Date</label>
+                                <div className="relative">
+                                    <input
                                     type="date"
                                     name="invoiceDate"
                                     value={invoiceData.invoiceDate || ""}
                                     onChange={(e) => setInvoiceData({ ...invoiceData, invoiceDate: e.target.value })}
                                     className="border p-2 rounded-xl w-full text-black bg-white focus:outline-none focus:ring-1 focus:ring-blue-400 shadow-sm"
-                                />
-                                <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                className="h-5 w-5 absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke="currentColor"
-                                strokeWidth="2"
-                                >
-                                <path
+                                    />
+                                    <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    className="h-5 w-5 absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke="currentColor"
+                                    strokeWidth="2"
+                                    >
+                                    <path
                                     strokeLinecap="round"
                                     strokeLinejoin="round"
                                     d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 
                                     00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                                />
-                                </svg>
-                            </div>
+                                    />
+                                    </svg>
+                                </div>
                         </div>
                         <div className="w-full">
                             <label className="block text-sm font-semibold text-black font-nunito">Payment Method</label>
@@ -415,72 +504,110 @@ export default function InputTransactionForm({ mode, item, isEditMode, invoiceDa
                                 onChange={(e) => setInvoiceData({ ...invoiceData, paymentMethod: e.target.value })}
                                 className="border p-2 rounded-xl w-full text-black bg-white focus:outline-none focus:ring-1 focus:ring-blue-400 shadow-sm"
                             >
-                            
-                                <option value="Card">Card</option>
-                                <option value="Cash">Cash</option>
+                        
+                            <option value="Card">Card</option>
+                            <option value="Cash">Cash</option>
                             </select>
                         </div>
-                    </div>
                 </div>
+         </div>
 
-                {/* Product Section */}
-                <div className="bg-white p-4 py-6 rounded-md shadow-md">  
+         {/* TABS FOR SWITCHING */}
+         <div>
+            <FilterTabs 
+                tabs={tabs} 
+                activeTab={activeTab} // Pass the active tab state
+                onChange={(label) => setActiveTab(label)} // Update state on change
+            />
+         </div>
 
-                        <h2 className="text-xl font-semibold text-black mb-2  font-nunito">Product</h2>
-                        <div className="grid grid-cols-6 px-0 gap-4 text-sm font-semibold text-gray-500 font-nunito">
-                            <span className="col-span-4 font-nunito">Item</span>
-                            <span className="col-span-1">Qty</span>
-                        </div>
-                        
-                        {/* The new structure for products */}
-                        {newProducts.map((product, index) => (
-                            <ProductItem
-                                key={product.tempId}
-                                product={product}
-                                index={index}
-                                onProductChange={handleProductChange}
-                                onDeleteProduct={handleDeleteProduct}
-                                onProductFocus={handleProductFocus}
-                                onProductBlur={handleProductBlur}
-                                activeProductIndex={activeProductIndex}
-                                mode = {mode}
-                            />
-                        ))}
-                        {activeProductIndex !== null && autofill.length > 0 && (
-                            <div
-                            className="absolute bg-white border border-gray-300 rounded-md shadow-lg z-20 max-h-[100px] overflow-y-auto no-scrollbar-arrows"
-                            style={{
-                                top: `${dropdownPosition.top}px`,
-                                left: `${dropdownPosition.left}px`,
-                                width: `${dropdownPosition.width}px`,
-                            }}
-                            >
-                            {autofill.map((suggestion) => (
-                                <div
-                                key={suggestion.productCode}
-                                className="p-2 hover:bg-blue-100 cursor-pointer"
-                                onMouseDown={() => handleAutofillClick(suggestion)}
-                                >
-                                <p className="font-semibold text-black">{suggestion.productName}</p>
-                                <p className="text-sm text-gray-500">{suggestion.productCode}</p>
-                                </div>
-                            ))}
-                            </div>
-                        )}
+         <div className="bg-white p-4 py-6 rounded-md shadow-md"> 
+            <h2 className="text-xl font-semibold text-black mb-2 font-nunito">
+                {activeTab === "Products" ? "Products" : "Services"}
+            </h2>
 
-                        <button
-                            type="button"
-                            onClick={handleAddProduct}
-                            className="flex items-center gap-2 p-2 mt-2 text-blue-500 hover:text-blue-600 bg-transparent focus:outline-none"
-                        >
-                            <span className="text-xl">+</span>
-                            <span className="text-sm font-semibold">Add Product</span>
-                        </button>
-                <div ref={bottomRef} />
+           {activeTab === "Products" && (
+             <>
+               <div className="grid grid-cols-6 px-0 gap-4 text-sm font-semibold text-gray-500 font-nunito">
+                 <span className="col-span-4 font-nunito">Item / Code</span>
+                 <span className="col-span-1">Qty</span>
+               </div>
+               {newProducts.map((product, index) => (
+                 <ProductItem
+                   key={product.tempId}
+                   product={product}
+                   index={index}
+                   onProductChange={handleProductChange}
+                   onDeleteProduct={handleDeleteProduct}
+                   onProductFocus={handleProductFocus}
+                   onProductBlur={handleProductBlur}
+                   activeProductIndex={activeProductIndex}
+                   mode = {mode}
+                 />
+               ))}
+               {activeProductIndex !== null && autofill.length > 0 && (
+                 <div
+                    className="absolute bg-white border border-gray-300 rounded-md shadow-lg z-20 max-h-[100px] overflow-y-auto no-scrollbar-arrows"
+                    style={{
+                    top: `${dropdownPosition.top}px`,
+                    left: `${dropdownPosition.left}px`,
+                    width: `${dropdownPosition.width}px`,
+                 }}
+                 >
+                {autofill.map((suggestion) => (
+                <div
+                key={suggestion.productCode}
+                className="p-2 hover:bg-blue-100 cursor-pointer"
+                onMouseDown={() => handleAutofillClick(suggestion)}
+                >
+                    <p className="font-semibold text-black">{suggestion.productName}</p>
+                    <p className="text-sm text-gray-500">{suggestion.productCode}</p>
                 </div>
+                ))}
+                 </div>
+               )}
+
+               <button
+                 type="button"
+                 onClick={handleAddProduct}
+                 className="flex items-center gap-2 p-2 mt-2 text-blue-500 hover:text-blue-600 bg-transparent focus:outline-none"
+               >
+                 <span className="text-xl">+</span>
+                 <span className="text-sm font-semibold">Add Product</span>
+               </button>
+             </>
+           )}
+
+           {activeTab === "Services" && (
+             <>
+                <div className="grid grid-cols-6 px-0 gap-4 text-sm font-semibold text-gray-500 font-nunito">
+                    <span className="col-span-3 font-nunito">Service Description</span>
+                    <span className="col-span-2 text-right">Price</span>
+                </div>
+                {newServices.map((service, index) => (
+                    <ServiceItem
+                    key={service.tempId}
+                    service={service}
+                    index={index}
+                    onServiceChange={handleServiceChange}
+                    onDeleteService={handleDeleteService}
+                    />
+                ))}
+                <button
+                    type="button"
+                    onClick={handleAddService}
+                    className="flex items-center gap-2 p-2 mt-2 text-blue-500 hover:text-blue-600 bg-transparent focus:outline-none"
+                >
+                    <span className="text-xl">+</span>
+                    <span className="text-sm font-semibold">Add Service</span>
+                </button>
+             </>
+           )}
+             
+             <div ref={bottomRef} />
+         </div>
             </form>
 
-            {/* Fixed bottom section for Discount and Buttons */}
             <div className="p-4 mt-4  border-t-2 ">
                 <div className="flex items-center gap-2 mb-4">
                   <input
@@ -519,6 +646,5 @@ export default function InputTransactionForm({ mode, item, isEditMode, invoiceDa
                     </div>
                 </div>
             </div>
-        </div>
-    );
-}
+        </div>);
+   }
