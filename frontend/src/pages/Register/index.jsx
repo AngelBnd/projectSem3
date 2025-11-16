@@ -145,7 +145,8 @@ export default function Register(){
         } finally {
             setLoading(false);
         }
-    };
+    }; 
+    
 
     useEffect(()=>{
         console.log("dari index.js register")

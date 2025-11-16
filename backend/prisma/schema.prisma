@@ -43,12 +43,13 @@ enum StockReferenceType {
 
 enum StockAuditStatus {
   PENDING
+  PENDING_APPROVAL
   COMPLETED
   APPROVED
   REJECTED
 }
 
-enum FulfillmentStatus {
+enum deliveryStatus {
   PENDING
   PARTIALLY_FULFILLED
   FULFILLED
@@ -127,7 +128,7 @@ enum SalesOrderStatus {
 }
 
 enum SalesReturnStatus {
-  PENDING_APPROVAL
+  PENDING
   APPROVED
   REJECTED
   PROCESSING
@@ -158,6 +159,21 @@ enum PurchaseOrderStatus {
   ON_HOLD
 }
 
+enum InvoiceStatus {
+  DRAFT             
+  PENDING_APPROVAL    
+  APPROVED           
+  REJECTED           
+
+  ISSUED           
+  PARTIALLY_PAID   
+  PAID             
+
+  OVERDUE          
+  CANCELLED     
+  VOIDED          
+}
+
 // --------------------------------------
 // STORES (TENANT ROOT)
 // --------------------------------------
@@ -172,36 +188,39 @@ model Stores {
   ownerId     Int      @unique
   owner       Users    @relation("StoreOwner", fields: [ownerId], references: [userId])
 
-  // Opposite relations
-  users       Users[]
-  roles       Roles[]
-  products    Products[]
-  productVariants ProductVariants[]
-  purchaseOrders PurchaseOrders[]
-  salesOrders SalesOrders[]
-  receivedGoodsNotes ReceivedGoodsNotes[]
-  purchaseReturns PurchaseReturns[]
-  stockAudits StockAudits[]
-  invoices    Invoices[]
-  creditNotes CreditNotes[]
-  inventoryReservations InventoryReservation[]
-  attributes  Attributes[]
-  attributeValues AttributeValues[]
+  users                 Users[]
+  roles                 Roles[]
+  products              Products[]
+  productVariants       ProductVariants[]
+
+  purchaseOrders        PurchaseOrders[]
+  purchaseOrderItems    PurchaseOrderItems[]
+  purchaseReturns       PurchaseReturns[]
+  purchaseReturnItems   PurchaseReturnItems[]
+  receivedGoodsNotes    ReceivedGoodsNotes[]
+
+  salesOrders           SalesOrders[]
+  salesOrderItems       SalesOrderItems[]
+  salesDeliveryItems    SalesDeliveryItems[]
+  salesReturnItems      SalesReturnItems[]
+
+  invoices              Invoices[]
+  invoiceLineItems      InvoiceLineItems[]
+  invoicePayments       InvoicePayments[]
+  creditNotes           CreditNotes[]
+  creditNoteItems       CreditNoteItems[]
+
+  stockAudits           StockAudits[]
+  stockMovements        StockMovements[]
+
+  attributes            Attributes[]
+  attributeValues       AttributeValues[]
   productVariantAttributes ProductVariantAttributes[]
-  priceHistories PriceHistory[]
-  stockMovements StockMovements[]
-  invoiceLineItems InvoiceLineItems[]
-  invoicePayments InvoicePayments[]
-  channels    Channels[]
-  subChannels SubChannels[]
-  purchaseOrderItems PurchaseOrderItems[]
-  purchaseReturnItems PurchaseReturnItems[]
-  salesOrderItems SalesOrderItems[]
-  saleFulfillments SaleFulfillments[]
-  saleFulfillmentItems SaleFulfillmentItems[]
-  salesReturns SalesReturns[]
-  salesReturnItems SalesReturnItems[]
-  creditNoteItems CreditNoteItems[]
+
+  auditLogs             AuditLogs[]
+
+  channels              Channels[]
+  subChannels           SubChannels[]
 }
 
 // --------------------------------------
@@ -236,6 +255,8 @@ model Users {
   stockAudits  StockAudits[]
   invoices     Invoices[]
   creditNotes  CreditNotes[]
+  auditLogs     AuditLogs[]
+  salesOrders   SalesOrders[]
 
   @@index([storeId])
   @@index([status])
@@ -339,13 +360,10 @@ model ProductVariants {
 
   salesOrderItems        SalesOrderItems[]
   purchaseOrderItems     PurchaseOrderItems[]
-  saleFulfillmentItems   SaleFulfillmentItems[]
-  salesReturnItems       SalesReturnItems[]
   receivedGoodsNotes     ReceivedGoodsNotes[]
   purchaseReturnItems    PurchaseReturnItems[]
   stockMovements         StockMovements[]
   productVariantAttributes ProductVariantAttributes[]
-  priceHistories         PriceHistory[]
   stockAdjustmentPerProduct StockAdjustmentPerProduct[]
   invoiceLineItems      InvoiceLineItems[]
 
@@ -397,20 +415,6 @@ model ProductVariantAttributes {
   @@index([productVariantsId])
 }
 
-model PriceHistory {
-  priceHistoryId     Int @id @default(autoincrement())
-  productVariantsId  Int
-  storeId            Int
-  store              Stores @relation(fields: [storeId], references: [storeId])
-  dateChanged        DateTime
-  sellingPrice       Decimal
-  newPrice           Decimal
-  productVariant     ProductVariants @relation(fields: [productVariantsId], references: [productVariantId], onDelete: Cascade)
-
-  @@index([productVariantsId])
-  @@index([storeId])
-  @@index([dateChanged])
-}
 
 // --------------------------------------
 // INVENTORY MANAGEMENT
@@ -476,7 +480,7 @@ model Invoices {
   storeId          Int
   store            Stores @relation(fields: [storeId], references: [storeId])
   channelId        Int
-  salesOrderId     Int?
+  salesOrderId     Int? @unique  
   invoiceNumber    String @unique
   invoiceType      String
   invoiceSubject   String?
@@ -484,7 +488,7 @@ model Invoices {
   discount         Decimal?
   subtotal         Decimal
   totalAmount      Decimal
-  status           String
+  status           InvoiceStatus 
   createdBy        Int
 
   channel          Channels @relation(fields: [channelId], references: [channelId])
@@ -514,6 +518,7 @@ model InvoiceLineItems {
   serviceDesc        String?
   quantitySold       Int
   sellingPrice       Decimal
+  discount           Decimal?
 
   creditNoteItems    CreditNoteItems[]
 
@@ -653,110 +658,65 @@ model PurchaseReturnItems {
 // SALE ORDERS AND ALL ITS FRIENDS
 // --------------------------------------
 model SalesOrders {
-  salesOrderId   Int @id @default(autoincrement())
+  salesOrderId   Int      @id @default(autoincrement())
   storeId        Int
-  store          Stores @relation(fields: [storeId], references: [storeId])
   customerName   String?
   orderDate      DateTime
-  orderStatus    SalesOrderStatus @default(DRAFT)
-  totalAmount    Decimal?
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
-  discount       Decimal?
+  status         SalesOrderStatus @default(PENDING_APPROVAL)
+  paymentTerms   String?
+  createdBy      Int
+  totalAmount      Decimal
+  discount          Decimal?
 
+  createdByUser    Users @relation(fields: [createdBy], references: [userId])
+  invoice        Invoices?
+  store          Stores @relation(fields: [storeId], references: [storeId])
   items          SalesOrderItems[]
-  fulfillments   SaleFulfillments[]
-  salesReturns   SalesReturns[]
-  invoices       Invoices[]
-
-  @@index([storeId])
-  @@index([orderDate])
 }
 
 model SalesOrderItems {
-  salesOrderItemId Int @id @default(autoincrement())
-  salesOrderId     Int
-  productVariantId Int
-  storeId          Int
-  store            Stores @relation(fields: [storeId], references: [storeId])
-  salesOrder       SalesOrders @relation(fields: [salesOrderId], references: [salesOrderId])
-  productVariant   ProductVariants @relation(fields: [productVariantId], references: [productVariantId])
-  quantityOrdered  Int
-  unitPrice        Decimal
-  discount         Decimal?
-
-  inventoryReservations InventoryReservation[]
-
-  @@index([salesOrderId])
-  @@index([productVariantId])
-  @@index([storeId])
-}
-
-model SaleFulfillments {
-  saleFulfillmentId Int @id @default(autoincrement())
-  salesOrderId      Int
+  salesOrderItemsId Int @id @default(autoincrement())
   storeId           Int
+
+
+  salesOrderId      Int
+  productVariantId Int
+
+  quantityOrdered   Int
+  unitPrice             Decimal
+  discount          Decimal?
+
   store             Stores @relation(fields: [storeId], references: [storeId])
-  salesOrder        SalesOrders @relation(fields: [salesOrderId], references: [salesOrderId])
-  fulfillmentDate   DateTime
-  status            FulfillmentStatus
-  notes             String?
-  createdAt         DateTime @default(now())
-
-  items             SaleFulfillmentItems[]
-
-  @@index([salesOrderId])
-  @@index([storeId])
-  @@index([fulfillmentDate])
+  salesOrder        SalesOrders       @relation(fields: [salesOrderId], references: [salesOrderId])
+  productVariant    ProductVariants  @relation(fields: [productVariantId], references: [productVariantId])
+  deliveries      SalesDeliveryItems[]
 }
 
-model SaleFulfillmentItems {
-  saleFulfillmentItemId Int @id @default(autoincrement())
-  saleFulfillmentId     Int
-  productVariantId      Int
-  storeId               Int
-  store                 Stores @relation(fields: [storeId], references: [storeId])
-  saleFulfillment       SaleFulfillments @relation(fields: [saleFulfillmentId], references: [saleFulfillmentId])
-  productVariant        ProductVariants @relation(fields: [productVariantId], references: [productVariantId])
-  quantityFulfilled     Int
+model SalesDeliveryItems {
+  salesDeliveryItemsId  Int @id @default(autoincrement())
+  storeId                  Int
 
-  @@index([saleFulfillmentId])
-  @@index([productVariantId])
-  @@index([storeId])
-}
+  salesOrderItemsId       Int
+  quantityDelivered       Int
+  status                  deliveryStatus @default(PENDING)
+  deliveryDate         DateTime
 
-model SalesReturns {
-  returnId     Int @id @default(autoincrement())
-  salesOrderId Int
-  storeId      Int
-  store        Stores @relation(fields: [storeId], references: [storeId])
-  salesOrder   SalesOrders @relation(fields: [salesOrderId], references: [salesOrderId])
-  returnDate   DateTime
-  status       SalesReturnStatus @default(PENDING_APPROVAL)
-  reason       String?
-  createdAt    DateTime @default(now())
-
-  items        SalesReturnItems[]
-
-  @@index([salesOrderId])
-  @@index([storeId])
-  @@index([returnDate])
+  store                   Stores @relation(fields: [storeId], references: [storeId])
+  salesOrderItem          SalesOrderItems @relation(fields: [salesOrderItemsId], references: [salesOrderItemsId])
+  returns                 SalesReturnItems[]
 }
 
 model SalesReturnItems {
-  returnItemId     Int @id @default(autoincrement())
-  returnId         Int
-  productVariantId Int
-  storeId          Int
-  store            Stores @relation(fields: [storeId], references: [storeId])
-  saleReturn       SalesReturns @relation(fields: [returnId], references: [returnId])
-  productVariant   ProductVariants @relation(fields: [productVariantId], references: [productVariantId])
-  quantityReturned Int
-  reason           String?
+  salesReturnItemsId     Int @id @default(autoincrement())
+  storeId                Int
 
-  @@index([returnId])
-  @@index([productVariantId])
-  @@index([storeId])
+  salesDeliveryItemsId Int
+  qtyReturned              Int
+  status                   SalesReturnStatus @default(PENDING)
+  returnDate               DateTime
+
+  store                    Stores @relation(fields: [storeId], references: [storeId])
+  salesDeliveryItem     SalesDeliveryItems @relation(fields: [salesDeliveryItemsId], references: [salesDeliveryItemsId])
 }
 
 // --------------------------------------
@@ -803,20 +763,27 @@ model CreditNoteItems {
   @@index([storeId])
 }
 
-// --------------------------------------
-// INVENTORY RESERVATION
-// --------------------------------------
-model InventoryReservation {
-  inventoryReservationId Int @id @default(autoincrement())
-  salesOrderItemsId      Int
-  storeId                Int
-  qtyAllocated           Int
-  allocationDate         DateTime
+model AuditLogs {
+  auditLogId   Int       @id @default(autoincrement())
+  storeId      Int?
+  store        Stores?   @relation(fields: [storeId], references: [storeId])
 
-  salesOrderItem         SalesOrderItems @relation(fields: [salesOrderItemsId], references: [salesOrderItemId], onDelete: Cascade)
-  store                  Stores @relation(fields: [storeId], references: [storeId])
+  userId       Int?
+  user         Users?    @relation(fields: [userId], references: [userId])
 
-  @@index([salesOrderItemsId])
+  tableName    String
+  recordId     Int
+  action       String           
+  oldValue     Json?
+  newValue     Json?
+
+  ipAddress    String?
+  userAgent    String?
+
+  createdAt    DateTime @default(now())
+
   @@index([storeId])
-  @@index([allocationDate])
+  @@index([userId])
+  @@index([tableName])
+  @@index([action])
 }
