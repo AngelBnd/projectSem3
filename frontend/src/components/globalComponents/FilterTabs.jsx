@@ -70,7 +70,7 @@ export default function FilterTabs({ tabs, activeTab: propActiveTab, onChange })
             boxShadow: "0 1px 2px #B9B3C0",
             transition: "transform 0.3s ease, width 0.3s ease",
             transform: pillStyle.transform || "translateX(0px)",
-            width: pillStyle.width || "auto",
+            width: pillStyle.width ,
             height: pillStyle.height || "100%",
             zIndex: 0,
             pointerEvents: "none",

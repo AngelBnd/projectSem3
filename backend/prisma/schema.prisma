@@ -206,7 +206,6 @@ model Stores {
 
   invoices              Invoices[]
   invoiceLineItems      InvoiceLineItems[]
-  invoicePayments       InvoicePayments[]
   creditNotes           CreditNotes[]
   creditNoteItems       CreditNoteItems[]
 
@@ -253,7 +252,6 @@ model Users {
   
   productsCreated Products[]
   stockAudits  StockAudits[]
-  invoices     Invoices[]
   creditNotes  CreditNotes[]
   auditLogs     AuditLogs[]
   salesOrders   SalesOrders[]
@@ -489,12 +487,9 @@ model Invoices {
   subtotal         Decimal
   totalAmount      Decimal
   status           InvoiceStatus 
-  createdBy        Int
 
   channel          Channels @relation(fields: [channelId], references: [channelId])
-  createdByUser    Users @relation(fields: [createdBy], references: [userId])
   invoiceLineItems InvoiceLineItems[]
-  invoicePayments  InvoicePayments[]
   creditNotes      CreditNotes[]
   salesOrder       SalesOrders? @relation(fields: [salesOrderId], references: [salesOrderId])
 
@@ -502,7 +497,6 @@ model Invoices {
   @@index([channelId])
   @@index([salesOrderId])
   @@index([invoiceDate])
-  @@index([createdBy])
 }
 
 model InvoiceLineItems {
@@ -518,29 +512,12 @@ model InvoiceLineItems {
   serviceDesc        String?
   quantitySold       Int
   sellingPrice       Decimal
-  discount           Decimal?
 
   creditNoteItems    CreditNoteItems[]
 
   @@index([invoiceId])
   @@index([productVariantsId])
   @@index([storeId])
-}
-
-model InvoicePayments {
-  paymentId      Int @id @default(autoincrement())
-  invoiceId      Int
-  storeId        Int
-  store          Stores @relation(fields: [storeId], references: [storeId])
-  paymentDate    DateTime
-  amountPaid     Decimal
-  paymentMethod  String
-  note           String?
-  invoice        Invoices @relation(fields: [invoiceId], references: [invoiceId], onDelete: Cascade)
-
-  @@index([invoiceId])
-  @@index([storeId])
-  @@index([paymentDate])
 }
 
 model Channels {
@@ -684,7 +661,6 @@ model SalesOrderItems {
 
   quantityOrdered   Int
   unitPrice             Decimal
-  discount          Decimal?
 
   store             Stores @relation(fields: [storeId], references: [storeId])
   salesOrder        SalesOrders       @relation(fields: [salesOrderId], references: [salesOrderId])

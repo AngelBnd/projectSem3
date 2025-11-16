@@ -306,7 +306,6 @@ async function main() {
       productVariantId: speakerVariant.productVariantId,
       quantityOrdered: 2,
       unitPrice: 149.99,
-      discount: 0,
     }
   });
 
@@ -317,7 +316,6 @@ async function main() {
       productVariantId: amplifierVariant.productVariantId,
       quantityOrdered: 1,
       unitPrice: 149.99,
-      discount: 0,
     }
   });
 
@@ -346,7 +344,6 @@ async function main() {
       subtotal: 449.98,
       totalAmount: 449.98,
       status: 'PAID',
-      createdBy: adminUser.userId,
     }
   });
 
@@ -362,17 +359,6 @@ async function main() {
     }
   });
 
-  // ----- INVOICE PAYMENTS -----
-  await prisma.invoicePayments.create({
-    data: {
-      storeId: store.storeId,
-      invoiceId: invoice.invoiceId,
-      paymentDate: new Date(),
-      amountPaid: 449.98,
-      paymentMethod: 'CASH',
-      note: 'Full payment received',
-    }
-  });
 
   // ----- PURCHASE ORDERS -----
   const purchaseOrder = await prisma.purchaseOrders.create({
