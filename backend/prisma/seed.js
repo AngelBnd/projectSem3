@@ -260,16 +260,6 @@ async function main() {
     }
   });
 
-  // ----- PRICE HISTORY -----
-  await prisma.priceHistory.create({
-    data: {
-      storeId: store.storeId,
-      productVariantsId: speakerVariant.productVariantId,
-      sellingPrice: 139.99,
-      newPrice: 149.99,
-      dateChanged: new Date(),
-    }
-  });
 
   // ----- CHANNELS -----
   const retailChannel = await prisma.channels.create({
@@ -301,9 +291,10 @@ async function main() {
       storeId: store.storeId,
       customerName: 'John Doe',
       orderDate: new Date(),
-      orderStatus: 'APPROVED',
+      status: 'APPROVED',
       totalAmount: 449.98,
       discount: 0,
+      createdBy: 1, 
     }
   });
 
@@ -330,37 +321,17 @@ async function main() {
     }
   });
 
-  // ----- INVENTORY RESERVATION -----
-  await prisma.inventoryReservation.create({
+
+  // ----- SALE DELIVERI ITEMS -----
+  const deliveryItem1 = await prisma.salesDeliveryItems.create({
     data: {
       storeId: store.storeId,
-      salesOrderItemsId: salesOrderItem1.salesOrderItemId,
-      qtyAllocated: 2,
-      allocationDate: new Date(),
+      salesOrderItemsId: salesOrderItem1.salesOrderItemsId,
+      quantityDelivered: 2, 
+      status: 'FULFILLED', 
+      deliveryDate: new Date(), 
     }
   });
-
-  // ----- SALE FULFILLMENTS -----
-  const fulfillment = await prisma.saleFulfillments.create({
-    data: {
-      storeId: store.storeId,
-      salesOrderId: salesOrder.salesOrderId,
-      fulfillmentDate: new Date(),
-      status: 'FULFILLED',
-      notes: 'Order ready for pickup',
-    }
-  });
-
-  // ----- SALE FULFILLMENT ITEMS -----
-  await prisma.saleFulfillmentItems.create({
-    data: {
-      storeId: store.storeId,
-      saleFulfillmentId: fulfillment.saleFulfillmentId,
-      productVariantId: speakerVariant.productVariantId,
-      quantityFulfilled: 2,
-    }
-  });
-
   // ----- INVOICES -----
   const invoice = await prisma.invoices.create({
     data: {
@@ -469,28 +440,6 @@ async function main() {
       physicalQuantity: 25,
       systemQuantity: 25,
       reason: 'MISCOUNT',
-    }
-  });
-
-  // ----- SALES RETURNS -----
-  const salesReturn = await prisma.salesReturns.create({
-    data: {
-      storeId: store.storeId,
-      salesOrderId: salesOrder.salesOrderId,
-      returnDate: new Date(),
-      status: 'APPROVED',
-      reason: 'Customer changed mind',
-    }
-  });
-
-  // ----- SALES RETURN ITEMS -----
-  await prisma.salesReturnItems.create({
-    data: {
-      storeId: store.storeId,
-      returnId: salesReturn.returnId,
-      productVariantId: speakerVariant.productVariantId,
-      quantityReturned: 1,
-      reason: 'No longer needed',
     }
   });
 
