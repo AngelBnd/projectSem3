@@ -134,8 +134,8 @@ export default function InputSales() {
   return (
     <div className="grid grid-cols-9 gap-3 w-full text-black mb-10 !overflow-x-hidden">
       <div className="col-span-9 flex flex-col mb-2 w-full"> 
-        <h1 className="text-2xl font-semibold font-nunito">Create an Invoice</h1>
-        <h3 className="text-[#777B7C] text-sm">Create an Invoice</h3>
+        <h1 className="text-2xl font-semibold font-nunito">Create an Order</h1>
+        <h3 className="text-[#777B7C] text-sm">Fill in the details to generate a new order</h3>
       </div>
 
       <div className="col-span-9 md:col-span-4 w-full h-[800px] flex gap-12 relative">

@@ -354,7 +354,7 @@ export default function InputTransactionForm({ mode, item, isEditMode, invoiceDa
             <form ref={formRef} onSubmit={handleSubmit} className="relative flex flex-col flex-grow gap-4 overflow-y-auto custom-scrollbar">
                 <div className="bg-white p-4 py-6 rounded-md shadow-md">  
                     <div className="font-nunito text-lg font-bold mb-4">
-                        Invoice Details
+                        Order Details
                     </div>
                     {/* General Information Section */}
                     <div className="flex flex-col gap-4">
