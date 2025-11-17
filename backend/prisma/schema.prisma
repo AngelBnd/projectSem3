@@ -49,13 +49,6 @@ enum StockAuditStatus {
   REJECTED
 }
 
-enum deliveryStatus {
-  PENDING
-  PARTIALLY_FULFILLED
-  FULFILLED
-  CANCELLED
-}
-
 enum ProductCategory {
   HEAD_UNITS
   SPEAKERS
@@ -115,26 +108,29 @@ enum PurchaseReturnStatus {
   CANCELLED
 }
 
-enum SalesOrderStatus {
+enum SalesOrderCreationStatus {
   DRAFT
   PENDING_APPROVAL
   APPROVED
   REJECTED
-  IN_PROGRESS
-  READY_FOR_PICKUP
-  COMPLETED
-  CANCELLED
-  ON_HOLD
+}
+
+enum SalesOrderPaymentStatus {
+  UNPAID
+  PARTIALLY_PAID
+  PAID
+}
+
+enum SalesOrderDeliveryStatus {
+  UNDELIVERED
+  PARTIALLY_DELIVERED
+  DELIVERED
 }
 
 enum SalesReturnStatus {
-  PENDING
-  APPROVED
-  REJECTED
   PROCESSING
   COMPLETED
   CANCELLED
-  REFUNDED
 }
 
 enum CreditNoteStatus {
@@ -217,9 +213,6 @@ model Stores {
   productVariantAttributes ProductVariantAttributes[]
 
   auditLogs             AuditLogs[]
-
-  channels              Channels[]
-  subChannels           SubChannels[]
 }
 
 // --------------------------------------
@@ -522,25 +515,19 @@ model InvoiceLineItems {
 
 model Channels {
   channelId      Int @id @default(autoincrement())
-  storeId        Int
-  store          Stores @relation(fields: [storeId], references: [storeId])
   name           String
   subChannels    SubChannels[]
   invoices       Invoices[]
 
-  @@index([storeId])
 }
 
 model SubChannels {
   subChannelId   Int @id @default(autoincrement())
   channelId      Int
-  storeId        Int
-  store          Stores @relation(fields: [storeId], references: [storeId])
   subChannelName String
   channel        Channels @relation(fields: [channelId], references: [channelId], onDelete: Cascade)
 
   @@index([channelId])
-  @@index([storeId])
 }
 
 // --------------------------------------
@@ -639,7 +626,9 @@ model SalesOrders {
   storeId        Int
   customerName   String?
   orderDate      DateTime
-  status         SalesOrderStatus @default(PENDING_APPROVAL)
+  paymentStatus  SalesOrderPaymentStatus  @default(UNPAID)
+  deliveryStatus SalesOrderDeliveryStatus @default(UNDELIVERED)
+  creationStatus SalesOrderCreationStatus @default(DRAFT)
   paymentTerms   String?
   createdBy      Int
   totalAmount      Decimal
@@ -660,7 +649,10 @@ model SalesOrderItems {
   productVariantId Int
 
   quantityOrdered   Int
-  unitPrice             Decimal
+  unitPrice         Decimal
+
+  serviceDesc       String?
+  servicePrice      Decimal?
 
   store             Stores @relation(fields: [storeId], references: [storeId])
   salesOrder        SalesOrders       @relation(fields: [salesOrderId], references: [salesOrderId])
@@ -674,7 +666,6 @@ model SalesDeliveryItems {
 
   salesOrderItemsId       Int
   quantityDelivered       Int
-  status                  deliveryStatus @default(PENDING)
   deliveryDate         DateTime
 
   store                   Stores @relation(fields: [storeId], references: [storeId])
@@ -688,7 +679,7 @@ model SalesReturnItems {
 
   salesDeliveryItemsId Int
   qtyReturned              Int
-  status                   SalesReturnStatus @default(PENDING)
+  status                   SalesReturnStatus @default(PROCESSING)
   returnDate               DateTime
 
   store                    Stores @relation(fields: [storeId], references: [storeId])

@@ -8,7 +8,7 @@
 
     export default function Users(){
         const [users, setUsers] = useState([]);
-        const [activeTab, setActiveTab] = useState("Active");
+        const [activeTab, setActiveTab] = useState(0);
 
 
         useEffect(() => {
@@ -45,6 +45,7 @@
             );
         };
 
+        
 
         useEffect(()=>{
     console.log(`TESSSSTTTT`, users);
@@ -69,7 +70,7 @@
             },
         ];
 
-        const filteredUsers = tabs.find((t) => t.label === activeTab)?.filterFn(users) || users;
+        const filteredUsers = tabs[activeTab]?.filterFn(users) || users
 
 
         return(

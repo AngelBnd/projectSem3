@@ -4,30 +4,40 @@ const authenticateToken = require('../middleware/auth');
 const router = express.Router();
 router.use(authenticateToken);
 
-router.get('/', async (req, res) => {
-    const userId = req.user.id;
-    const { category } = req.query;
+router.get('/', authenticateToken, async (req, res) => {
+    const currentUser = req.user; 
+    console.log(currentUser);
 
-    const whereClaus = {
-        userId: userId
-    };
+    try {
+        // First, get the user's store ID
+        const user = await prisma.user.findUnique({
+            where: { id: userId },
+            select: { storeId: true }
+        });
 
-    if(category && category !== 'All') {
-        whereClaus.productCategory = category;
-    }
+        if (!user || !user.storeId) {
+            return res.status(404).json({ error: "Store not found for user." });
+        }
 
-    try{
-        const inventoryData = await prisma.products.findMany({
-            where: whereClaus,
+        const whereClause = {
+            storeId: user.storeId
+        };
+
+        if (category && category !== 'All') {
+            whereClause.productCategory = category;
+        }
+
+        const products = await prisma.products.findMany({
+            where: whereClause,
             orderBy: {
-            lastUpdated: "asc"
+                lastUpdated: "asc"
             }
-        });  
-        res.json(inventoryData);
+        });
 
-    } catch(error){
-        console.error("Error fetching inventory:", error);
-        res.status(500).json({ error: "Failed to retrieve inventory data." });
+        res.json(products);
+    } catch (error) {
+        console.error("Error fetching products:", error);
+        res.status(500).json({ error: "Failed to retrieve products." });
     }
 });
 

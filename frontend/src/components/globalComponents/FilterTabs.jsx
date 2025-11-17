@@ -13,7 +13,7 @@ export default function FilterTabs({ tabs, activeTab: propActiveTab, onChange })
   const handleTabChange = (event, newValue) => {
     setActiveTab(newValue);
     if (onChange) {
-      onChange(tabs[newValue].label);
+      onChange(newValue); 
     }
     event.currentTarget.blur();
   };

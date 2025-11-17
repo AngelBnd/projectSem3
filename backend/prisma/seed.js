@@ -264,14 +264,12 @@ async function main() {
   // ----- CHANNELS -----
   const retailChannel = await prisma.channels.create({
     data: {
-      storeId: store.storeId,
       name: 'Retail Store',
     }
   });
 
   const onlineChannel = await prisma.channels.create({
     data: {
-      storeId: store.storeId,
       name: 'Online Store',
     }
   });
@@ -279,10 +277,39 @@ async function main() {
   // ----- SUB CHANNELS -----
   await prisma.subChannels.create({
     data: {
-      storeId: store.storeId,
       channelId: retailChannel.channelId,
       subChannelName: 'Main Store Location',
     }
+  });
+
+
+  await prisma.subChannels.createMany({
+    data: [
+      {
+        channelId: onlineChannel.channelId,
+        subChannelName: 'Website',
+      },
+      {
+        channelId: onlineChannel.channelId,
+        subChannelName: 'Mobile App',
+      },
+      {
+        channelId: onlineChannel.channelId,
+        subChannelName: 'WhatsApp Order',
+      },
+      {
+        channelId: onlineChannel.channelId,
+        subChannelName: 'Instagram Shop',
+      },
+      {
+        channelId: onlineChannel.channelId,
+        subChannelName: 'Tokopedia',
+      },
+      {
+        channelId: onlineChannel.channelId,
+        subChannelName: 'Shopee',
+      },
+    ],
   });
 
   // ----- SALES ORDERS -----
@@ -291,7 +318,9 @@ async function main() {
       storeId: store.storeId,
       customerName: 'John Doe',
       orderDate: new Date(),
-      status: 'APPROVED',
+      creationStatus: 'APPROVED',
+      paymentStatus: 'PAID',
+      deliveryStatus: 'DELIVERED',
       totalAmount: 449.98,
       discount: 0,
       createdBy: 1, 
@@ -326,7 +355,6 @@ async function main() {
       storeId: store.storeId,
       salesOrderItemsId: salesOrderItem1.salesOrderItemsId,
       quantityDelivered: 2, 
-      status: 'FULFILLED', 
       deliveryDate: new Date(), 
     }
   });

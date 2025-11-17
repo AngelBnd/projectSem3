@@ -15,7 +15,8 @@
     SalesDetails,
     CreateProduct,
     Register,
-    Users
+    Users,
+    CreateOrderSale
   } from './pages';
   import { ThemeProvider } from "@emotion/react";
   import theme from "./theme";
@@ -139,10 +140,10 @@
                     }
                   />
                   <Route
-                    path="/sales/input"
+                    path="/sales/create-order-sales"
                     element={
                       <ProtectedRoute isAuthenticated={isAuthenticated}>
-                        <InputSales />
+                        <CreateOrderSale />
                       </ProtectedRoute>
                     }
                   />
