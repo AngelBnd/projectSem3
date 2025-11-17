@@ -5,6 +5,7 @@ const salesRoutes = require('./sales');
 const invoiceRoutes = require('./invoices')
 const dashboardRoutes = require('./dashboard'); 
 const userRoutes = require('./users')
+const productRoutes = require('./products')
 
 const router = express.Router();
 
@@ -14,5 +15,6 @@ router.use('/sales', salesRoutes);
 router.use('/invoices', invoiceRoutes);
 router.use('/dashboard', dashboardRoutes)
 router.use('/users', userRoutes)
+router.use('/products', productRoutes)
 
 module.exports = router;
