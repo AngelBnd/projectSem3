@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import FilterTabs from "../../globalComponents/FilterTabs";
 import { PopupOkay, PopupError } from "../../globalComponents/PopupComp";
 import Button from "../../globalComponents/Button";
-import { Autocomplete, TextField, MenuItem } from "@mui/material";
+import { Autocomplete, TextField, MenuItem, FormControlLabel, Checkbox } from "@mui/material";
 import { CalendarIcon } from "../../../assets/SvgIcons";
 
 const ProductItem = ({ product, index, onProductChange, onDeleteProduct, onProductFocus, onProductBlur, activeProductIndex, mode, autofill, newProducts, handleProductCodeChange}) => {
@@ -19,7 +19,7 @@ const ProductItem = ({ product, index, onProductChange, onDeleteProduct, onProdu
 
             <div className="col-span-4 relative flex flex-col gap-1">
                 <p className="text-sm font-semibold text-gray-800 truncate leading-tight">
-                    {product.productName || "Product Name"}
+                    {product.variantName || "Product Name"}
                 </p>
                 <Autocomplete
                     size="small"
@@ -88,6 +88,7 @@ const ProductItem = ({ product, index, onProductChange, onDeleteProduct, onProdu
 const ServiceItem = ({ service, index, onServiceChange, onDeleteService }) => {
   return (
     <div className="grid grid-cols-6 items-end gap-4 py-[4px] bg-transparent rounded-lg">
+
       <div className="col-span-3">
         <input
           type="text"
@@ -98,8 +99,19 @@ const ServiceItem = ({ service, index, onServiceChange, onDeleteService }) => {
           className="w-full p-2 border rounded-md bg-white text-black focus:outline-none focus:ring-1 focus:ring-blue-400"
         />
       </div>
-      
-      <div className="col-span-2">
+
+      <div className="col-span-1">
+        <input
+          type="number"
+          name="quantity"
+          min="1"
+          value={service.quantity}
+          onChange={(e) => onServiceChange(index, e)}
+          className="w-full p-2 text-center border rounded-md bg-white text-black focus:outline-none focus:ring-1 focus:ring-blue-400"
+        />
+      </div>
+
+      <div className="col-span-1">
         <input
           type="number"
           name="price"
@@ -115,11 +127,21 @@ const ServiceItem = ({ service, index, onServiceChange, onDeleteService }) => {
         <button
           type="button"
           onClick={() => onDeleteService(index)}
-            className="p-2 text-red-500 rounded-md hover:bg-red-100 bg-transparent mx-auto"
+          className="p-2 text-red-500 rounded-md hover:bg-red-100 bg-transparent mx-auto"
         >
-          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M4 7l16 0" /><path d="M10 11l0 6" /><path d="M14 11l0 6" /><path d="M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12" /><path d="M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3" /></svg>
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+            fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"
+            strokeLinejoin="round">
+            <path stroke="none" d="M0 0h24v24H0z" />
+            <path d="M4 7l16 0" />
+            <path d="M10 11l0 6" />
+            <path d="M14 11l0 6" />
+            <path d="M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12" />
+            <path d="M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3" />
+          </svg>
         </button>
       </div>
+
     </div>
   );
 };
@@ -142,11 +164,14 @@ export default function StepGeneralInfo({ setNewProducts, setNewServices, newSer
 
     const [products, setProducts] = useState([]);
     const [hadAddedProduct,setHasAddedProduct] = useState(false);
+    const orderDateRef = useRef(null);
 
     useEffect(()=>{
       console.log(newProducts)
       console.log(newServices)
     },[newProducts, newServices])
+
+    
 
 
     useEffect(() => {
@@ -165,7 +190,7 @@ export default function StepGeneralInfo({ setNewProducts, setNewServices, newSer
     useEffect(() => {
         async function fetchChannels() {
             try {
-                const res = await fetch("/api/sales/channels", {
+                const res = await fetch("/api/sales-order/channels", {
                     headers: {
                         'Authorization': `Bearer ${token}`,
                     },
@@ -173,7 +198,7 @@ export default function StepGeneralInfo({ setNewProducts, setNewServices, newSer
                 console.log("Status:", res.status);
 
                 const data = await res.json();
-                console.log("DATA:", data);
+                console.log("DATA CHANNELS:", data);
 
                 setChannels(data);
             } catch (error) {
@@ -192,33 +217,24 @@ export default function StepGeneralInfo({ setNewProducts, setNewServices, newSer
     ];
 
     const handleChange = (e) => {
-        const { name, value } = e.target;
+      const { name, value } = e.target;
 
-        const nameParts = name.split("."); 
+      setFormData((prev) => {
+        const updated = structuredClone(prev); 
 
-        setFormData(prev => {
-            let updated = { ...prev };
-            let current = updated;
+        const keys = name.split(".");
+        let pointer = updated;
 
-            for (let i = 0; i < nameParts.length - 1; i++) {
-            const part = nameParts[i];
-            current[part] = { ...current[part] }; 
-            current = current[part];
-            }
+        for (let i = 0; i < keys.length - 1; i++) {
+          const k = keys[i];
+          pointer[k] = { ...pointer[k] }; 
+          pointer = pointer[k];
+        }
 
-            current[nameParts[nameParts.length - 1]] = value;
+        pointer[keys[keys.length - 1]] = value;
 
-            return updated;
-        });
-
-        // if (errors[name]) {
-        //     setErrors(prev => {
-        //     const newErrors = { ...prev };
-        //     delete newErrors[name];
-        //     return newErrors;
-        //     });
-        // }
-
+        return updated;
+      });
     };
 
     const handleAddProduct = () => {
@@ -228,7 +244,6 @@ export default function StepGeneralInfo({ setNewProducts, setNewServices, newSer
           
           sku: "",
           barcode: "",
-          productName: "",
           variantName :"",
             
           thresholdStock: 0,     
@@ -254,7 +269,7 @@ export default function StepGeneralInfo({ setNewProducts, setNewServices, newSer
                 productName: v.product?.productName || "",
                 sku: v.sku || "",
                 barcode: v.barcode || "",
-                costPrice: v.costPrice,
+                sellingPrice: v.sellingPrice,
                 thresholdStock: v.thresholdStock,
             };
 
@@ -279,9 +294,11 @@ export default function StepGeneralInfo({ setNewProducts, setNewServices, newSer
 
     const handleProductCodeChange = (index, newInputValue) => {
         setNewProducts(prev => {
-            const updated = [...prev];
-            updated[index].sku = newInputValue;
-            return updated;
+          if(!prev[index]) return prev;
+
+          const updated = [...prev];
+          updated[index].variantName = newInputValue;
+          return updated;
         });
     };
 
@@ -294,6 +311,7 @@ export default function StepGeneralInfo({ setNewProducts, setNewServices, newSer
         const newBlankService = {
             serviceName: "",
             price: 0,
+            quantity: 1,
             tempId: Date.now(), 
         };
         setNewServices([...newServices, newBlankService]);
@@ -347,8 +365,8 @@ export default function StepGeneralInfo({ setNewProducts, setNewServices, newSer
         <div className="text-sm mb-1 font-nunito font-bold">Customer Name</div>
         <input
           type="text"
-          value={formData.customerName}
-          name="customerName"
+          value={formData.generalInfo.customerName}
+          name="generalInfo.customerName"
           onChange={handleChange}
           className="w-full p-2 border border-gray-300 rounded-md bg-white"
           placeholder="Enter customer name"
@@ -362,16 +380,17 @@ export default function StepGeneralInfo({ setNewProducts, setNewServices, newSer
 
       <div className="flex items-center justify-between border border-gray-300 rounded-md bg-white px-2 relative">
         <input
+          ref={orderDateRef}
           type="date"
-          value={formData.orderDate}
-          name="orderDate"
+          value={formData.generalInfo.orderDate}
+          name="generalInfo.orderDate"
           onChange={handleChange}
           className="w-full p-2 bg-transparent outline-none"
         />
 
         <div
           className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer"
-          onClick={() => document.querySelector('input[name="orderDate"]').showPicker?.()}
+          onClick={() => orderDateRef.current?.showPicker()}
           style={{ pointerEvents: "auto" }}  
         >
           <CalendarIcon className="text-gray-500" size={20} />
@@ -386,10 +405,11 @@ export default function StepGeneralInfo({ setNewProducts, setNewServices, newSer
           fullWidth
           size="small"
 
-          error={!formData.paymentTerm}
-          helperText={!formData.paymentTerm ? "Required" : ""}
-          value={formData.paymentTerm || ""}
-          onChange={(e) => handleChange({ target: { name: "paymentTerm", value: e.target.value } })}
+          error={!formData.generalInfo.paymentTerm}
+          helperText={!formData.generalInfo.paymentTerm ? "Required" : ""}
+          value={formData.generalInfo.paymentTerm}
+          name="generalInfo.paymentTerm"
+          onChange={(e) => handleChange({ target: { name: "generalInfo.paymentTerm", value: e.target.value } })}
           SelectProps={{
             displayEmpty: true, // <-- THIS enables placeholder
           }}
@@ -531,7 +551,7 @@ export default function StepGeneralInfo({ setNewProducts, setNewServices, newSer
               </div>
             )}
 
-            <button
+            <button 
               type="button"
               onClick={handleAddProduct}
               className="flex items-center gap-2 p-2 mt-2 text-blue-500 hover:text-blue-600 bg-transparent"
@@ -547,7 +567,8 @@ export default function StepGeneralInfo({ setNewProducts, setNewServices, newSer
           <>
             <div className="grid grid-cols-6 gap-4 text-sm font-semibold text-gray-500 font-nunito mb-2">
               <span className="col-span-3">Service Description</span>
-              <span className="col-span-2 text-right">Price</span>
+              <span className="col-span-1 text-center">Qty</span>
+              <span className="col-span-1 text-right">Price</span>
             </div>
 
             {newServices.map((service, index) => (
@@ -574,6 +595,51 @@ export default function StepGeneralInfo({ setNewProducts, setNewServices, newSer
 
         <div ref={bottomRef} />
       </div>
+      
+      <div className="my-4 w-full flex justify-between">
+        <FormControlLabel
+            control={
+                <Checkbox
+                    checked={formData.generalInfo.applyDiscount}
+                    onChange={(e) =>
+                        setFormData((prev) => ({
+                            ...prev,
+                            generalInfo: {
+                                ...prev.generalInfo,
+                                applyDiscount: e.target.checked,
+                                discountAmount: e.target.checked ? prev.generalInfo.discountAmount : "",
+                            },
+                        }))
+                    }
+                />
+            }
+            label="Apply Discount"
+        />
+      {formData.generalInfo.applyDiscount && (
+          <div className="mb-4 w-20">
+              <TextField
+                  fullWidth
+                  size="small"
+                  type="number"
+                  placeholder="%"
+                  value={formData.generalInfo.discountAmount}
+                  onChange={(e) =>
+                      setFormData((prev) => ({
+                          ...prev,
+                          generalInfo: {
+                              ...prev.generalInfo,
+                              discountAmount: Number(e.target.value)
+                          },
+                      }))
+                  }
+                  InputProps={{ inputProps: { min: 0 } }}
+              />
+          </div>
+      )}
+
+
+    </div>
+
     </div>
   );
 }

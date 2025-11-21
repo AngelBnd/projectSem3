@@ -196,7 +196,6 @@ model Stores {
   receivedGoodsNotes    ReceivedGoodsNotes[]
 
   salesOrders           SalesOrders[]
-  salesOrderItems       SalesOrderItems[]
   salesDeliveryItems    SalesDeliveryItems[]
   salesReturnItems      SalesReturnItems[]
 
@@ -340,7 +339,7 @@ model ProductVariants {
   product          Products  @relation(fields: [productId], references: [productId])
   sku              String
   barcode          String?
-  sellingPrice     Decimal
+  sellingPrice     Decimal @default(0)
   isDefault        Boolean @default(false)
   thresholdStock   Int @default(0)
   productStatus    ProductStatus
@@ -637,21 +636,17 @@ model SalesOrders {
 
 model SalesOrderItems {
   salesOrderItemsId Int @id @default(autoincrement())
-  storeId           Int
-
 
   salesOrderId      Int
-  productVariantId Int
+  productVariantId Int?
 
   quantityOrdered   Int
   unitPrice         Decimal
 
-  serviceDesc       String?
-  servicePrice      Decimal?
+  serviceDesc       String? 
 
-  store             Stores @relation(fields: [storeId], references: [storeId])
   salesOrder        SalesOrders       @relation(fields: [salesOrderId], references: [salesOrderId])
-  productVariant    ProductVariants  @relation(fields: [productVariantId], references: [productVariantId])
+  productVariant    ProductVariants?  @relation(fields: [productVariantId], references: [productVariantId])
   deliveries      SalesDeliveryItems[]
 }
 

@@ -10,6 +10,7 @@ import DataTable from '../components/globalComponents/DataTable';
 import { IconButton, Tooltip } from "@mui/material";
 import { LookFurtherMoreIntoWhatIsClickedIcon, ThreeDotsIcon } from "../assets/SvgIcons";
 import Badge from "../components/globalComponents/BadgeStatus";
+import { useNavigate } from "react-router-dom";
 
 // PLACEHOLDER
 const products = [
@@ -154,7 +155,7 @@ const SalesTopBoxes = () => {
       <div className="bg-white p-6 shadow rounded-md flex flex-col justify-center">
         <p className="text-3xl font-nunito font-bold">123</p>
         <span className="text-gray-600 mt-1 text-sm">Total Pending Orders</span>
-      </div>
+      </div>  
 
       <div className="bg-white p-6 shadow rounded-md flex flex-col justify-center">
         <p className="text-3xl font-nunito font-bold">123</p>
@@ -199,7 +200,7 @@ export default function SalesPage() {
   const [filteredProducts, setFilteredProducts] = useState(products);
   const [data, setData] = React.useState(salesRows);
   const [loading, setLoading] = React.useState(false);
-
+  const navigate = useNavigate();
   
   const addProductButton = (
     <Button icon={PlusIcon} onClick={() => alert('Opening add form')}>
@@ -232,7 +233,7 @@ export default function SalesPage() {
             variant="white"
           />
           <Button
-            onClick={()=>{}}
+            onClick={() => navigate("/sales/create-order-sales")}
             children={"Create Order"}
             icon={PlusIcon}
             variant="primary"

@@ -2,6 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
 import './index.css';
+import { PopupProvider } from './components/globalComponents/PopupContext';
 
 import {
   Chart as ChartJS,
@@ -34,9 +35,11 @@ import { BrowserRouter } from 'react-router-dom';
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
+    <PopupProvider> 
     {/* Wrap the App component with BrowserRouter */}
     <BrowserRouter>
       <App />
     </BrowserRouter>
+    </PopupProvider>
   </React.StrictMode>
 );
