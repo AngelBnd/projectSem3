@@ -340,7 +340,7 @@ model ProductVariants {
   product          Products  @relation(fields: [productId], references: [productId])
   sku              String
   barcode          String?
-  costPrice        Decimal
+  sellingPrice     Decimal
   isDefault        Boolean @default(false)
   thresholdStock   Int @default(0)
   productStatus    ProductStatus
