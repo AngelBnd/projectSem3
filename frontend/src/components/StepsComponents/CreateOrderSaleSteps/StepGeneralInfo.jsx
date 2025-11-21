@@ -25,17 +25,16 @@ const ProductItem = ({ product, index, onProductChange, onDeleteProduct, onProdu
                     getOptionLabel={(option) => option.productName || ""}
         
                     value={newProducts[index].product || null} 
-                    onChange={(event, newValue) => handleAutofillClick(index, newValue)}
+                    onChange={(event, newValue) => onProductChange(index, newValue)}
     
                     inputValue={newProducts[index].productCode || ""} 
-                    
-                    blurOnSelect
-
                     onInputChange={(event, newInputValue) => handleProductCodeChange(index, newInputValue)}
+
+                    blurOnSelect
                     
                     isOptionEqualToValue={(option, value) => option.productId === value?.productId}
                     renderInput={(params) => (
-                        <TextField {...params} placeholder="Search by code or name" variant="outlined" />
+                        <TextField {...params} name={`product-${index}`} placeholder="Search by code or name" variant="outlined" />
                     )}
                 />
             </div>
@@ -124,6 +123,7 @@ export default function StepGeneralInfo({ formData, setFormData, errors = {}, ge
     const [selectedChannelId, setSelectedChannelId] = useState(null);
 
     const [products, setProducts] = useState([]);
+    const [hadAddedProduct,setHasAddedProduct] = useState(false);
 
     useEffect(() => {
         fetch('/api/products',{
@@ -210,6 +210,7 @@ export default function StepGeneralInfo({ formData, setFormData, errors = {}, ge
     };
 
     const handleProductChange = (index, e) => {
+        console.log("test222" ,name, value)
         const { name, value } = e.target;
         const updatedProducts = [...newProducts];
         const currentProduct = updatedProducts[index];
@@ -231,6 +232,7 @@ export default function StepGeneralInfo({ formData, setFormData, errors = {}, ge
             updatedProducts[index] = newProductState;
         }
         setNewProducts(updatedProducts);
+        setHasAddedProduct(true);
     };
 
     const handleProductCodeChange = (index, newInputValue) => {

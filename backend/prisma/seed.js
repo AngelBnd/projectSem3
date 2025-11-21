@@ -245,7 +245,6 @@ async function main() {
   await prisma.productVariantAttributes.create({
     data: {
       storeId: store.storeId,
-      attributeId: brandAttribute.attributeId,
       attributeValuesId: pioneerValue.attributeValuesId,
       productVariantsId: speakerVariant.productVariantId,
     }
@@ -254,7 +253,7 @@ async function main() {
   await prisma.productVariantAttributes.create({
     data: {
       storeId: store.storeId,
-      attributeId: sizeAttribute.attributeId,
+
       attributeValuesId: sixInchValue.attributeValuesId,
       productVariantsId: speakerVariant.productVariantId,
     }
