@@ -3,8 +3,15 @@ import StepReview from "../../components/StepsComponents/CreateOrderSaleSteps/St
 import { AlertCircleIcon, ArrowNarrowLeft, ArrowNarrowRight, CheckIcon } from "../../assets/SvgIcons";
 import Button from "../../components/globalComponents/Button";
 import { useState } from "react";
+import { usePopup } from "../../components/globalComponents/PopupContext";
+import { PopupOption } from "../../components/globalComponents/PopupComp";
+import { PopupOkay } from "../../components/globalComponents/PopupComp";
+import { useNavigate } from "react-router-dom";  
 
 export default function CreateOrderSale(){
+    const navigate = useNavigate();
+    const { openPopup } = usePopup();
+    const token = localStorage.getItem("token");
     const [step, setStep] = useState(0);
     const [selectedRole, setSelectedRole] = useState(null);
     const [role, setRole] = useState(null);
@@ -12,16 +19,23 @@ export default function CreateOrderSale(){
     const [loading, setLoading] = useState(false);
     const [errors, setErrors] = useState({});
 
+    const AUTO_CLOSE_MS = 1500; 
+
+    const navigateBack = () => {
+      setTimeout(() => {
+          navigate(-1);
+      }, 1000); 
+    };
+
     const [formData, setFormData] = useState({
         generalInfo: {
             customerName: "",
             orderDate: "",
-            paymentTerms: "",
+            paymentTerm: "",
             channelId : null,
-            subchannelId : null,
+            applyDiscount: false,
+            discountAmount: "",
         },
-        products: [],
-        services: [],
         totals: {
             subtotal: 0,
             discount: 0,
@@ -52,29 +66,18 @@ export default function CreateOrderSale(){
     
     const StepComponent = steps[step]?.component || (() => <div></div>);
 
-    const handleStepZeroContinue = () => {
-    if (!role) {
-        setAlert({ 
-                show: true, 
-                message: 'Please choose a role before continuing.' 
-            });
-            return;
-        }
-        setStep(step + 1);
-        setAlert({ show: false, message: '' });
-    };
-
     const canProceed = () => {
-      if (!formData.customerName?.trim()) return false;
+      if (!formData.generalInfo.customerName?.trim()) return false;
 
-      if (!formData.orderDate) return false;
+      if (!formData.generalInfo.orderDate) return false;
 
-      if (!formData.paymentTerm) return false;
+      if (!formData.generalInfo.paymentTerm) return false;
 
       if (!formData.generalInfo.channelId) return false;
       if (!formData.generalInfo.subChannelId) return false;
 
-      if (newProducts.length === 0) return false;
+      if (newProducts.length === 0 && newServices.length === 0  ) return false;
+
       for (let p of newProducts) {
         if (!p.productVariantId) return false;
         if (!p.quantitySold || p.quantitySold <= 0) return false;
@@ -87,6 +90,69 @@ export default function CreateOrderSale(){
 
       return true;
     };
+    
+    const handleSubmit = async () => {
+        if (!canProceed()) {
+            setAlert({ 
+                show: true, 
+                message: 'Please fill in all required fields.' 
+            });
+            return;
+        }   
+
+        setLoading(true);
+        setAlert({ show: false, message: '' });
+
+        try {
+          const payload = {
+              formData : formData,
+              products : newProducts,
+              services : newServices
+          };
+
+          const response = await fetch('/api/sales-order', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+              body: JSON.stringify(payload)
+          });
+
+          let data;
+          try {
+              data = await response.json();
+          } catch (err) {
+              console.error('Error parsing response:', err);
+              setAlert({ 
+                  show: true, 
+                  message: 'Order sale creation succeeded but failed to read response.'
+              });
+              return;
+          }
+
+          if (response.ok) {
+              openPopup(
+                  <PopupOkay message="Sales order saved successfully!" />
+              )
+  
+              setTimeout(() => {
+                  navigate(-1);
+              }, AUTO_CLOSE_MS);
+
+              return;
+          } else {
+              setAlert({ 
+                  show: true, 
+                  message: data.error || 'Sales order creation failed. Please try again.' 
+              });
+          }
+      } catch (error) {
+          setAlert({ 
+              show: true, 
+              message: 'An error occurred during sales order creation.' 
+          });
+      } finally {
+          setLoading(false);
+      }
+    }; 
     
 
 
@@ -179,7 +245,7 @@ export default function CreateOrderSale(){
         />
         ) : (
         <Button
-            onClick={()=>{}}
+            onClick={handleSubmit}
             children={loading ? "Processing..." : "Finish"}
             icon={CheckIcon}
             variant="primary"
