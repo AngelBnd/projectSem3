@@ -2,7 +2,8 @@ import { useState, useRef, useEffect } from "react";
 import FilterTabs from "../../globalComponents/FilterTabs";
 import { PopupOkay, PopupError } from "../../globalComponents/PopupComp";
 import Button from "../../globalComponents/Button";
-import { Autocomplete, TextField } from "@mui/material";
+import { Autocomplete, TextField, MenuItem } from "@mui/material";
+import { CalendarIcon } from "../../../assets/SvgIcons";
 
 const ProductItem = ({ product, index, onProductChange, onDeleteProduct, onProductFocus, onProductBlur, activeProductIndex, mode, autofill, newProducts, handleProductCodeChange}) => {
    
@@ -21,18 +22,37 @@ const ProductItem = ({ product, index, onProductChange, onDeleteProduct, onProdu
                     {product.productName || "Product Name"}
                 </p>
                 <Autocomplete
+                    size="small"
+                    sx={{
+                      "& .MuiOutlinedInput-root": {
+                        "& fieldset": {
+                          borderColor: "#e5e7eb", 
+                        },
+                        "&:hover fieldset": {
+                          borderColor: "#d1d5db", 
+                        },
+                        "&.Mui-focused fieldset": {
+                          borderColor: "#9ca3af",
+                        },
+                      },
+                    }}
                     options={autofill}
-                    getOptionLabel={(option) => option.productName || ""}
+                    getOptionLabel={(option) => option.variantName  || ""}
         
-                    value={newProducts[index].product || null} 
-                    onChange={(event, newValue) => onProductChange(index, newValue)}
-    
-                    inputValue={newProducts[index].productCode || ""} 
-                    onInputChange={(event, newInputValue) => handleProductCodeChange(index, newInputValue)}
-
-                    blurOnSelect
-                    
-                    isOptionEqualToValue={(option, value) => option.productId === value?.productId}
+                    value={product.selectedVariant || null}  
+                    onChange={(event, newValue) => {
+                      onProductChange(index, {
+                          type: "SELECT_VARIANT",
+                          data: newValue
+                      });
+                    }}
+                  
+                    inputValue={product.sku ?? ""}
+                    onInputChange={(e, newInputValue) =>
+                      handleProductCodeChange(index, newInputValue)
+                    }
+               
+                    isOptionEqualToValue={(option, value) => option.productVariantId === value?.productVariantId}
                     renderInput={(params) => (
                         <TextField {...params} name={`product-${index}`} placeholder="Search by code or name" variant="outlined" />
                     )}
@@ -105,13 +125,11 @@ const ServiceItem = ({ service, index, onServiceChange, onDeleteService }) => {
 };
 
 
-export default function StepGeneralInfo({ formData, setFormData, errors = {}, getValidationStatus = () => {}}) {
+export default function StepGeneralInfo({ setNewProducts, setNewServices, newServices, newProducts,formData, setFormData, errors = {}, getValidationStatus = () => {}}) {
     console.log("formData:", formData);
     const token = localStorage.getItem('token'); 
 
     const [activeTab, setActiveTab] = useState(0);
-    const [newServices, setNewServices] = useState([]);
-    const [newProducts, setNewProducts] = useState([]);
     const bottomRef = useRef(null);
 
     const [autofill, setAutofill] = useState([]);
@@ -125,15 +143,21 @@ export default function StepGeneralInfo({ formData, setFormData, errors = {}, ge
     const [products, setProducts] = useState([]);
     const [hadAddedProduct,setHasAddedProduct] = useState(false);
 
+    useEffect(()=>{
+      console.log(newProducts)
+      console.log(newServices)
+    },[newProducts, newServices])
+
+
     useEffect(() => {
-        fetch('/api/products',{
+        fetch('/api/product-variants',{
             headers : {
                 'Authorization': `Bearer ${token}`,
             }
         })
         .then(res => res.json())
         .then(data => {
-            console.log(data);
+            console.log("DATA PRODUCT VARIANTS",data);
             setAutofill(data)
         })
     }, [])
@@ -198,47 +222,65 @@ export default function StepGeneralInfo({ formData, setFormData, errors = {}, ge
     };
 
     const handleAddProduct = () => {
-        const newBlankProduct = {
-        productCode: "",
-        quantitySold: 1,
-        productName: "", 
-        sellingPrice: 0,
-        tempId: Date.now(), 
-        };
-        setNewProducts([...newProducts, newBlankProduct]);
-        setHasAddedProduct(true);
+      const newBlankProduct = {
+          productVariantId: null, 
+          productId: null,
+          
+          sku: "",
+          barcode: "",
+          productName: "",
+          variantName :"",
+            
+          thresholdStock: 0,     
+          
+          quantitySold: 1,        
+          tempId: Date.now(),
+      };
+      setNewProducts([...newProducts, newBlankProduct]);
+      setHasAddedProduct(true);
     };
 
-    const handleProductChange = (index, e) => {
-        console.log("test222" ,name, value)
-        const { name, value } = e.target;
-        const updatedProducts = [...newProducts];
-        const currentProduct = updatedProducts[index];
-        
-        if (name === 'product') {
-            updatedProducts[index] = value;
-        } else {
-            const currentProduct = updatedProducts[index];
-            let newProductState = { ...currentProduct, [name]: value };
-            if (name === 'productCode' && value !== currentProduct.productCode) {
-                newProductState = {
-                    ...currentProduct,      
-                    productCode: value,     
-                    productName: "",        
-                    sellingPrice: 0,        
-                    initialStock: 0,
-                };
-            }
-            updatedProducts[index] = newProductState;
+    const handleProductChange = (index, action) => {
+        const updated = [...newProducts];
+
+        if (action.type === "SELECT_VARIANT") {
+            const v = action.data;
+
+            updated[index] = {
+                ...updated[index],
+                selectedVariant: v,
+                productVariantId: v.productVariantId,
+                productId: v.productId,
+                productName: v.product?.productName || "",
+                sku: v.sku || "",
+                barcode: v.barcode || "",
+                costPrice: v.costPrice,
+                thresholdStock: v.thresholdStock,
+            };
+
+            setNewProducts(updated);
+            return;
         }
-        setNewProducts(updatedProducts);
-        setHasAddedProduct(true);
+
+        if (action.target) {
+          const { name, value } = action.target;
+
+          updated[index] = {
+              ...updated[index],
+              [name]: value,
+        };
+
+        setNewProducts(updated);
+        return;
+    }
+
+  
     };
 
     const handleProductCodeChange = (index, newInputValue) => {
         setNewProducts(prev => {
             const updated = [...prev];
-            updated[index].productCode = newInputValue;
+            updated[index].sku = newInputValue;
             return updated;
         });
     };
@@ -298,13 +340,14 @@ export default function StepGeneralInfo({ formData, setFormData, errors = {}, ge
             return updated;
         });
     };
-  
+
     return (
     <div className="w-full">
       <div className="mb-4">
         <div className="text-sm mb-1 font-nunito font-bold">Customer Name</div>
         <input
           type="text"
+          value={formData.customerName}
           name="customerName"
           onChange={handleChange}
           className="w-full p-2 border border-gray-300 rounded-md bg-white"
@@ -314,94 +357,120 @@ export default function StepGeneralInfo({ formData, setFormData, errors = {}, ge
 
       
 
-      <div className="mb-4">
-        <div className="text-sm mb-1 font-nunito font-bold">Order Date</div>
+    <div className="mb-4">
+      <div className="text-sm mb-1 font-nunito font-bold">Order Date</div>
+
+      <div className="flex items-center justify-between border border-gray-300 rounded-md bg-white px-2 relative">
         <input
           type="date"
+          value={formData.orderDate}
           name="orderDate"
           onChange={handleChange}
-          className="w-full p-2 border border-gray-300 rounded-md bg-white"
+          className="w-full p-2 bg-transparent outline-none"
         />
+
+        <div
+          className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer"
+          onClick={() => document.querySelector('input[name="orderDate"]').showPicker?.()}
+          style={{ pointerEvents: "auto" }}  
+        >
+          <CalendarIcon className="text-gray-500" size={20} />
+        </div>
       </div>
+    </div>
 
       <div className="mb-4">
         <div className="text-sm mb-1 font-nunito font-bold">Payment Term</div>
-        <select
-          name="paymentTerm"
-          onChange={handleChange}
-          className="w-full p-2 border border-gray-300 rounded-md bg-white"
+        <TextField
+          select
+          fullWidth
+          size="small"
+
+          error={!formData.paymentTerm}
+          helperText={!formData.paymentTerm ? "Required" : ""}
+          value={formData.paymentTerm || ""}
+          onChange={(e) => handleChange({ target: { name: "paymentTerm", value: e.target.value } })}
+          SelectProps={{
+            displayEmpty: true, // <-- THIS enables placeholder
+          }}
         >
-          <option value="">Select Payment Term</option>
-          <option value="immediate">Immediate</option>
-          <option value="net7">Net 7</option>
-          <option value="net14">Net 14</option>
-          <option value="net30">Net 30</option>
-        </select>
+          <MenuItem value="">Select Payment Term</MenuItem>
+          <MenuItem value="immediate">Immediate</MenuItem>
+          <MenuItem value="net7">Net 7</MenuItem>
+          <MenuItem value="net14">Net 14</MenuItem>
+          <MenuItem value="net30">Net 30</MenuItem>
+        </TextField>
       </div>
 
     <div className="flex gap-3">
         <div className="mb-4 w-full">
             <div className="text-sm mb-1 font-nunito font-bold">Channel</div>
-
-            <select
-                value={formData.generalInfo.channelId?.toString() ?? ""}
-                onChange={(e) =>
+            <TextField
+              select
+              fullWidth
+              size="small"
+              value={formData.generalInfo.channelId?.toString() || ""}
+              onChange={(e) =>
                 setFormData((prev) => ({
-                    ...prev,
-                    generalInfo: {
+                  ...prev,
+                  generalInfo: {
                     ...prev.generalInfo,
                     channelId: e.target.value === "" ? null : parseInt(e.target.value),
                     subChannelId: null,
-                    },
+                  },
                 }))
-                }
-                className="w-full p-2 border border-gray-300 rounded-md bg-white"
-                disabled={loadingChannels}
+              }
+              error={!formData.generalInfo.channelId}
+              helperText={!formData.generalInfo.channelId ? "Required" : ""}
+              disabled={loadingChannels}
+              SelectProps={{
+                displayEmpty: true, // <-- THIS enables placeholder
+              }}
             >
-                <option value="">Select Channel</option>
+              <MenuItem value="">Select Channel</MenuItem>
 
-                {channels.map((ch) => (
-                <option key={ch.channelId} value={ch.channelId}>
-                    {ch.name}
-                </option>
-                ))}
-            </select>
+              {channels.map((ch) => (
+                <MenuItem key={ch.channelId} value={ch.channelId}>
+                  {ch.name}
+                </MenuItem>
+              ))}
+            </TextField>
         </div>
 
         <div className="mb-4 w-full">
-            <div className="text-sm mb-1 font-nunito font-bold">Sub Channel</div>
+          <div className="text-sm mb-1 font-nunito font-bold">Sub Channel</div>
+          <TextField
+            select
+            fullWidth
+            size="small"
+            value={formData.generalInfo.subChannelId || ""}
+            onChange={(e) =>
+              setFormData((prev) => ({
+                ...prev,
+                generalInfo: {
+                  ...prev.generalInfo,
+                  subChannelId: e.target.value,
+                },
+              }))
+            }
+            helperText={!formData.generalInfo.channelId ? "Required" : ""}
+            disabled={!formData.generalInfo.channelId}
+            SelectProps={{
+              displayEmpty: true,
+            }}
+          >
+            <MenuItem value="">
+              {formData.generalInfo.channelId ? "Select Sub Channel" : "Select Channel First"}
+            </MenuItem>
 
-            <select
-                name="subChannelId"
-                value={formData.generalInfo.subChannelId || ""}
-                onChange={(e) =>
-                    setFormData((prev) => ({
-                        ...prev,
-                        generalInfo: {
-                            ...prev.generalInfo,
-                            subChannelId: e.target.value, 
-                        }
-                    }))
-                }
-                disabled={!formData.generalInfo.channelId}  
-                className={`w-full p-2 border border-gray-300 rounded-md bg-white ${
-                    !formData.generalInfo.channelId ? "bg-gray-100 cursor-not-allowed" : ""
-                }`}
-            >
-                <option value="">
-                    {formData.generalInfo.channelId ? "Select Sub Channel" : "Select Channel First"}
-                </option>
-                {(() => {
-                    const selected = channels?.find(
-                        (c) => c.channelId == formData.generalInfo.channelId
-                    );
-                    return selected?.subChannels?.map((sub) => (
-                        <option key={sub.subChannelId} value={sub.subChannelId}>
-                            {sub.subChannelName}
-                        </option>
-                    ));
-                })()}
-            </select>
+            {channels
+              ?.find((c) => c.channelId == formData.generalInfo.channelId)
+              ?.subChannels?.map((sub) => (
+                <MenuItem key={sub.subChannelId} value={sub.subChannelId}>
+                  {sub.subChannelName}
+                </MenuItem>
+              ))}
+          </TextField>
         </div>
     </div>
 

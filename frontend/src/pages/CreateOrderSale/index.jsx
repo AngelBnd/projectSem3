@@ -28,15 +28,19 @@ export default function CreateOrderSale(){
             totalAmount: 0,
         }
     });
+
+    const [newServices, setNewServices] = useState([]);
+    const [newProducts, setNewProducts] = useState([]);
     
     const handleContinue = () => {
-        // if (!canProceed()) {
-        //     setAlert({ 
-        //         show: true, 
-        //         message: 'Please fill in all required fields.' 
-        //     });
-        //     return;
-        // }
+
+      if (!canProceed()) {
+          setAlert({ 
+              show: true, 
+              message: 'Please fill in all required fields.' 
+          });
+          return;
+      }
         setStep(step + 1);
         setAlert({ show: false, message: '' });
     };
@@ -59,6 +63,31 @@ export default function CreateOrderSale(){
         setStep(step + 1);
         setAlert({ show: false, message: '' });
     };
+
+    const canProceed = () => {
+      if (!formData.customerName?.trim()) return false;
+
+      if (!formData.orderDate) return false;
+
+      if (!formData.paymentTerm) return false;
+
+      if (!formData.generalInfo.channelId) return false;
+      if (!formData.generalInfo.subChannelId) return false;
+
+      if (newProducts.length === 0) return false;
+      for (let p of newProducts) {
+        if (!p.productVariantId) return false;
+        if (!p.quantitySold || p.quantitySold <= 0) return false;
+      }
+
+      for (let s of newServices) {
+        if (!s.serviceName?.trim()) return false;
+        if (!s.price || s.price <= 0) return false;
+      }
+
+      return true;
+    };
+    
 
 
     return(
@@ -96,7 +125,14 @@ export default function CreateOrderSale(){
       
     <div className="mb-16">
             <div className="bg-white rounded-sm px-7 py-8 mb-1">
-                <StepComponent formData={formData} setFormData={setFormData}/>
+                <StepComponent 
+                formData={formData} 
+                setFormData={setFormData} 
+                newProducts={newProducts} 
+                newServices={newServices}
+                setNewServices={setNewServices}
+                setNewProducts={setNewProducts}
+                />
             </div>
 
         <div className="h-4">
