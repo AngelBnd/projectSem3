@@ -340,7 +340,6 @@ model ProductVariants {
   product          Products  @relation(fields: [productId], references: [productId])
   sku              String
   barcode          String?
-  sellingPrice     Decimal
   costPrice        Decimal
   isDefault        Boolean @default(false)
   thresholdStock   Int @default(0)
@@ -370,7 +369,6 @@ model Attributes {
   name               String
 
   attributeValues    AttributeValues[]
-  productVariantAttributes ProductVariantAttributes[]
 
   @@index([storeId])
 }
@@ -390,18 +388,15 @@ model AttributeValues {
 
 model ProductVariantAttributes {
   productVariantAttributeId Int @id @default(autoincrement())
-  attributeId               Int
   attributeValuesId         Int
   productVariantsId         Int
   storeId                   Int
   store                     Stores @relation(fields: [storeId], references: [storeId])
-  attribute                 Attributes @relation(fields: [attributeId], references: [attributeId], onDelete: Cascade)
   attributeValue            AttributeValues @relation(fields: [attributeValuesId], references: [attributeValuesId], onDelete: Cascade)
   productVariant            ProductVariants @relation(fields: [productVariantsId], references: [productVariantId], onDelete: Cascade)
 
-  @@unique([attributeId, attributeValuesId, productVariantsId])
+  @@unique([attributeValuesId, productVariantsId])
   @@index([storeId])
-  @@index([attributeId])
   @@index([attributeValuesId])
   @@index([productVariantsId])
 }
