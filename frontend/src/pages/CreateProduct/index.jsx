@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
-import StepGeneralInfo from "../../components/CreateProductSteps/StepGeneralInfo";
-import StepVariants from "../../components/CreateProductSteps/StepVariants";
-import StepPricingStock from "../../components/CreateProductSteps/StepPricingStock";
+import StepGeneralInfo from "../../components/StepsComponents/CreateProductSteps/StepGeneralInfo";
+import StepVariants from "../../components/StepsComponents/CreateProductSteps/StepVariants";
+import StepPricingStock from "../../components/StepsComponents/CreateProductSteps/StepPricingStock";
 import Button from "../../components/globalComponents/Button";
 import { ArrowNarrowLeft, ArrowNarrowRight, CheckIcon } from "../../assets/SvgIcons";
 
@@ -58,7 +58,7 @@ export default function CreateProduct() {
         {step === 3 && <StepPricingStock onNext={() => setStep(4)} onBack={() => setStep(2)} />}
       </div>
 
-  <div className="flex justify-between">
+    <div className="flex justify-between">
         <div>
           <Button
             onClick={() => setStep(1)}  

@@ -142,20 +142,21 @@ const SidebarMUI = ({ mobileOpen, handleDrawerToggle }) => {
           </List>
         </Collapse>
 
-        {user.role === 'Admin' && (
-          <ListItem button component={Link} to="/users">
-            <ListItemIcon sx={{ minWidth: 28, mr: 1.5 }}>
-              <UsersIcon />
-            </ListItemIcon>
-            <ListItemText primary="Users" />
-          </ListItem>
-        )}
         <ListItem button component={Link} to="/purchaseOrders">
           <ListItemIcon sx={{ minWidth: 28, mr: 1.5 }}>
             <PurchaseOrdersIcon />
           </ListItemIcon>
           <ListItemText primary="Purchase Orders" />
         </ListItem>
+        
+        <ListItem button component={Link} to="/users">
+          <ListItemIcon sx={{ minWidth: 28, mr: 1.5 }}>
+            <UsersIcon />
+          </ListItemIcon>
+          <ListItemText primary="Users" />
+        </ListItem>
+        
+
       </List>
     </div>
   );
