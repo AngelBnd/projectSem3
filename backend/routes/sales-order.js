@@ -57,7 +57,7 @@ router.get("/", authenticateToken, async (req, res) => {
       deliveryStatus: order.deliveryStatus,
     }));
 
-    console.log(formatted);
+    console.log(` INI BISA G SIH ${formatted}`);
 
     res.json(formatted);
   } catch (error) {

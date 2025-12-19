@@ -1,6 +1,6 @@
 import { Pie } from "react-chartjs-2";
 import { useEffect, useState } from "react";
-import { aggregateCategories } from "../../utils/aggregation";
+import { aggregateChannels } from "../../utils/aggregation"; // <-- aggregateChannels should handle channel/subchannel
 
 const generateColors = (count) => {
   const colors = [
@@ -18,7 +18,7 @@ const generateColors = (count) => {
   return Array.from({ length: count }, (_, i) => colors[i % colors.length]);
 };
 
-export default function CategoryPieChart() {
+export default function ChannelPieChart() {
   const [chartDataState, setChartDataState] = useState({
     labels: [],
     data: [],
@@ -32,35 +32,19 @@ export default function CategoryPieChart() {
     const fetchData = async () => {
       setIsLoading(true);
       try {
-        const [productsRes, salesRes] = await Promise.all([
-          fetch("http://localhost:3000/api/inventory", { headers }),
-          fetch("http://localhost:3000/api/sales", { headers }),
-        ]);
+        const salesRes = await fetch("http://localhost:3000/api/sales-order", {
+          headers,
+        });
+        if (!salesRes.ok) throw new Error("Failed to fetch sales orders");
 
-        if (!productsRes.ok || !salesRes.ok) {
-          throw new Error("One or both API fetches failed.");
-        }
+        const sales = await salesRes.json();
 
-        const products = await productsRes.json();
-        const rawSales = await salesRes.json();
-
-        console.log("RAW INVENTORY/PRODUCTS DATA:", products);
-        console.log("RAW TRANSACTIONS DATA:", rawSales);
-
-        const productMap = products.reduce((acc, p) => {
-          if (p.productCode && p.productCategory) {
-            acc[p.productCode] = p.productCategory;
-          }
-          return acc;
-        }, {});
-        console.log("MAPPED INVENTORY/PRODUCTS DATA:", productMap);
-
-        const { labels, data } = aggregateCategories(rawSales, productMap);
+        const { labels, data } = aggregateChannels(sales);
 
         setChartDataState({ labels, data });
-        setIsLoading(false);
       } catch (error) {
         console.error("Fetch error for Pie Chart:", error);
+      } finally {
         setIsLoading(false);
       }
     };
@@ -74,7 +58,7 @@ export default function CategoryPieChart() {
     labels: chartDataState.labels,
     datasets: [
       {
-        label: "Items Sold by Category",
+        label: "Items Sold by Channel/Subchannel",
         data: chartDataState.data,
         backgroundColor: backgroundColors,
         hoverOffset: 15,
@@ -85,7 +69,6 @@ export default function CategoryPieChart() {
   const chartOptions = {
     responsive: true,
     maintainAspectRatio: false,
-
     plugins: {
       legend: {
         display: true,
@@ -93,9 +76,8 @@ export default function CategoryPieChart() {
         align: "start",
         labels: {
           padding: 20,
-          // --- FIX: Use point style to render circles ---
-          usePointStyle: true, // <-- This tells Chart.js to use the point style
-          pointStyle: "circle", // <-- This explicitly sets the style to a circle
+          usePointStyle: true,
+          pointStyle: "circle",
         },
       },
       tooltip: {
@@ -115,14 +97,9 @@ export default function CategoryPieChart() {
     },
   };
 
-  if (isLoading) {
-    return <div>Loading Sales Categories...</div>;
-  }
-
-  // Check if data is truly empty after loading
-  if (chartDataState.data.length === 0) {
-    return <div>No category data found for charting.</div>;
-  }
+  if (isLoading) return <div>Loading Sales by Channels...</div>;
+  if (chartDataState.data.length === 0)
+    return <div>No channel data found for charting.</div>;
 
   return <Pie data={chartData} options={chartOptions} />;
 }

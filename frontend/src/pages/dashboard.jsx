@@ -13,18 +13,22 @@ const formatCurrency = (amount) =>
   }).format(amount || 0)}`;
 
 const DashboardTopBoxes = ({ summary }) => {
-  const { totalSales, totalProfit, lowStockItems, totalCustomers } = summary;
+  const { totalSales, totalRevenue, lowStockItems, totalCustomers } = summary;
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-2">
       <div className="bg-white p-6 shadow rounded-md flex flex-col justify-center">
-        <p className="text-3xl font-nunito font-bold">{formatCurrency(totalSales)}</p>
+        <p className="text-3xl font-nunito font-bold">
+          {formatCurrency(totalSales)}
+        </p>
         <span className="text-gray-600 mt-1">Total Sales</span>
       </div>
 
       <div className="bg-white p-6 shadow rounded-md flex flex-col justify-center">
-        <p className="text-3xl font-nunito font-bold">{formatCurrency(totalProfit)}</p>
-        <span className="text-gray-600 mt-1">Total Profit</span>
+        <p className="text-3xl font-nunito font-bold">
+          {formatCurrency(totalRevenue)}
+        </p>
+        <span className="text-gray-600 mt-1">Total Revenue</span>
       </div>
 
       <div className="bg-white p-6 shadow rounded-md flex flex-col justify-center">
@@ -44,7 +48,7 @@ export default function Dashboard() {
   const navigate = useNavigate();
   const [dashboardSummary, setDashboardSummary] = useState({
     totalSales: 0,
-    totalProfit: 0,
+    totalRevenue: 0,
     lowStockItems: 0,
     totalCustomers: 0,
   });
@@ -63,15 +67,18 @@ export default function Dashboard() {
 
     const fetchDashboardSummary = async () => {
       try {
-        const response = await fetch("http://localhost:3000/api/dashboard/summary", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        const response = await fetch(
+          "http://localhost:3000/api/dashboard/summary",
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
         if (!response.ok) throw new Error("Failed to fetch dashboard summary");
         const data = await response.json();
 
         setDashboardSummary({
           totalSales: parseFloat(data.totalSales) || 0,
-          totalProfit: parseFloat(data.totalProfit) || 0,
+          totalRevenue: parseFloat(data.totalRevenue) || 0,
           lowStockItems: data.lowStockItems,
           totalCustomers: data.totalCustomers,
         });
@@ -87,21 +94,23 @@ export default function Dashboard() {
   }, [navigate]);
 
   if (loading) return <div>Loading Dashboard...</div>;
-  if (error) return <div>Error: {error}. Check server console for details.</div>;
+  if (error)
+    return <div>Error: {error}. Check server console for details.</div>;
 
   return (
     <div className="grid grid-cols-9 gap-3 w-full text-black mb-10 !overflow-x-hidden">
-      <div className="col-span-9 flex flex-col mb-2"> 
+      <div className="col-span-9 flex flex-col mb-2">
         <h1 className="text-2xl font-semibold font-nunito">Dashboard</h1>
-        <h3 className="text-[#777B7C] text-sm">Overview of your store's performance</h3>
-      </div>  
-      
+        <h3 className="text-[#777B7C] text-sm">
+          Overview of your store's performance
+        </h3>
+      </div>
 
-      <div className="col-span-9"> 
+      <div className="col-span-9">
         <DashboardTopBoxes summary={dashboardSummary} />
       </div>
-      
-      <div className="col-span-9"> 
+
+      <div className="col-span-9">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 mb-2 ">
           {/* Cashflow Chart */}
           <div className="lg:col-span-2 bg-white rounded-md shadow p-6 flex flex-col min-h-[340px]">
@@ -120,7 +129,9 @@ export default function Dashboard() {
 
           {/* Categories Sold Chart */}
           <div className="bg-white rounded-md shadow p-6 flex flex-col">
-            <h2 className="text-xl font-bold font-nunito mb-4">Categories Sold</h2>
+            <h2 className="text-xl font-bold font-nunito mb-4">
+              Categories Sold
+            </h2>
             <div className="flex-grow">
               <CategoryPieChart />
             </div>
@@ -129,14 +140,14 @@ export default function Dashboard() {
       </div>
 
       <div className="col-span-9 overflow-x-hidden">
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <div className="bg-white rounded-md shadow p-6">
-          <TopSellingProducts />
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <div className="bg-white rounded-md shadow p-6">
+            <TopSellingProducts />
+          </div>
+          <div className="bg-white rounded-md shadow p-6">
+            <RecentTransactionsTable />
+          </div>
         </div>
-        <div className="bg-white rounded-md shadow p-6">
-          <RecentTransactionsTable />
-        </div>
-      </div>
       </div>
     </div>
   );

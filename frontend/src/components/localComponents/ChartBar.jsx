@@ -15,7 +15,7 @@ export default function ChartBar({ timeFrame }) {
     const token = localStorage.getItem("token");
     const headers = token ? { Authorization: `Bearer ${token}` } : {};
 
-    fetch("http://localhost:3000/api/sales", { headers })
+    fetch("http://localhost:3000/api/sales-order", { headers })
       .then((res) => {
         if (!res.ok) throw new Error("Network error");
         return res.json();
@@ -36,21 +36,16 @@ export default function ChartBar({ timeFrame }) {
 
     switch (timeFrame) {
       case "Yearly":
-        const resultYear = aggregateSalesValueByYear(salesData);
-        labels = resultYear.labels;
-        data = resultYear.data;
+        ({ labels, data } = aggregateSalesValueByYear(salesData));
         break;
       case "Monthly":
-        const resultMonth = aggregateSalesValueByMonth(salesData);
-        labels = resultMonth.labels;
-        data = resultMonth.data;
+        ({ labels, data } = aggregateSalesValueByMonth(salesData));
         break;
       case "Weekly":
-        const resultWeek = aggregateSalesValueByCurrentWeekDaily(salesData);
-        labels = resultWeek.labels;
-        data = resultWeek.data;
+        ({ labels, data } = aggregateSalesValueByWeekly(salesData));
         break;
       default:
+        ({ labels, data } = aggregateSalesValueByMonth(salesData));
     }
 
     setChartDataState({ labels, data });
