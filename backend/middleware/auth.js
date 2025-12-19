@@ -5,21 +5,18 @@ const prisma = require('../prisma/client');
 const jwt = require('jsonwebtoken');
 const JWT_SECRET = process.env.JWT_SECRET;
 
+const publicRoutes = [
+  '/api/auth/login',
+  '/api/auth/register',
+];
+
 const authenticateToken = async (req, res, next) => {
   console.log('🟢 Authentication test:', req.path);
 
   // 🟢 Skip login & register routes
-  if (req.path.startsWith('/api/auth/login') || req.path.startsWith('/api/auth/register')) {
+  if (publicRoutes.some(route => req.originalUrl.startsWith(route))) {
     return next();
   }
-
-  // 🟢 Enable full bypass for development
-  // if (process.env.BYPASS_AUTH === 'true') {
-  //   console.log('🟢 Authentication bypass active');
-  //   req.user = { id: 1, name: 'dev' };
-  //   return next();
-  // }
-
   const authHeader = req.headers['authorization'];
   const token = authHeader && authHeader.split(' ')[1];
   if (!token) return res.status(401).json({ error: 'Authentication token missing' });

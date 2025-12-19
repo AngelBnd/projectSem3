@@ -196,8 +196,6 @@ model Stores {
   receivedGoodsNotes    ReceivedGoodsNotes[]
 
   salesOrders           SalesOrders[]
-  salesDeliveryItems    SalesDeliveryItems[]
-  salesReturnItems      SalesReturnItems[]
 
   invoices              Invoices[]
   invoiceLineItems      InvoiceLineItems[]
@@ -464,7 +462,6 @@ model Invoices {
   invoiceId        Int @id @default(autoincrement())
   storeId          Int
   store            Stores @relation(fields: [storeId], references: [storeId])
-  channelId        Int
   salesOrderId     Int? @unique  
   invoiceNumber    String @unique
   invoiceType      String
@@ -475,13 +472,11 @@ model Invoices {
   totalAmount      Decimal
   status           InvoiceStatus 
 
-  channel          Channels @relation(fields: [channelId], references: [channelId])
   invoiceLineItems InvoiceLineItems[]
   creditNotes      CreditNotes[]
   salesOrder       SalesOrders? @relation(fields: [salesOrderId], references: [salesOrderId])
 
   @@index([storeId])
-  @@index([channelId])
   @@index([salesOrderId])
   @@index([invoiceDate])
 }
@@ -511,7 +506,7 @@ model Channels {
   channelId      Int @id @default(autoincrement())
   name           String
   subChannels    SubChannels[]
-  invoices       Invoices[]
+  salesOrders    SalesOrders[]
 
 }
 
@@ -521,6 +516,7 @@ model SubChannels {
   subChannelName String
   channel        Channels @relation(fields: [channelId], references: [channelId], onDelete: Cascade)
 
+  salesOrders    SalesOrders[]
   @@index([channelId])
 }
 
@@ -625,13 +621,20 @@ model SalesOrders {
   creationStatus SalesOrderCreationStatus @default(DRAFT)
   paymentTerms   String?
   createdBy      Int
-  totalAmount      Decimal
-  discount          Decimal?
+  totalAmount    Decimal
+  discount       Decimal?
+  channelId      Int?
+  subChannelId   Int?
 
+  subChannel      SubChannels? @relation(fields : [subChannelId], references: [subChannelId])
+  channel          Channels? @relation(fields: [channelId], references: [channelId])
   createdByUser    Users @relation(fields: [createdBy], references: [userId])
   invoice        Invoices?
   store          Stores @relation(fields: [storeId], references: [storeId])
   items          SalesOrderItems[]
+
+  @@index([channelId])
+  @@index([subChannelId])
 }
 
 model SalesOrderItems {
@@ -652,27 +655,22 @@ model SalesOrderItems {
 
 model SalesDeliveryItems {
   salesDeliveryItemsId  Int @id @default(autoincrement())
-  storeId                  Int
-
   salesOrderItemsId       Int
   quantityDelivered       Int
   deliveryDate         DateTime
 
-  store                   Stores @relation(fields: [storeId], references: [storeId])
   salesOrderItem          SalesOrderItems @relation(fields: [salesOrderItemsId], references: [salesOrderItemsId])
   returns                 SalesReturnItems[]
 }
 
 model SalesReturnItems {
   salesReturnItemsId     Int @id @default(autoincrement())
-  storeId                Int
 
   salesDeliveryItemsId Int
   qtyReturned              Int
   status                   SalesReturnStatus @default(PROCESSING)
   returnDate               DateTime
 
-  store                    Stores @relation(fields: [storeId], references: [storeId])
   salesDeliveryItem     SalesDeliveryItems @relation(fields: [salesDeliveryItemsId], references: [salesDeliveryItemsId])
 }
 

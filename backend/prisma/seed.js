@@ -1,5 +1,5 @@
-const { PrismaClient } = require('@prisma/client');
-const bcrypt = require('bcrypt');
+const { PrismaClient } = require("@prisma/client");
+const bcrypt = require("bcrypt");
 
 const prisma = new PrismaClient();
 
@@ -8,8 +8,8 @@ async function main() {
 
   // ----- USERS -----
   const salt = await bcrypt.genSalt(10);
-  const adminPassword = await bcrypt.hash('admin123', salt);
-  const userPassword = await bcrypt.hash('user123', salt);
+  const adminPassword = await bcrypt.hash("admin123", salt);
+  const userPassword = await bcrypt.hash("user123", salt);
 
   // Create admin user first without storeId (since it's nullable now)
   const adminUser = await prisma.users.create({
@@ -17,17 +17,17 @@ async function main() {
       email: "admin@example.com",
       firstName: "Admin",
       lastName: "User",
-      phoneNumber: "081234567890", 
+      phoneNumber: "081234567890",
       passwordHash: adminPassword,
-      status: "ACTIVE"
+      status: "ACTIVE",
     },
   });
 
   // ----- STORE ----- (Create store WITH ownerId)
   const store = await prisma.stores.create({
     data: {
-      storeName: 'Dev Store',
-      storeTag: 'DEV_STORE',
+      storeName: "Dev Store",
+      storeTag: "DEV_STORE",
       ownerId: adminUser.userId,
     },
   });
@@ -36,50 +36,50 @@ async function main() {
   const adminRole = await prisma.roles.create({
     data: {
       storeId: store.storeId,
-      roleName: 'Admin',
-    }
+      roleName: "Admin",
+    },
   });
 
   const userRole = await prisma.roles.create({
     data: {
       storeId: store.storeId,
-      roleName: 'User',
-    }
+      roleName: "User",
+    },
   });
 
   // Now update admin user with storeId and roleId
   await prisma.users.update({
     where: { userId: adminUser.userId },
     data: {
-      store : {
-        connect : { storeId : store.storeId}
-      }
-    }
+      store: {
+        connect: { storeId: store.storeId },
+      },
+    },
   });
 
   // ----- PERMISSIONS -----
   const permissions = [
-    { module: 'product', permission: 'create' },
-    { module: 'product', permission: 'approve' },
-    { module: 'product', permission: 'update' },
-    { module: 'product', permission: 'delete' },
-    { module: 'product', permission: 'view' },
-    { module: 'invoice', permission: 'create' },
-    { module: 'invoice', permission: 'approve' },
-    { module: 'invoice', permission: 'update' },
-    { module: 'invoice', permission: 'delete' },
-    { module: 'invoice', permission: 'view' },
-    { module: 'user', permission: 'update' },
-    { module: 'user', permission: 'delete' },
-    { module: 'user', permission: 'view' },
-    { module: 'role', permission: 'create' },
-    { module: 'role', permission: 'update' },
-    { module: 'role', permission: 'delete' },
-    { module: 'role', permission: 'view' },
-    { module: 'audit', permission: 'view' },
-    { module: 'audit', permission: 'create' },
-    { module: 'audit', permission: 'approve' },
-    { module: 'movement', permission: 'view' },
+    { module: "product", permission: "create" },
+    { module: "product", permission: "approve" },
+    { module: "product", permission: "update" },
+    { module: "product", permission: "delete" },
+    { module: "product", permission: "view" },
+    { module: "invoice", permission: "create" },
+    { module: "invoice", permission: "approve" },
+    { module: "invoice", permission: "update" },
+    { module: "invoice", permission: "delete" },
+    { module: "invoice", permission: "view" },
+    { module: "user", permission: "update" },
+    { module: "user", permission: "delete" },
+    { module: "user", permission: "view" },
+    { module: "role", permission: "create" },
+    { module: "role", permission: "update" },
+    { module: "role", permission: "delete" },
+    { module: "role", permission: "view" },
+    { module: "audit", permission: "view" },
+    { module: "audit", permission: "create" },
+    { module: "audit", permission: "approve" },
+    { module: "movement", permission: "view" },
   ];
 
   const permissionRecords = [];
@@ -102,7 +102,9 @@ async function main() {
   }
 
   // User gets only view permissions
-  const viewPermissions = permissionRecords.filter(p => p.permission === 'view');
+  const viewPermissions = permissionRecords.filter(
+    (p) => p.permission === "view"
+  );
   for (const perm of viewPermissions) {
     await prisma.rolePermissions.create({
       data: {
@@ -118,7 +120,7 @@ async function main() {
       userId: adminUser.userId,
       roleId: adminRole.roleId,
       isPrimary: true,
-    }
+    },
   });
 
   // Create regular user (will be in PENDING_APPROVAL status by default)
@@ -127,10 +129,10 @@ async function main() {
       email: "user@dev.com",
       firstName: "Regular",
       lastName: "User",
-      phoneNumber: "081234567891", 
+      phoneNumber: "081234567891",
       passwordHash: userPassword,
       requestedStoreTag: "DEV_STORE",
-      status: "PENDING_APPROVAL", 
+      status: "PENDING_APPROVAL",
     },
   });
 
@@ -140,7 +142,7 @@ async function main() {
       userId: regularUser.userId,
       roleId: userRole.roleId,
       isPrimary: true,
-    }
+    },
   });
 
   // REMOVED THE DUPLICATE USER ROLES CREATION HERE
@@ -149,15 +151,15 @@ async function main() {
   const brandAttribute = await prisma.attributes.create({
     data: {
       storeId: store.storeId,
-      name: 'Brand',
-    }
+      name: "Brand",
+    },
   });
 
   const sizeAttribute = await prisma.attributes.create({
     data: {
       storeId: store.storeId,
-      name: 'Size',
-    }
+      name: "Size",
+    },
   });
 
   // ----- ATTRIBUTE VALUES -----
@@ -165,16 +167,16 @@ async function main() {
     data: {
       attributeId: brandAttribute.attributeId,
       storeId: store.storeId,
-      valueName: 'Pioneer',
-    }
+      valueName: "Pioneer",
+    },
   });
 
   const jblValue = await prisma.attributeValues.create({
     data: {
       attributeId: brandAttribute.attributeId,
       storeId: store.storeId,
-      valueName: 'JBL',
-    }
+      valueName: "JBL",
+    },
   });
 
   const sixInchValue = await prisma.attributeValues.create({
@@ -182,34 +184,34 @@ async function main() {
       attributeId: sizeAttribute.attributeId,
       storeId: store.storeId,
       valueName: '6.5"',
-    }
+    },
   });
 
   // ----- PRODUCTS -----
   const speakerProduct = await prisma.products.create({
     data: {
       storeId: store.storeId,
-      productName: 'Premium Car Speakers',
+      productName: "Premium Car Speakers",
       productDescription: 'High-quality 6.5" component speakers',
-      productStatus: 'ACTIVE',
-      approvalStatus: 'APPROVED',
-      category: 'SPEAKERS',
-      brand: 'PIONEER',
+      productStatus: "ACTIVE",
+      approvalStatus: "APPROVED",
+      category: "SPEAKERS",
+      brand: "PIONEER",
       createdBy: adminUser.userId,
-    }
+    },
   });
 
   const amplifierProduct = await prisma.products.create({
     data: {
       storeId: store.storeId,
-      productName: '1000W Amplifier',
-      productDescription: 'Powerful mono block amplifier',
-      productStatus: 'ACTIVE',
-      approvalStatus: 'APPROVED',
-      category: 'AMPLIFIERS',
-      brand: 'JBL',
+      productName: "1000W Amplifier",
+      productDescription: "Powerful mono block amplifier",
+      productStatus: "ACTIVE",
+      approvalStatus: "APPROVED",
+      category: "AMPLIFIERS",
+      brand: "JBL",
       createdBy: adminUser.userId,
-    }
+    },
   });
 
   // ----- PRODUCT VARIANTS -----
@@ -217,28 +219,26 @@ async function main() {
     data: {
       storeId: store.storeId,
       productId: speakerProduct.productId,
-      sku: 'SPK-001',
-      barcode: '1234567890123',
+      sku: "SPK-001",
+      barcode: "1234567890123",
       sellingPrice: 149.99,
-      costPrice: 89.99,
       isDefault: true,
       thresholdStock: 10,
-      productStatus: 'ACTIVE',
-    }
+      productStatus: "ACTIVE",
+    },
   });
 
   const amplifierVariant = await prisma.productVariants.create({
     data: {
       storeId: store.storeId,
       productId: amplifierProduct.productId,
-      sku: 'AMP-001',
-      barcode: '1234567890124',
+      sku: "AMP-001",
+      barcode: "1234567890124",
       sellingPrice: 299.99,
-      costPrice: 189.99,
       isDefault: true,
       thresholdStock: 5,
-      productStatus: 'ACTIVE',
-    }
+      productStatus: "ACTIVE",
+    },
   });
 
   // ----- PRODUCT VARIANT ATTRIBUTES -----
@@ -247,7 +247,7 @@ async function main() {
       storeId: store.storeId,
       attributeValuesId: pioneerValue.attributeValuesId,
       productVariantsId: speakerVariant.productVariantId,
-    }
+    },
   });
 
   await prisma.productVariantAttributes.create({
@@ -256,57 +256,55 @@ async function main() {
 
       attributeValuesId: sixInchValue.attributeValuesId,
       productVariantsId: speakerVariant.productVariantId,
-    }
+    },
   });
-
 
   // ----- CHANNELS -----
   const retailChannel = await prisma.channels.create({
     data: {
-      name: 'Retail Store',
-    }
+      name: "Retail Store",
+    },
   });
 
   const onlineChannel = await prisma.channels.create({
     data: {
-      name: 'Online Store',
-    }
+      name: "Online Store",
+    },
   });
 
   // ----- SUB CHANNELS -----
   await prisma.subChannels.create({
     data: {
       channelId: retailChannel.channelId,
-      subChannelName: 'Main Store Location',
-    }
+      subChannelName: "Main Store Location",
+    },
   });
-
 
   await prisma.subChannels.createMany({
     data: [
       {
         channelId: onlineChannel.channelId,
-        subChannelName: 'Website',
+        subChannelName: "Website",
       },
       {
         channelId: onlineChannel.channelId,
-        subChannelName: 'Mobile App',
+        subChannelName: "Mobile App",
       },
       {
         channelId: onlineChannel.channelId,
-        subChannelName: 'WhatsApp Order',
+        subChannelName: "WhatsApp Order",
       },
       {
         channelId: onlineChannel.channelId,
-        subChannelName: 'Instagram Shop',
+        subChannelName: "Instagram Shop",
       },
       {
         channelId: onlineChannel.channelId,
-        subChannelName: 'Tokopedia',
+        subChannelName: "Tokopedia",
       },
       {
         channelId: onlineChannel.channelId,
-        subChannelName: 'Shopee',
+        subChannelName: "Shopee",
       },
     ],
   });
@@ -315,63 +313,60 @@ async function main() {
   const salesOrder = await prisma.salesOrders.create({
     data: {
       storeId: store.storeId,
-      customerName: 'John Doe',
+      customerName: "John Doe",
       orderDate: new Date(),
-      creationStatus: 'APPROVED',
-      paymentStatus: 'PAID',
-      deliveryStatus: 'DELIVERED',
+      creationStatus: "APPROVED",
+      paymentStatus: "PAID",
+      deliveryStatus: "DELIVERED",
       totalAmount: 449.98,
       discount: 0,
-      createdBy: 1, 
-    }
+      createdBy: adminUser.userId,
+      channelId: 1,
+      subChannelId: 1,
+    },
   });
 
   // ----- SALES ORDER ITEMS -----
   const salesOrderItem1 = await prisma.salesOrderItems.create({
     data: {
-      storeId: store.storeId,
       salesOrderId: salesOrder.salesOrderId,
       productVariantId: speakerVariant.productVariantId,
       quantityOrdered: 2,
       unitPrice: 149.99,
-    }
+    },
   });
 
   const salesOrderItem2 = await prisma.salesOrderItems.create({
     data: {
-      storeId: store.storeId,
       salesOrderId: salesOrder.salesOrderId,
       productVariantId: amplifierVariant.productVariantId,
       quantityOrdered: 1,
       unitPrice: 149.99,
-    }
+    },
   });
-
 
   // ----- SALE DELIVERI ITEMS -----
   const deliveryItem1 = await prisma.salesDeliveryItems.create({
     data: {
-      storeId: store.storeId,
       salesOrderItemsId: salesOrderItem1.salesOrderItemsId,
-      quantityDelivered: 2, 
-      deliveryDate: new Date(), 
-    }
+      quantityDelivered: 2,
+      deliveryDate: new Date(),
+    },
   });
   // ----- INVOICES -----
   const invoice = await prisma.invoices.create({
     data: {
       storeId: store.storeId,
-      channelId: retailChannel.channelId,
       salesOrderId: salesOrder.salesOrderId,
-      invoiceNumber: 'INV-2024-001',
-      invoiceType: 'SALE',
-      invoiceSubject: 'Car Audio System',
+      invoiceNumber: "INV-2024-001",
+      invoiceType: "SALE",
+      invoiceSubject: "Car Audio System",
       invoiceDate: new Date(),
       discount: 0,
       subtotal: 449.98,
       totalAmount: 449.98,
-      status: 'PAID',
-    }
+      status: "PAID",
+    },
   });
 
   // ----- INVOICE LINE ITEMS -----
@@ -380,23 +375,22 @@ async function main() {
       storeId: store.storeId,
       invoiceId: invoice.invoiceId,
       productVariantsId: speakerVariant.productVariantId,
-      desc: 'Premium Car Speakers',
+      desc: "Premium Car Speakers",
       quantitySold: 2,
       sellingPrice: 149.99,
-    }
+    },
   });
-
 
   // ----- PURCHASE ORDERS -----
   const purchaseOrder = await prisma.purchaseOrders.create({
     data: {
       storeId: store.storeId,
-      supplierName: 'Audio Distributors Inc.',
+      supplierName: "Audio Distributors Inc.",
       orderDate: new Date(),
       expectedArrivalDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days from now
-      status: 'ORDERED',
-      totalCost: 899.90,
-    }
+      status: "ORDERED",
+      totalCost: 899.9,
+    },
   });
 
   // ----- PURCHASE ORDER ITEMS -----
@@ -407,7 +401,7 @@ async function main() {
       productVariantId: speakerVariant.productVariantId,
       quantityOrdered: 10,
       costPrice: 89.99,
-    }
+    },
   });
 
   // ----- RECEIVED GOODS NOTES -----
@@ -418,7 +412,7 @@ async function main() {
       productVariantId: speakerVariant.productVariantId,
       qtyReceived: 10,
       dateReceived: new Date(),
-    }
+    },
   });
 
   // ----- STOCK MOVEMENTS -----
@@ -427,10 +421,10 @@ async function main() {
       storeId: store.storeId,
       productVariantId: speakerVariant.productVariantId,
       referenceId: purchaseOrder.purchaseOrderId,
-      referenceType: 'PURCHASE_ORDER',
+      referenceType: "PURCHASE_ORDER",
       change: 10,
-      reason: 'Purchase order received',
-    }
+      reason: "Purchase order received",
+    },
   });
 
   // ----- STOCK AUDITS -----
@@ -438,11 +432,11 @@ async function main() {
     data: {
       storeId: store.storeId,
       doneBy: adminUser.userId,
-      status: 'COMPLETED',
+      status: "COMPLETED",
       auditDate: new Date(),
       difference: 0,
-      notes: 'Monthly inventory count',
-    }
+      notes: "Monthly inventory count",
+    },
   });
 
   // ----- STOCK ADJUSTMENT PER PRODUCT -----
@@ -452,8 +446,8 @@ async function main() {
       auditId: stockAudit.auditId,
       physicalQuantity: 25,
       systemQuantity: 25,
-      reason: 'MISCOUNT',
-    }
+      reason: "MISCOUNT",
+    },
   });
 
   // ----- CREDIT NOTES -----
@@ -461,13 +455,13 @@ async function main() {
     data: {
       storeId: store.storeId,
       invoiceId: invoice.invoiceId,
-      creditNoteNumber: 'CN-2024-001',
+      creditNoteNumber: "CN-2024-001",
       dateIssued: new Date(),
-      reason: 'Returned item',
+      reason: "Returned item",
       totalAmount: 149.99,
-      status: 'ISSUED',
+      status: "ISSUED",
       createdBy: adminUser.userId,
-    }
+    },
   });
 
   // ----- CREDIT NOTE ITEMS -----
@@ -479,7 +473,7 @@ async function main() {
       qtyCredited: 1,
       unitPrice: 149.99,
       amount: 149.99,
-    }
+    },
   });
 
   // ----- PURCHASE RETURNS -----
@@ -488,9 +482,9 @@ async function main() {
       storeId: store.storeId,
       purchaseOrderId: purchaseOrder.purchaseOrderId,
       dateReturned: new Date(),
-      status: 'PENDING_APPROVAL',
-      reason: 'Damaged goods',
-    }
+      status: "PENDING_APPROVAL",
+      reason: "Damaged goods",
+    },
   });
 
   // ----- PURCHASE RETURN ITEMS -----
@@ -500,8 +494,8 @@ async function main() {
       purchaseReturnId: purchaseReturn.purchaseReturnId,
       productVariantId: speakerVariant.productVariantId,
       qtyReturned: 2,
-      reason: 'Damaged during shipping',
-    }
+      reason: "Damaged during shipping",
+    },
   });
 
   console.log("Seeding complete!");

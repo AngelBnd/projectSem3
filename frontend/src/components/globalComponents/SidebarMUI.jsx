@@ -12,33 +12,29 @@ import {
   Collapse,
   IconButton,
   Typography,
-  Button
+  Button,
 } from "@mui/material";
 import { Link } from "react-router-dom";
-import { DashboardIcon, SalesIcon, InventoryIcon, ChevronDownIcon, CardboardIcon, UsersIcon, SettingsIcon, LogOutIcon, PurchaseOrdersIcon } from "../../assets/SvgIcons";
-
+import {
+  DashboardIcon,
+  SalesIcon,
+  InventoryIcon,
+  ChevronDownIcon,
+  CardboardIcon,
+  UsersIcon,
+  SettingsIcon,
+  LogOutIcon,
+  PurchaseOrdersIcon,
+} from "../../assets/SvgIcons";
+import SidebarFooter from "../localComponents/sidebarFooter";
+import { useNavigate } from "react-router-dom";
 import { ExpandLess, ExpandMore } from "@mui/icons-material";
+import { hasPermission, hasAnyRole } from "../../utils/auth";
 
 export const drawerWidth = 240;
 
-
-const SidebarFooter = () => (
-  <div className="px-7 pb-8 pt-[20px] mt-auto flex items-center justify-between border-t border-gray-200 text-black">
-    <div className="flex items-center">
-      Log out
-    </div>
-
-    <div
-      className="cursor-pointer"
-      onClick={() => console.log('Log out function here')}
-    >
-      <LogOutIcon/>
-    </div>
-  </div>
-);
-
 const SidebarMUI = ({ mobileOpen, handleDrawerToggle }) => {
-  const [user, setUser] = useState({ username: '', role: '' });
+  const [user, setUser] = useState({ username: "", role: "" });
   const [openInventory, setOpenInventory] = useState(false);
 
   const handleInventoryClick = () => {
@@ -46,56 +42,55 @@ const SidebarMUI = ({ mobileOpen, handleDrawerToggle }) => {
   };
 
   useEffect(() => {
-  const storedUser = localStorage.getItem('user');
-  if (storedUser) {
-    setUser(JSON.parse(storedUser));
-  }
+    const storedUser = localStorage.getItem("user");
+    if (storedUser) {
+      setUser(JSON.parse(storedUser));
+    }
   }, []);
 
   const navList = (
     <div>
-      <Box sx={{ px: 3, pt: 3.5, pb: 2}}>
+      <Box sx={{ px: 3, pt: 3.5, pb: 2 }}>
         <Typography
           variant="h6"
           sx={{
             fontFamily: "Nunito, sans-serif",
             fontWeight: "bold",
             color: "#111",
-
           }}
         >
           StockWise
         </Typography>
       </Box>
       <Divider />
-        <List
-          sx={{
-            px: 3,
-            pt : 2,
+      <List
+        sx={{
+          px: 3,
+          pt: 2,
+          fontFamily: "Nunito, sans-serif",
+          "& .MuiListItem-root": {
+            borderRadius: "10px",
+            mb: 1,
+            px: 1,
+            "&:hover": {
+              backgroundColor: "rgba(168, 179, 202, 0.15)",
+            },
+          },
+          "& .MuiListItemText-primary": {
             fontFamily: "Nunito, sans-serif",
-            "& .MuiListItem-root": {
-              borderRadius: "10px",
-              mb: 1,
-              px: 1,
-              "&:hover": {
-                backgroundColor: "rgba(168, 179, 202, 0.15)", 
-              },
+            color: "#000",
+            fontSize: "16px",
+          },
+          "& .Mui-selected": {
+            backgroundColor: "rgba(168, 179, 202, 0.15) !important",
+            "&:hover": {
+              backgroundColor: "rgba(168, 179, 202, 0.15)",
             },
-            "& .MuiListItemText-primary": {
-              fontFamily: "Nunito, sans-serif",
-              color: "#000",
-              fontSize: "16px",
-            },
-            "& .Mui-selected": {
-              backgroundColor: "rgba(168, 179, 202, 0.15) !important", 
-              "&:hover": {
-                backgroundColor: "rgba(168, 179, 202, 0.15)", 
-              },
-            },
-          }}
-        >
+          },
+        }}
+      >
         {/* Dashboard */}
-        <ListItem button component={Link} to="/dashboard" >
+        <ListItem button component={Link} to="/dashboard">
           <ListItemIcon sx={{ minWidth: 28, mr: 1.5 }}>
             <DashboardIcon />
           </ListItemIcon>
@@ -130,13 +125,28 @@ const SidebarMUI = ({ mobileOpen, handleDrawerToggle }) => {
 
         <Collapse in={openInventory} timeout="auto" unmountOnExit>
           <List component="div" disablePadding>
-            <ListItem button sx={{ pl: 6 }} component={Link} to="/inventory/auditLogs">
+            <ListItem
+              button
+              sx={{ pl: 6 }}
+              component={Link}
+              to="/inventory/auditLogs"
+            >
               <ListItemText primary="Audit Logs" />
             </ListItem>
-            <ListItem button sx={{ pl: 6 }} component={Link} to="/inventory/invMovement">
+            <ListItem
+              button
+              sx={{ pl: 6 }}
+              component={Link}
+              to="/inventory/invMovement"
+            >
               <ListItemText primary="Inv Movement" />
             </ListItem>
-            <ListItem button sx={{ pl: 6 }} component={Link} to="/inventory/suppliers">
+            <ListItem
+              button
+              sx={{ pl: 6 }}
+              component={Link}
+              to="/inventory/suppliers"
+            >
               <ListItemText primary="Suppliers" />
             </ListItem>
           </List>
@@ -148,19 +158,18 @@ const SidebarMUI = ({ mobileOpen, handleDrawerToggle }) => {
           </ListItemIcon>
           <ListItemText primary="Purchase Orders" />
         </ListItem>
-        
-        <ListItem button component={Link} to="/users">
-          <ListItemIcon sx={{ minWidth: 28, mr: 1.5 }}>
-            <UsersIcon />
-          </ListItemIcon>
-          <ListItemText primary="Users" />
-        </ListItem>
-        
 
+        {hasPermission("user", "update") && (
+          <ListItem button component={Link} to="/users">
+            <ListItemIcon sx={{ minWidth: 28, mr: 1.5 }}>
+              <UsersIcon />
+            </ListItemIcon>
+            <ListItemText primary="Users" />
+          </ListItem>
+        )}
       </List>
     </div>
   );
-
 
   return (
     <>
@@ -184,14 +193,14 @@ const SidebarMUI = ({ mobileOpen, handleDrawerToggle }) => {
         component="aside"
         sx={{
           display: { xs: "none", sm: "flex" },
-          flexDirection: "column",    
+          flexDirection: "column",
           width: drawerWidth,
           flexShrink: 0,
           borderRight: "1px solid rgba(0,0,0,0.08)",
           backgroundColor: "#fff",
           position: "sticky",
           top: 0,
-          height: "100vh"
+          height: "100vh",
         }}
       >
         {navList}
@@ -202,4 +211,3 @@ const SidebarMUI = ({ mobileOpen, handleDrawerToggle }) => {
 };
 
 export default SidebarMUI;
- 

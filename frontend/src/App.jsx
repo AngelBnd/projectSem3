@@ -16,7 +16,8 @@
     CreateProduct,
     Register,
     Users,
-    CreateOrderSale
+    CreateOrderSale,
+    AccessStatus
   } from './pages';
   import { ThemeProvider } from "@emotion/react";
   import theme from "./theme";
@@ -26,7 +27,7 @@
     const [mobileOpen, setMobileOpen] = useState(false);
     const location = useLocation(); 
     const pathname = location.pathname.toLowerCase();
-    const hideSidebar = pathname.startsWith("/login") || pathname.startsWith("/register");
+    const hideSidebar = pathname.startsWith("/login") || pathname.startsWith("/register")  || pathname.startsWith("/access-status");
     const showSidebar = isAuthenticated && !hideSidebar;
 
     useEffect(() => {
@@ -82,7 +83,7 @@
               }`}
             >
               {Array.from({ length: 12 }).map((_, i) => (
-                <div key={i} className="bg-red-500/10 w-full h-full"></div>
+                <div key={i} className="500/10 w-full h-full"></div>
               ))}
             </div>
 
@@ -115,6 +116,7 @@
                     element={<Login setAuthenticated={setIsAuthenticated} />}
                   />
                   <Route path="/register" element={<Register />} />
+                  <Route path="/access-status" element={<AccessStatus />} />
                   <Route
                     path="/dashboard"
                     element={

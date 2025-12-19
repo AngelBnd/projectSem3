@@ -2,93 +2,129 @@ import { useState, useRef, useEffect } from "react";
 import FilterTabs from "../../globalComponents/FilterTabs";
 import { PopupOkay, PopupError } from "../../globalComponents/PopupComp";
 import Button from "../../globalComponents/Button";
-import { Autocomplete, TextField, MenuItem, FormControlLabel, Checkbox } from "@mui/material";
+import {
+  Autocomplete,
+  TextField,
+  MenuItem,
+  FormControlLabel,
+  Checkbox,
+} from "@mui/material";
 import { CalendarIcon } from "../../../assets/SvgIcons";
 
-const ProductItem = ({ product, index, onProductChange, onDeleteProduct, onProductFocus, onProductBlur, activeProductIndex, mode, autofill, newProducts, handleProductCodeChange}) => {
-   
-    const isFocused = activeProductIndex === index;
-    const isEditMode = mode === 'edit';
-    const isProductSet = !!product.productName && product.productName.trim().length > 0;
-    const isNewlyAddedAndBlank = !isProductSet && product.tempId && product.productCode === ""; 
-    const showFinalDisplay = (isEditMode || isProductSet) && !isFocused;
-    const showInput = isFocused || !isProductSet;
+const ProductItem = ({
+  product,
+  index,
+  onProductChange,
+  onDeleteProduct,
+  onProductFocus,
+  onProductBlur,
+  activeProductIndex,
+  mode,
+  autofill,
+  newProducts,
+  handleProductCodeChange,
+}) => {
+  const isFocused = activeProductIndex === index;
+  const isEditMode = mode === "edit";
+  const isProductSet =
+    !!product.productName && product.productName.trim().length > 0;
+  const isNewlyAddedAndBlank =
+    !isProductSet && product.tempId && product.productCode === "";
+  const showFinalDisplay = (isEditMode || isProductSet) && !isFocused;
+  const showInput = isFocused || !isProductSet;
 
-    return (
-        <div className="grid grid-cols-6 items-end gap-4 py-[4px] bg-transparent rounded-lg">
+  return (
+    <div className="grid grid-cols-6 items-end gap-4 py-[4px] bg-transparent rounded-lg">
+      <div className="col-span-4 relative flex flex-col gap-1">
+        <p className="text-sm font-semibold text-gray-800 truncate leading-tight">
+          {product.variantName || "Product Name"}
+        </p>
+        <Autocomplete
+          size="small"
+          sx={{
+            "& .MuiOutlinedInput-root": {
+              "& fieldset": {
+                borderColor: "#e5e7eb",
+              },
+              "&:hover fieldset": {
+                borderColor: "#d1d5db",
+              },
+              "&.Mui-focused fieldset": {
+                borderColor: "#9ca3af",
+              },
+            },
+          }}
+          options={autofill}
+          getOptionLabel={(option) => option.variantName || ""}
+          value={product.selectedVariant || null}
+          onChange={(event, newValue) => {
+            onProductChange(index, {
+              type: "SELECT_VARIANT",
+              data: newValue,
+            });
+          }}
+          inputValue={product.sku ?? ""}
+          onInputChange={(e, newInputValue) =>
+            handleProductCodeChange(index, newInputValue)
+          }
+          isOptionEqualToValue={(option, value) =>
+            option.productVariantId === value?.productVariantId
+          }
+          renderInput={(params) => (
+            <TextField
+              {...params}
+              name={`product-${index}`}
+              placeholder="Search by code or name"
+              variant="outlined"
+            />
+          )}
+        />
+      </div>
 
-            <div className="col-span-4 relative flex flex-col gap-1">
-                <p className="text-sm font-semibold text-gray-800 truncate leading-tight">
-                    {product.variantName || "Product Name"}
-                </p>
-                <Autocomplete
-                    size="small"
-                    sx={{
-                      "& .MuiOutlinedInput-root": {
-                        "& fieldset": {
-                          borderColor: "#e5e7eb", 
-                        },
-                        "&:hover fieldset": {
-                          borderColor: "#d1d5db", 
-                        },
-                        "&.Mui-focused fieldset": {
-                          borderColor: "#9ca3af",
-                        },
-                      },
-                    }}
-                    options={autofill}
-                    getOptionLabel={(option) => option.variantName  || ""}
-        
-                    value={product.selectedVariant || null}  
-                    onChange={(event, newValue) => {
-                      onProductChange(index, {
-                          type: "SELECT_VARIANT",
-                          data: newValue
-                      });
-                    }}
-                  
-                    inputValue={product.sku ?? ""}
-                    onInputChange={(e, newInputValue) =>
-                      handleProductCodeChange(index, newInputValue)
-                    }
-               
-                    isOptionEqualToValue={(option, value) => option.productVariantId === value?.productVariantId}
-                    renderInput={(params) => (
-                        <TextField {...params} name={`product-${index}`} placeholder="Search by code or name" variant="outlined" />
-                    )}
-                />
-            </div>
+      <div className="col-span-1">
+        <input
+          type="number"
+          name="quantitySold"
+          value={product.quantitySold}
+          onChange={(e) => onProductChange(index, e)}
+          className="w-full p-2 text-center border rounded-md bg-white text-black focus:outline-none focus:ring-1 focus:ring-blue-400"
+          min="1"
+        />
+      </div>
 
-
-            <div className="col-span-1">
-                <input
-                type="number"
-                name="quantitySold"
-                value={product.quantitySold}
-                onChange={(e) => onProductChange(index, e)}
-                className="w-full p-2 text-center border rounded-md bg-white text-black focus:outline-none focus:ring-1 focus:ring-blue-400" 
-                min="1"
-                />
-            </div>
-
-    
-            <div className="col-span-1 flex justify-end">
-                <button
-                    type="button"
-                    onClick={() => onDeleteProduct(index)}
-                        className="p-2 text-red-500 rounded-md hover:bg-red-100 bg-transparent mx-auto"
-                >
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M4 7l16 0" /><path d="M10 11l0 6" /><path d="M14 11l0 6" /><path d="M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12" /><path d="M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3" /></svg>
-                </button>
-            </div>
-        </div>
-    );
+      <div className="col-span-1 flex justify-end">
+        <button
+          type="button"
+          onClick={() => onDeleteProduct(index)}
+          className="p-2 text-red-500 rounded-md hover:bg-red-100 bg-transparent mx-auto"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+            <path d="M4 7l16 0" />
+            <path d="M10 11l0 6" />
+            <path d="M14 11l0 6" />
+            <path d="M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12" />
+            <path d="M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3" />
+          </svg>
+        </button>
+      </div>
+    </div>
+  );
 };
 
 const ServiceItem = ({ service, index, onServiceChange, onDeleteService }) => {
   return (
     <div className="grid grid-cols-6 items-end gap-4 py-[4px] bg-transparent rounded-lg">
-
       <div className="col-span-3">
         <input
           type="text"
@@ -114,8 +150,8 @@ const ServiceItem = ({ service, index, onServiceChange, onDeleteService }) => {
       <div className="col-span-1">
         <input
           type="number"
-          name="price"
-          value={service.price}
+          name="unitPrice"
+          value={service.unitPrice}
           onChange={(e) => onServiceChange(index, e)}
           placeholder="Price"
           className="w-full p-2 text-right border rounded-md bg-white text-black focus:outline-none focus:ring-1 focus:ring-blue-400"
@@ -129,9 +165,17 @@ const ServiceItem = ({ service, index, onServiceChange, onDeleteService }) => {
           onClick={() => onDeleteService(index)}
           className="p-2 text-red-500 rounded-md hover:bg-red-100 bg-transparent mx-auto"
         >
-          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
-            fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"
-            strokeLinejoin="round">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
             <path stroke="none" d="M0 0h24v24H0z" />
             <path d="M4 7l16 0" />
             <path d="M10 11l0 6" />
@@ -141,225 +185,221 @@ const ServiceItem = ({ service, index, onServiceChange, onDeleteService }) => {
           </svg>
         </button>
       </div>
-
     </div>
   );
 };
 
+export default function StepGeneralInfo({
+  setNewProducts,
+  setNewServices,
+  newServices,
+  newProducts,
+  formData,
+  setFormData,
+  errors = {},
+  getValidationStatus = () => {},
+}) {
+  console.log("formData:", formData);
+  const token = localStorage.getItem("token");
 
-export default function StepGeneralInfo({ setNewProducts, setNewServices, newServices, newProducts,formData, setFormData, errors = {}, getValidationStatus = () => {}}) {
-    console.log("formData:", formData);
-    const token = localStorage.getItem('token'); 
+  const [activeTab, setActiveTab] = useState(0);
+  const bottomRef = useRef(null);
 
-    const [activeTab, setActiveTab] = useState(0);
-    const bottomRef = useRef(null);
+  const [autofill, setAutofill] = useState([]);
+  const [activeProductIndex, setActiveProductIndex] = useState(null);
+  const [dropdownPosition, setDropdownPosition] = useState({});
 
-    const [autofill, setAutofill] = useState([]);
-    const [activeProductIndex, setActiveProductIndex] = useState(null);
-    const [dropdownPosition, setDropdownPosition] = useState({});
+  const [channels, setChannels] = useState([]);
+  const [loadingChannels, setLoadingChannels] = useState(true);
 
-    const [channels, setChannels] = useState([]);
-    const [loadingChannels, setLoadingChannels] = useState(true);
-    const [selectedChannelId, setSelectedChannelId] = useState(null);
+  const [products, setProducts] = useState([]);
+  const [hadAddedProduct, setHasAddedProduct] = useState(false);
+  const orderDateRef = useRef(null);
 
-    const [products, setProducts] = useState([]);
-    const [hadAddedProduct,setHasAddedProduct] = useState(false);
-    const orderDateRef = useRef(null);
+  useEffect(() => {
+    console.log(newProducts);
+    console.log(newServices);
+  }, [newProducts, newServices]);
 
-    useEffect(()=>{
-      console.log(newProducts)
-      console.log(newServices)
-    },[newProducts, newServices])
-
-    
-
-
-    useEffect(() => {
-        fetch('/api/product-variants',{
-            headers : {
-                'Authorization': `Bearer ${token}`,
-            }
-        })
-        .then(res => res.json())
-        .then(data => {
-            console.log("DATA PRODUCT VARIANTS",data);
-            setAutofill(data)
-        })
-    }, [])
-
-    useEffect(() => {
-        async function fetchChannels() {
-            try {
-                const res = await fetch("/api/sales-order/channels", {
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                    },
-                });
-                console.log("Status:", res.status);
-
-                const data = await res.json();
-                console.log("DATA CHANNELS:", data);
-
-                setChannels(data);
-            } catch (error) {
-                console.error("Error loading channels:", error);
-            } finally {
-                setLoadingChannels(false);
-            }
-        }
-
-        fetchChannels();
-    }, []);
-
-    const tabs = [
-        { label: "Products" },
-        { label: "Services" }
-    ];
-
-    const handleChange = (e) => {
-      const { name, value } = e.target;
-
-      setFormData((prev) => {
-        const updated = structuredClone(prev); 
-
-        const keys = name.split(".");
-        let pointer = updated;
-
-        for (let i = 0; i < keys.length - 1; i++) {
-          const k = keys[i];
-          pointer[k] = { ...pointer[k] }; 
-          pointer = pointer[k];
-        }
-
-        pointer[keys[keys.length - 1]] = value;
-
-        return updated;
+  useEffect(() => {
+    fetch("/api/product-variants", {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        console.log("DATA PRODUCT VARIANTS", data);
+        setAutofill(data);
       });
-    };
+  }, []);
 
-    const handleAddProduct = () => {
-      const newBlankProduct = {
-          productVariantId: null, 
-          productId: null,
-          
-          sku: "",
-          barcode: "",
-          variantName :"",
-            
-          thresholdStock: 0,     
-          
-          quantitySold: 1,        
-          tempId: Date.now(),
-      };
-      setNewProducts([...newProducts, newBlankProduct]);
-      setHasAddedProduct(true);
-    };
+  useEffect(() => {
+    async function fetchChannels() {
+      try {
+        const res = await fetch("/api/sales-order/channels", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        console.log("Status:", res.status);
 
-    const handleProductChange = (index, action) => {
-        const updated = [...newProducts];
+        const data = await res.json();
+        console.log("DATA CHANNELS:", data);
 
-        if (action.type === "SELECT_VARIANT") {
-            const v = action.data;
-
-            updated[index] = {
-                ...updated[index],
-                selectedVariant: v,
-                productVariantId: v.productVariantId,
-                productId: v.productId,
-                productName: v.product?.productName || "",
-                sku: v.sku || "",
-                barcode: v.barcode || "",
-                sellingPrice: v.sellingPrice,
-                thresholdStock: v.thresholdStock,
-            };
-
-            setNewProducts(updated);
-            return;
-        }
-
-        if (action.target) {
-          const { name, value } = action.target;
-
-          updated[index] = {
-              ...updated[index],
-              [name]: value,
-        };
-
-        setNewProducts(updated);
-        return;
+        setChannels(data);
+      } catch (error) {
+        console.error("Error loading channels:", error);
+      } finally {
+        setLoadingChannels(false);
+      }
     }
 
-  
+    fetchChannels();
+  }, []);
+
+  const tabs = [{ label: "Products" }, { label: "Services" }];
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+
+    setFormData((prev) => {
+      const updated = structuredClone(prev);
+
+      const keys = name.split(".");
+      let pointer = updated;
+
+      for (let i = 0; i < keys.length - 1; i++) {
+        const k = keys[i];
+        pointer[k] = { ...pointer[k] };
+        pointer = pointer[k];
+      }
+
+      pointer[keys[keys.length - 1]] = value;
+
+      return updated;
+    });
+  };
+
+  const handleAddProduct = () => {
+    const newBlankProduct = {
+      productVariantId: null,
+      productId: null,
+
+      sku: "",
+      barcode: "",
+      variantName: "",
+
+      thresholdStock: 0,
+
+      quantitySold: 1,
+      tempId: Date.now(),
     };
+    setNewProducts([...newProducts, newBlankProduct]);
+    setHasAddedProduct(true);
+  };
 
-    const handleProductCodeChange = (index, newInputValue) => {
-        setNewProducts(prev => {
-          if(!prev[index]) return prev;
+  const handleProductChange = (index, action) => {
+    const updated = [...newProducts];
 
-          const updated = [...prev];
-          updated[index].variantName = newInputValue;
-          return updated;
-        });
+    if (action.type === "SELECT_VARIANT") {
+      const v = action.data;
+
+      updated[index] = {
+        ...updated[index],
+        selectedVariant: v,
+        productVariantId: v.productVariantId,
+        productId: v.productId,
+        productName: v.product?.productName || "",
+        sku: v.sku || "",
+        barcode: v.barcode || "",
+        sellingPrice: v.sellingPrice,
+        thresholdStock: v.thresholdStock,
+      };
+
+      setNewProducts(updated);
+      return;
+    }
+
+    if (action.target) {
+      const { name, value } = action.target;
+
+      updated[index] = {
+        ...updated[index],
+        [name]: value,
+      };
+
+      setNewProducts(updated);
+      return;
+    }
+  };
+
+  const handleProductCodeChange = (index, newInputValue) => {
+    setNewProducts((prev) => {
+      if (!prev[index]) return prev;
+
+      const updated = [...prev];
+      updated[index].variantName = newInputValue;
+      return updated;
+    });
+  };
+
+  const handleDeleteProduct = (indexToRemove) => {
+    setNewProducts(newProducts.filter((_, index) => index !== indexToRemove));
+  };
+
+  const handleAddService = () => {
+    if (activeTab !== 1) return;
+    const newBlankService = {
+      serviceName: "",
+      unitPrice: 0,
+      quantity: 1,
+      tempId: Date.now(),
     };
+    setNewServices([...newServices, newBlankService]);
+    setHasAddedProduct(true);
+  };
 
-    const handleDeleteProduct = (indexToRemove) => {
-        setNewProducts(newProducts.filter((_, index) => index !== indexToRemove));
+  const handleServiceChange = (index, e) => {
+    const { name, value } = e.target;
+    const updatedServices = [...newServices];
+
+    updatedServices[index] = {
+      ...updatedServices[index],
+      [name]: name === "unitPrice" ? parseFloat(value) || 0 : value,
     };
+    setNewServices(updatedServices);
+  };
 
-    const handleAddService = () => {
-        if (activeTab !== 1) return;
-        const newBlankService = {
-            serviceName: "",
-            price: 0,
-            quantity: 1,
-            tempId: Date.now(), 
-        };
-        setNewServices([...newServices, newBlankService]);
-        setHasAddedProduct(true); 
-    };
+  const handleDeleteService = (indexToRemove) => {
+    setNewServices(newServices.filter((_, index) => index !== indexToRemove));
+  };
 
-    const handleServiceChange = (index, e) => {
-        const { name, value } = e.target;
-        const updatedServices = [...newServices];
-        
-        updatedServices[index] = { 
-        ...updatedServices[index], 
-        [name]: name === 'price' ? parseFloat(value) || 0 : value
-        };
-        setNewServices(updatedServices);
-    };
+  const handleProductFocus = (index) => {
+    setActiveProductIndex(index);
+  };
 
+  const handleProductBlur = () => {
+    setActiveProductIndex(null);
+  };
 
-    const handleDeleteService = (indexToRemove) => {
-        setNewServices(newServices.filter((_, index) => index !== indexToRemove));
-    };
+  const handleAutofillClick = (index, selectedProduct) => {
+    if (!selectedProduct) return;
 
-    const handleProductFocus = (index) => {
-        setActiveProductIndex(index);
-    };
+    setNewProducts((prev) => {
+      const updated = [...prev];
+      updated[index] = {
+        ...updated[index],
+        product: selectedProduct,
+        productName: selectedProduct.productName,
+        productCode: selectedProduct.productCode,
+        sellingPrice: selectedProduct.sellingPrice,
+      };
+      return updated;
+    });
+  };
 
-    const handleProductBlur = () => {
-        setActiveProductIndex(null);
-    };
-
-
-    const handleAutofillClick = (index, selectedProduct) => {
-        if (!selectedProduct) return;
-
-        setNewProducts(prev => {
-            const updated = [...prev];
-            updated[index] = {
-                ...updated[index],
-                product: selectedProduct,
-                productName: selectedProduct.productName,
-                productCode: selectedProduct.productCode,
-                sellingPrice: selectedProduct.sellingPrice,
-            };
-            return updated;
-        });
-    };
-
-    return (
+  return (
     <div className="w-full">
       <div className="mb-4">
         <div className="text-sm mb-1 font-nunito font-bold">Customer Name</div>
@@ -373,30 +413,28 @@ export default function StepGeneralInfo({ setNewProducts, setNewServices, newSer
         />
       </div>
 
-      
+      <div className="mb-4">
+        <div className="text-sm mb-1 font-nunito font-bold">Order Date</div>
 
-    <div className="mb-4">
-      <div className="text-sm mb-1 font-nunito font-bold">Order Date</div>
+        <div className="flex items-center justify-between border border-gray-300 rounded-md bg-white px-2 relative">
+          <input
+            ref={orderDateRef}
+            type="date"
+            value={formData.generalInfo.orderDate}
+            name="generalInfo.orderDate"
+            onChange={handleChange}
+            className="w-full p-2 bg-transparent outline-none"
+          />
 
-      <div className="flex items-center justify-between border border-gray-300 rounded-md bg-white px-2 relative">
-        <input
-          ref={orderDateRef}
-          type="date"
-          value={formData.generalInfo.orderDate}
-          name="generalInfo.orderDate"
-          onChange={handleChange}
-          className="w-full p-2 bg-transparent outline-none"
-        />
-
-        <div
-          className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer"
-          onClick={() => orderDateRef.current?.showPicker()}
-          style={{ pointerEvents: "auto" }}  
-        >
-          <CalendarIcon className="text-gray-500" size={20} />
+          <div
+            className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer"
+            onClick={() => orderDateRef.current?.showPicker()}
+            style={{ pointerEvents: "auto" }}
+          >
+            <CalendarIcon className="text-gray-500" size={20} />
+          </div>
         </div>
       </div>
-    </div>
 
       <div className="mb-4">
         <div className="text-sm mb-1 font-nunito font-bold">Payment Term</div>
@@ -404,12 +442,18 @@ export default function StepGeneralInfo({ setNewProducts, setNewServices, newSer
           select
           fullWidth
           size="small"
-
           error={!formData.generalInfo.paymentTerm}
           helperText={!formData.generalInfo.paymentTerm ? "Required" : ""}
           value={formData.generalInfo.paymentTerm}
           name="generalInfo.paymentTerm"
-          onChange={(e) => handleChange({ target: { name: "generalInfo.paymentTerm", value: e.target.value } })}
+          onChange={(e) =>
+            handleChange({
+              target: {
+                name: "generalInfo.paymentTerm",
+                value: e.target.value,
+              },
+            })
+          }
           SelectProps={{
             displayEmpty: true, // <-- THIS enables placeholder
           }}
@@ -422,39 +466,40 @@ export default function StepGeneralInfo({ setNewProducts, setNewServices, newSer
         </TextField>
       </div>
 
-    <div className="flex gap-3">
+      <div className="flex gap-3">
         <div className="mb-4 w-full">
-            <div className="text-sm mb-1 font-nunito font-bold">Channel</div>
-            <TextField
-              select
-              fullWidth
-              size="small"
-              value={formData.generalInfo.channelId?.toString() || ""}
-              onChange={(e) =>
-                setFormData((prev) => ({
-                  ...prev,
-                  generalInfo: {
-                    ...prev.generalInfo,
-                    channelId: e.target.value === "" ? null : parseInt(e.target.value),
-                    subChannelId: null,
-                  },
-                }))
-              }
-              error={!formData.generalInfo.channelId}
-              helperText={!formData.generalInfo.channelId ? "Required" : ""}
-              disabled={loadingChannels}
-              SelectProps={{
-                displayEmpty: true, // <-- THIS enables placeholder
-              }}
-            >
-              <MenuItem value="">Select Channel</MenuItem>
+          <div className="text-sm mb-1 font-nunito font-bold">Channel</div>
+          <TextField
+            select
+            fullWidth
+            size="small"
+            value={formData.generalInfo.channelId?.toString() || ""}
+            onChange={(e) =>
+              setFormData((prev) => ({
+                ...prev,
+                generalInfo: {
+                  ...prev.generalInfo,
+                  channelId:
+                    e.target.value === "" ? null : parseInt(e.target.value),
+                  subChannelId: null,
+                },
+              }))
+            }
+            error={!formData.generalInfo.channelId}
+            helperText={!formData.generalInfo.channelId ? "Required" : ""}
+            disabled={loadingChannels}
+            SelectProps={{
+              displayEmpty: true, // <-- THIS enables placeholder
+            }}
+          >
+            <MenuItem value="">Select Channel</MenuItem>
 
-              {channels.map((ch) => (
-                <MenuItem key={ch.channelId} value={ch.channelId}>
-                  {ch.name}
-                </MenuItem>
-              ))}
-            </TextField>
+            {channels.map((ch) => (
+              <MenuItem key={ch.channelId} value={ch.channelId}>
+                {ch.name}
+              </MenuItem>
+            ))}
+          </TextField>
         </div>
 
         <div className="mb-4 w-full">
@@ -480,7 +525,9 @@ export default function StepGeneralInfo({ setNewProducts, setNewServices, newSer
             }}
           >
             <MenuItem value="">
-              {formData.generalInfo.channelId ? "Select Sub Channel" : "Select Channel First"}
+              {formData.generalInfo.channelId
+                ? "Select Sub Channel"
+                : "Select Channel First"}
             </MenuItem>
 
             {channels
@@ -492,18 +539,17 @@ export default function StepGeneralInfo({ setNewProducts, setNewServices, newSer
               ))}
           </TextField>
         </div>
-    </div>
+      </div>
 
       <div className="mt-6">
         <FilterTabs
-            tabs={tabs}
-            activeTab={activeTab}
-            onChange={(index) => setActiveTab(index)}
+          tabs={tabs}
+          activeTab={activeTab}
+          onChange={(index) => setActiveTab(index)}
         />
       </div>
 
       <div className="bg-white p-4 py-6 rounded-md shadow-md mt-4">
-
         {activeTab === 0 && (
           <>
             <div className="grid grid-cols-6 gap-4 text-sm font-semibold text-gray-500 font-nunito mb-2">
@@ -519,7 +565,7 @@ export default function StepGeneralInfo({ setNewProducts, setNewServices, newSer
                 onProductChange={handleProductChange}
                 onDeleteProduct={handleDeleteProduct}
                 handleProductCodeChange={handleProductCodeChange}
-                autofill ={autofill}
+                autofill={autofill}
                 newProducts={newProducts}
                 onProductFocus={handleProductFocus}
                 onProductBlur={handleProductBlur}
@@ -528,14 +574,13 @@ export default function StepGeneralInfo({ setNewProducts, setNewServices, newSer
               />
             ))}
 
-
             {activeProductIndex !== null && autofill.length > 0 && (
               <div
                 className="absolute bg-white border border-gray-300 rounded-md shadow-lg z-20 max-h-[100px] overflow-y-auto no-scrollbar-arrows"
                 style={{
                   top: `${dropdownPosition.top}px`,
                   left: `${dropdownPosition.left}px`,
-                  width: `${dropdownPosition.width}px`
+                  width: `${dropdownPosition.width}px`,
                 }}
               >
                 {autofill.map((suggestion) => (
@@ -544,14 +589,18 @@ export default function StepGeneralInfo({ setNewProducts, setNewServices, newSer
                     className="p-2 hover:bg-blue-100 cursor-pointer"
                     onMouseDown={() => handleAutofillClick(suggestion)}
                   >
-                    <p className="font-semibold text-black">{suggestion.productName}</p>
-                    <p className="text-sm text-gray-500">{suggestion.productCode}</p>
+                    <p className="font-semibold text-black">
+                      {suggestion.productName}
+                    </p>
+                    <p className="text-sm text-gray-500">
+                      {suggestion.productCode}
+                    </p>
                   </div>
                 ))}
               </div>
             )}
 
-            <button 
+            <button
               type="button"
               onClick={handleAddProduct}
               className="flex items-center gap-2 p-2 mt-2 text-blue-500 hover:text-blue-600 bg-transparent"
@@ -561,7 +610,6 @@ export default function StepGeneralInfo({ setNewProducts, setNewServices, newSer
             </button>
           </>
         )}
-
 
         {activeTab === 1 && (
           <>
@@ -581,7 +629,6 @@ export default function StepGeneralInfo({ setNewProducts, setNewServices, newSer
               />
             ))}
 
-
             <button
               type="button"
               onClick={handleAddService}
@@ -595,51 +642,50 @@ export default function StepGeneralInfo({ setNewProducts, setNewServices, newSer
 
         <div ref={bottomRef} />
       </div>
-      
+
       <div className="my-4 w-full flex justify-between">
         <FormControlLabel
-            control={
-                <Checkbox
-                    checked={formData.generalInfo.applyDiscount}
-                    onChange={(e) =>
-                        setFormData((prev) => ({
-                            ...prev,
-                            generalInfo: {
-                                ...prev.generalInfo,
-                                applyDiscount: e.target.checked,
-                                discountAmount: e.target.checked ? prev.generalInfo.discountAmount : "",
-                            },
-                        }))
-                    }
-                />
-            }
-            label="Apply Discount"
+          control={
+            <Checkbox
+              checked={formData.generalInfo.applyDiscount}
+              onChange={(e) =>
+                setFormData((prev) => ({
+                  ...prev,
+                  generalInfo: {
+                    ...prev.generalInfo,
+                    applyDiscount: e.target.checked,
+                    discountAmount: e.target.checked
+                      ? prev.generalInfo.discountAmount
+                      : "",
+                  },
+                }))
+              }
+            />
+          }
+          label="Apply Discount"
         />
-      {formData.generalInfo.applyDiscount && (
+        {formData.generalInfo.applyDiscount && (
           <div className="mb-4 w-20">
-              <TextField
-                  fullWidth
-                  size="small"
-                  type="number"
-                  placeholder="%"
-                  value={formData.generalInfo.discountAmount}
-                  onChange={(e) =>
-                      setFormData((prev) => ({
-                          ...prev,
-                          generalInfo: {
-                              ...prev.generalInfo,
-                              discountAmount: Number(e.target.value)
-                          },
-                      }))
-                  }
-                  InputProps={{ inputProps: { min: 0 } }}
-              />
+            <TextField
+              fullWidth
+              size="small"
+              type="number"
+              placeholder="%"
+              value={formData.generalInfo.discountAmount}
+              onChange={(e) =>
+                setFormData((prev) => ({
+                  ...prev,
+                  generalInfo: {
+                    ...prev.generalInfo,
+                    discountAmount: Number(e.target.value),
+                  },
+                }))
+              }
+              InputProps={{ inputProps: { min: 0 } }}
+            />
           </div>
-      )}
-
-
-    </div>
-
+        )}
+      </div>
     </div>
   );
 }

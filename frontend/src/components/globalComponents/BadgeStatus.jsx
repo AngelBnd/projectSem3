@@ -8,13 +8,13 @@ const STATUS_STYLES = {
   "Out of Stock": { bg: "bg-red-100", text: "text-red-700" },
 
   // Orders
-  Pending: { bg: "bg-yellow-100", text: "text-yellow-700" },
-  Paid: { bg: "bg-blue-100", text: "text-blue-700" },
-  "On the Way": { bg: "bg-indigo-100", text: "text-indigo-700" },
-  Completed: { bg: "bg-green-100", text: "text-green-700" },
-  Delivered: { bg: "bg-green-100", text: "text-green-700" },
-  Cancelled: { bg: "bg-red-100", text: "text-red-700" },
+  DELIVERED: { bg: "bg-green-100", text: "text-green-700" },
+  PARTIALLY_DELIVERED: { bg: "bg-yellow-100", text: "text-yellow-700" },
+  UNDELIVERED: { bg: "bg-red-100", text: "text-red-700" },
 
+  PAID: { bg: "bg-blue-100", text: "text-blue-700" },
+  PARTIALLY_PAID: { bg: "bg-indigo-100", text: "text-indigo-700" },
+  UNPAID: { bg: "bg-gray-100", text: "text-gray-700" },
   // Audit Logs
   "Pending Review": { bg: "bg-orange-100", text: "text-orange-700" },
 
