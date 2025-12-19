@@ -301,20 +301,6 @@ router.delete('/:invoiceId', authenticateToken, async (req, res) => {
   }
 });
 
-router.get('/channels', authenticateToken, async(req, res)=>{
-  try {
-    const channels = await prisma.channels.findMany({
-      include: {
-        subChannels: true, 
-      },
-    });
-
-    return res.status(200).json(channels);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Failed to load channels" });
-  }
-})
 
 
 module.exports = router;

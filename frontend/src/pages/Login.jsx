@@ -25,6 +25,13 @@ function Login({ setAuthenticated }) {
    const data = await response.json();
 
    if (!response.ok) {
+    if(data.redirectTo){
+      sessionStorage.setItem('accessStatusCode', data.code);
+      sessionStorage.setItem('accessStatusMessage', data.message);
+      navigate(data.redirectTo);
+      return;
+    }
+
     setError(data.error || 'Login failed');
     return;
    }
@@ -56,7 +63,7 @@ function Login({ setAuthenticated }) {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              className="border p-2 rounded-2xl w-full text-black bg-white focus:outline-none focus:ring-2 focus:ring-blue-400 shadow-sm"
+              className="border p-2 rounded-md w-full text-black bg-white focus:outline-none focus:ring-2 focus:ring-blue-400 shadow-sm"
             />
           </div>
            <div>
@@ -68,7 +75,7 @@ function Login({ setAuthenticated }) {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              className="border p-2 rounded-2xl w-full text-black bg-white focus:outline-none focus:ring-2 focus:ring-blue-400 shadow-sm"
+              className="border p-2 rounded-md w-full text-black bg-white focus:outline-none focus:ring-2 focus:ring-blue-400 shadow-sm"
             />
             </div>
             <Button type="submit" className="w-full py-3 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700 transition-colors">

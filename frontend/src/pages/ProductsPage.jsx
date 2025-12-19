@@ -143,7 +143,7 @@ export default function ProductsPage() {
         <div className="flex gap-3 items-center">
           <Button
             onClick={()=>{}}
-            children={"white"}
+            children={"Export"}
             icon={ExportIcon}
             variant="white"
           />

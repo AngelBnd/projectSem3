@@ -31,7 +31,7 @@ export default function StepReview({newProducts = [], newServices = [], formData
       0
     );
     const servicesSubtotal = newServices.reduce(
-      (sum, s) => sum + (Number(s.sellingPrice)|| 0),
+      (sum, s) => sum + (Number(s.unitPrice)|| 0),
       0
     );
 
@@ -140,8 +140,8 @@ export default function StepReview({newProducts = [], newServices = [], formData
           >
             <div>{s.serviceName}</div>
             <div className="text-center">{s.quantity}</div>
-            <div className="text-right">{formatCurrency(s.price)}</div>
-            <div className="text-right">{formatCurrency(Number(s.price) * Number(s.quantity))}</div>
+            <div className="text-right">{formatCurrency(s.unitPrice)}</div>
+            <div className="text-right">{formatCurrency(Number(s.unitPrice) * Number(s.quantity))}</div>
           </div>
         ))}
 

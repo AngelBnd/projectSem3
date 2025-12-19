@@ -1,12 +1,13 @@
-const express = require('express');
-const prisma = require('../prisma/client');
-const authenticateToken = require('../middleware/auth');
+const { UserStoreStatus } = require("@prisma/client");
+const express = require("express");
+const prisma = require("../prisma/client");
+const authenticateToken = require("../middleware/auth");
 const router = express.Router();
 router.use(authenticateToken);
 
 router.get("/", async (req, res) => {
   try {
-    const currentUser = req.user; 
+    const currentUser = req.user;
     console.log(currentUser);
 
     if (!currentUser.storeId) {
@@ -15,11 +16,16 @@ router.get("/", async (req, res) => {
 
     const users = await prisma.users.findMany({
       where: {
-            OR: [
-            { storeId: currentUser.store?.storeId },
-            { requestedStoreTag: currentUser.store?.storeTag },
+        OR: [
+          { storeId: currentUser.store?.storeId },
+          {
+            AND: [
+              { requestedStoreTag: currentUser.store?.storeTag },
+              { status: UserStoreStatus.PENDING_APPROVAL },
             ],
-        },
+          },
+        ],
+      },
       include: {
         userRoles: {
           include: {
@@ -45,60 +51,67 @@ router.get("/", async (req, res) => {
   }
 });
 
-router.post('/:userId/approve', authenticateToken,async (req, res) => {
-    const { userId } = req.params;
+router.post("/:userId/approve", authenticateToken, async (req, res) => {
+  const { userId } = req.params;
 
-    try {
-      const targetUser = await prisma.users.findUnique({ where: { userId: parseInt(userId) } });
-      if (!targetUser) return res.status(404).json({ error: 'User not found' });
+  try {
+    const targetUser = await prisma.users.findUnique({
+      where: { userId: parseInt(userId) },
+    });
+    if (!targetUser) return res.status(404).json({ error: "User not found" });
 
-      if (targetUser.storeId !== req.user.storeId) {
-        return res.status(403).json({ error: 'Cannot approve user from another store' });
-      }
-
-      const updatedUser = await prisma.users.update({
-        where: { userId: parseInt(userId) },
-        data: {
-          status: 'ACTIVE',
-          approvedAt: new Date(),
-          approvedBy: req.user.userId,
-        },
-      });
-
-      res.json({ success: true, user: updatedUser });
-    } catch (err) {
-      console.error(err);
-      res.status(500).json({ error: 'Failed to approve user' });
+    if (targetUser.storeId !== req.user.storeId) {
+      return res
+        .status(403)
+        .json({ error: "Cannot approve user from another store" });
     }
+
+    const updatedUser = await prisma.users.update({
+      where: { userId: parseInt(userId) },
+      data: {
+        status: UserStoreStatus.ACTIVE,
+        approvedAt: new Date(),
+        approvedBy: req.user.userId,
+      },
+    });
+
+    res.json({ success: true, user: updatedUser });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to approve user" });
   }
-);
+});
 
-router.post('/:userId/reject', authenticateToken, async (req, res) => {
-    const { userId } = req.params;
+router.post("/:userId/reject", authenticateToken, async (req, res) => {
+  const { userId } = req.params;
 
-    try {
-      const targetUser = await prisma.users.findUnique({ where: { userId: parseInt(userId) } });
-      if (!targetUser) return res.status(404).json({ error: 'User not found' });
+  try {
+    const targetUser = await prisma.users.findUnique({
+      where: { userId: parseInt(userId) },
+    });
+    if (!targetUser) return res.status(404).json({ error: "User not found" });
 
-      if (targetUser.storeId !== req.user.storeId) {
-        return res.status(403).json({ error: 'Cannot reject user from another store' });
-      }
-
-      const updatedUser = await prisma.users.update({
-        where: { userId: parseInt(userId) },
-        data: {
-          status: 'REJECTED',
-          approvedAt: new Date(),
-          approvedBy: req.user.userId,
-        },
-      });
-
-      res.json({ success: true, user: updatedUser });
-    } catch (err) {
-      console.error(err);
-      res.status(500).json({ error: 'Failed to reject user' });
+    if (targetUser.storeId !== req.user.storeId) {
+      return res
+        .status(403)
+        .json({ error: "Cannot reject user from another store" });
     }
+
+    const updatedUser = await prisma.users.update({
+      where: { userId: parseInt(userId) },
+      data: {
+        status: UserStoreStatus.REJECTED,
+        approvedAt: new Date(),
+        approvedBy: req.user.userId,
+        requestedStoreTag: null,
+      },
+    });
+
+    res.json({ success: true, user: updatedUser });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to reject user" });
   }
-);
+});
 
 module.exports = router;
