@@ -45,7 +45,7 @@ const handleExportPDFSalesOrder = (rows) => {
   doc.text("Sales Orders Report", 14, 15);
 
   doc.setFontSize(10);
-  doc.text(`Generated on: ${new Date().toLocaleDateString()}`, 14, 22);
+  doc.text(`Created at: ${new Date().toLocaleDateString()}`, 14, 22);
 
   /* ======================
      SUMMARY SECTION

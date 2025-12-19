@@ -189,26 +189,24 @@ const SalesTopBoxes = ({ total, delivered, paid, unpaid }) => {
 const tabs = [
   {
     label: "All",
-    filterFn: (data) => data,
-  },
-  {
-    label: "Pending",
-    filterFn: (data) => data.filter((p) => p.category === "Items"),
+    filterFn: (rows) => rows,
   },
   {
     label: "Delivered",
-    filterFn: (data) => data.filter((p) => p.category === "Services"),
+    filterFn: (rows) => rows.filter((r) => r.deliveryStatus === "DELIVERED"),
   },
   {
     label: "Cancelled",
-    filterFn: (data) => data.filter((p) => p.category === "Services"),
+    filterFn: (rows) => rows.filter((r) => r.deliveryStatus === "CANCELLED"),
   },
   {
     label: "Completed",
-    filterFn: (data) => data.filter((p) => p.category === "Services"),
+    filterFn: (rows) =>
+      rows.filter(
+        (r) => r.deliveryStatus === "DELIVERED" && r.paymentStatus === "PAID"
+      ),
   },
 ];
-
 export default function SalesPage() {
   const [filteredProducts, setFilteredProducts] = useState(products);
   const [data, setData] = useState([]);
@@ -217,6 +215,7 @@ export default function SalesPage() {
   const token = localStorage.getItem("token");
   const [selectionModel, setSelectionModel] = useState([]);
   const [searchInput, setSearchInput] = useState("");
+  const [activeTab, setActiveTab] = useState(0);
 
   const totalOrders = data.length;
 
@@ -233,7 +232,12 @@ export default function SalesPage() {
     fetchSalesOrders();
   }, []);
 
-  const filteredData = data.filter((row) => {
+  const tabFilteredData = React.useMemo(() => {
+    const filterFn = tabs[activeTab]?.filterFn;
+    return filterFn ? filterFn(data) : data;
+  }, [data, activeTab]);
+
+  const filteredData = tabFilteredData.filter((row) => {
     if (!searchInput) return true;
 
     const q = searchInput.toLowerCase();
@@ -304,10 +308,9 @@ export default function SalesPage() {
       <div className="col-span-9 flex flex-col justify-start items-start gap-4 sm:flex-row sm:justify-between sm:items-start">
         <FilterTabs
           tabs={tabs}
-          // data={products}
-          // onChange={(newData) => setFilteredProducts(newData)}
+          value={activeTab}
+          onChange={(index) => setActiveTab(index)}
         />
-
         <div className="flex gap-3 items-center">
           <Button
             onClick={handleExport}
