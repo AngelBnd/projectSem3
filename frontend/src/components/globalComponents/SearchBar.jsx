@@ -6,6 +6,7 @@ export default function SearchBar({
   handleKeyDown,
   value,
   variant,
+  placeholder,
 }) {
   const handleChange = (e) => {
     const value = e.target.value;
@@ -37,7 +38,9 @@ export default function SearchBar({
 
       <input
         type="text"
-        placeholder="Search by product code or name..."
+        placeholder={
+          placeholder ? placeholder : "Search by product code or name..."
+        }
         className={`bg-transparent text-lato text-[14px] py-3 focus:outline-none text-gray-600 w-full placeholder:text-gray-400 font-medium 
                     ${isScanVariant ? "ml-0 pr-2" : "ml-2 pr-2"}`}
         onChange={handleChange}

@@ -7,13 +7,18 @@ import {
   CheckIcon,
 } from "../../assets/SvgIcons";
 import Button from "../../components/globalComponents/Button";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { usePopup } from "../../components/globalComponents/PopupContext";
-import { PopupOption } from "../../components/globalComponents/PopupComp";
-import { PopupOkay } from "../../components/globalComponents/PopupComp";
-import { useNavigate } from "react-router-dom";
+import {
+  PopupOption,
+  PopupOkay,
+  PopupError,
+} from "../../components/globalComponents/PopupComp";
+import { useNavigate, useParams } from "react-router-dom";
 
 export default function CreateOrderSale() {
+  const { id } = useParams();
+
   const navigate = useNavigate();
   const { openPopup, closePopup } = usePopup();
   const token = localStorage.getItem("token");
@@ -23,8 +28,10 @@ export default function CreateOrderSale() {
   const [alert, setAlert] = useState({ show: false, message: "" });
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
+  const [newServices, setNewServices] = useState([]);
+  const [newProducts, setNewProducts] = useState([]);
 
-  const AUTO_CLOSE_MS = 1500;
+  const AUTO_CLOSE_MS = 2500;
 
   const [formData, setFormData] = useState({
     generalInfo: {
@@ -43,8 +50,77 @@ export default function CreateOrderSale() {
     },
   });
 
-  const [newServices, setNewServices] = useState([]);
-  const [newProducts, setNewProducts] = useState([]);
+  useEffect(() => {
+    if (!id) return;
+
+    const fetchSalesOrder = async () => {
+      try {
+        const res = await fetch(`/api/sales-order/${id}`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) throw new Error(data.error || "Failed to fetch order");
+
+        setFormData({
+          generalInfo: {
+            customerName: data.customerName,
+            orderDate: data.orderDate,
+            paymentTerm: data.paymentTerms,
+            channelId: data.channelId,
+            subChannelId: data.subChannelId,
+            applyDiscount: data.discount > 0,
+            discountAmount: data.discount,
+          },
+          totals: {
+            discount: data.discount,
+            totalAmount: data.totalAmount,
+          },
+        });
+
+        const products = [];
+        const services = [];
+
+        (data.items || []).forEach((item, index) => {
+          const uniqueId = `item-${index}-${Date.now()}`;
+          if (item.productVariantId) {
+            products.push({
+              tempId: uniqueId,
+              productVariantId: item.productVariantId,
+              sku: item.sku,
+              productName: item.productName,
+              variantName: item.variantName,
+              quantitySold: item.quantityOrdered || 1,
+              unitPrice: Number(item.unitPrice || 0),
+            });
+          } else {
+            services.push({
+              tempId: uniqueId,
+              serviceName: item.serviceDesc || "",
+              quantity: item.quantityOrdered || 1,
+              unitPrice: Number(item.unitPrice || 0),
+            });
+          }
+        });
+        setNewProducts(products);
+        setNewServices(services);
+
+        console.log(products);
+        console.log(services);
+      } catch (err) {
+        console.error(err);
+      }
+    };
+
+    fetchSalesOrder();
+  }, [id]);
+
+  // useEffect(() => {
+  //   console.log(formData);
+  // }, [formData]);
 
   const handleContinue = () => {
     if (!canProceed()) {
@@ -67,14 +143,10 @@ export default function CreateOrderSale() {
 
   const canProceed = () => {
     if (!formData.generalInfo.customerName?.trim()) return false;
-
     if (!formData.generalInfo.orderDate) return false;
-
     if (!formData.generalInfo.paymentTerm) return false;
-
     if (!formData.generalInfo.channelId) return false;
     if (!formData.generalInfo.subChannelId) return false;
-
     if (newProducts.length === 0 && newServices.length === 0) return false;
 
     for (let p of newProducts) {
@@ -90,27 +162,22 @@ export default function CreateOrderSale() {
     return true;
   };
 
-  const handleSubmit = async () => {
-    if (!canProceed()) {
-      setAlert({
-        show: true,
-        message: "Please fill in all required fields.",
-      });
-      return;
-    }
-
+  const handleSubmitWithSuccess = async () => {
     setLoading(true);
     setAlert({ show: false, message: "" });
 
     try {
       const payload = {
-        formData: formData,
+        formData,
         products: newProducts,
         services: newServices,
       };
 
-      const response = await fetch("/api/sales-order", {
-        method: "POST",
+      const endpoint = id ? `/api/sales-order/${id}` : "/api/sales-order";
+      const method = id ? "PUT" : "POST";
+
+      const response = await fetch(endpoint, {
+        method,
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
@@ -118,42 +185,64 @@ export default function CreateOrderSale() {
         body: JSON.stringify(payload),
       });
 
-      let data;
-      try {
-        data = await response.json();
-      } catch (err) {
-        console.error("Error parsing response:", err);
-        setAlert({
-          show: true,
-          message: "Order sale creation succeeded but failed to read response.",
-        });
-        return;
-      }
+      const data = await response.json();
 
       if (response.ok) {
-        openPopup(<PopupOkay message="Sales order saved successfully!" />);
+        openPopup(
+          <PopupOkay
+            message={`Sales order ${id ? "updated" : "created"} successfully!`}
+          />
+        );
 
         setTimeout(() => {
           closePopup();
           navigate(-1);
         }, AUTO_CLOSE_MS);
-
-        return;
       } else {
         setAlert({
           show: true,
           message:
-            data.error || "Sales order creation failed. Please try again.",
+            data.error || `Sales order ${id ? "update" : "creation"} failed.`,
         });
       }
     } catch (error) {
       setAlert({
         show: true,
-        message: "An error occurred during sales order creation.",
+        message: `An error occurred during sales order ${
+          id ? "update" : "creation"
+        }.`,
       });
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleFinishClick = () => {
+    if (!canProceed()) {
+      setAlert({ show: true, message: "Please fill in all required fields." });
+      return;
+    }
+
+    const customerName =
+      formData.generalInfo.customerName || "Unknown Customer";
+
+    openPopup(
+      <PopupOption
+        message={
+          id
+            ? `Are you sure you want to edit sales order for ${customerName}?`
+            : `Are you sure you want to make sales order for ${customerName}?`
+        }
+        type={id ? "update" : "create"}
+      />,
+      async () => {
+        closePopup();
+
+        setTimeout(async () => {
+          await handleSubmitWithSuccess();
+        }, 300);
+      }
+    );
   };
 
   return (
@@ -181,16 +270,18 @@ export default function CreateOrderSale() {
         ))}
       </div>
 
-      <div className="col-span-4 md:col-span-5 md:col-start-3 bg-red h-[800px] overflow-y-auto custom-scrollbar rounded-md shadow flex flex-col">
+      <div className="col-span-4 md:col-span-5 md:col-start-3 bg-red h-[800px] overflow-y-auto custom-scrollbar rounded-md flex flex-col">
         <div className="flex flex-col flex-none  items-center justify-center w-full mb-3">
-          <div className="text-sm text-gray-500">Create a Sales Order</div>
+          <div className="text-sm text-gray-500">
+            {id ? `Edit Sales Order ${id}` : "Create a Sales Order"}
+          </div>
           <div className="text-xl font-nunito text-black font-bold">
             {steps[step].label}
           </div>
         </div>
 
         <div className="mb-16">
-          <div className="bg-white rounded-sm px-7 py-8 mb-1">
+          <div className="bg-white rounded-sm px-7 py-8 mb-1 shadow">
             <StepComponent
               formData={formData}
               setFormData={setFormData}
@@ -244,7 +335,7 @@ export default function CreateOrderSale() {
               />
             ) : (
               <Button
-                onClick={handleSubmit}
+                onClick={handleFinishClick}
                 children={loading ? "Processing..." : "Finish"}
                 icon={CheckIcon}
                 variant="primary"

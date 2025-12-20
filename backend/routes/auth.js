@@ -52,7 +52,6 @@ router.post("/register", async (req, res) => {
       result = await prisma.$transaction(async (tx) => {
         const user = await tx.users.create({
           data: {
-            storeId: existingStore.storeId,
             email,
             firstName: firstName || "",
             lastName: lastName || "",
@@ -61,19 +60,18 @@ router.post("/register", async (req, res) => {
             status: "ACTIVE",
           },
         });
-
         const store = await tx.stores.create({
-          data: { storeName, storeTag, ownerId: user.userId },
-        });
-
-        const adminRole = await tx.roles.create({
-          data: { storeId: store.storeId, roleName: "Admin" },
+          data: {
+            storeName,
+            storeTag,
+            ownerId: user.userId,
+          },
         });
 
         await tx.userRoles.create({
           data: {
             userId: user.userId,
-            roleId: adminRole.roleId,
+            roleId: 1,
             isPrimary: true,
           },
         });

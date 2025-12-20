@@ -1,65 +1,64 @@
-  // App.jsx (Tailwind layout version)
-  import React, { useState, useEffect } from "react";
-  import { Routes, Route, Navigate, useLocation } from "react-router-dom";
-  import SidebarMUI from "./components/globalComponents/SidebarMUI";
-  import ProtectedRoute from "./pages/ProtectedRoute";
-  import BreadcrumbsMUI from "../src/components/globalComponents/BreadcrumbsMUI";
-  import AvatarSettings from "../src/components/globalComponents/AvatarSettings";  
-  import { 
-    Dashboard,
-    Inventory,
-    SalesPage,
-    Login,
-    Products,
-    InputSales,
-    SalesDetails,
-    CreateProduct,
-    Register,
-    Users,
-    CreateOrderSale,
-    AccessStatus
-  } from './pages';
-  import { ThemeProvider } from "@emotion/react";
-  import theme from "./theme";
+// App.jsx (Tailwind layout version)
+import React, { useState, useEffect } from "react";
+import { Routes, Route, Navigate, useLocation } from "react-router-dom";
+import SidebarMUI from "./components/globalComponents/SidebarMUI";
+import ProtectedRoute from "./pages/ProtectedRoute";
+import BreadcrumbsMUI from "../src/components/globalComponents/BreadcrumbsMUI";
+import AvatarSettings from "../src/components/globalComponents/AvatarSettings";
+import {
+  Dashboard,
+  Inventory,
+  SalesPage,
+  Login,
+  Products,
+  InputSales,
+  SalesDetails,
+  CreateProduct,
+  Register,
+  Users,
+  CreateOrderSale,
+  AccessStatus,
+} from "./pages";
+import { ThemeProvider } from "@emotion/react";
+import theme from "./theme";
 
-  function App() {
-    const [isAuthenticated, setIsAuthenticated] = useState(false);
-    const [mobileOpen, setMobileOpen] = useState(false);
-    const location = useLocation(); 
-    const pathname = location.pathname.toLowerCase();
-    const hideSidebar = pathname.startsWith("/login") || pathname.startsWith("/register")  || pathname.startsWith("/access-status");
-    const showSidebar = isAuthenticated && !hideSidebar;
+function App() {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const location = useLocation();
+  const pathname = location.pathname.toLowerCase();
+  const hideSidebar =
+    pathname.startsWith("/login") ||
+    pathname.startsWith("/register") ||
+    pathname.startsWith("/access-status");
+  const showSidebar = isAuthenticated && !hideSidebar;
 
-    useEffect(() => {
-      const token = localStorage.getItem("token");
-      if (token) setIsAuthenticated(true);
-    }, []);
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (token) setIsAuthenticated(true);
+  }, []);
 
-    const handleDrawerToggle = () => {
-      setMobileOpen(!mobileOpen);
-    };
+  const handleDrawerToggle = () => {
+    setMobileOpen(!mobileOpen);
+  };
 
-    return (
-      <ThemeProvider theme={theme}>
+  return (
+    <ThemeProvider theme={theme}>
       <div className="flex min-h-screen w-screen !overflow-x-hidden ">
         {showSidebar && (
           <aside
             className={`hidden md:block w-60 bg-white border-r border-gray-200 fixed top-0 left-0 h-screen z-20`}
           >
-            <SidebarMUI 
-            mobileOpen={mobileOpen}
-            handleDrawerToggle={handleDrawerToggle}
+            <SidebarMUI
+              mobileOpen={mobileOpen}
+              handleDrawerToggle={handleDrawerToggle}
             />
           </aside>
         )}
 
         <main
           className={`flex-1 min-w-0 overflow-y-auto  bg-white border-l bg-[#F5F7FA] 
-             ${
-                showSidebar ? "md:ml-60" : "md:ml-0"
-              }`
-
-          }
+             ${showSidebar ? "md:ml-60" : "md:ml-0"}`}
         >
           {showSidebar && (
             <div className="md:hidden p-2 !bg-transparent">
@@ -72,7 +71,6 @@
             </div>
           )}
 
-    
           <div className="relative min-h-screen flex-1 bg-[#F3F4F7] !overflow-x-hidden min-w-0 ">
             {/* Transparent red overlay to visualize columns */}
             <div
@@ -91,26 +89,24 @@
             <div
               className={`relative z-10 ${
                 showSidebar
-                  ? "grid grid-cols-9 gap-[12px] px-[60px]"    
-                  : "grid grid-cols-12 gap-3 px-[60px]"        
+                  ? "grid grid-cols-9 gap-[12px] px-[60px]"
+                  : "grid grid-cols-12 gap-3 px-[60px]"
               }`}
             >
-
               {showSidebar && (
                 <div className="col-span-9 pt-8 h-[60px] flex justify-between items-center mb-2">
                   <BreadcrumbsMUI />
-                  <AvatarSettings /> 
+                  <AvatarSettings />
                 </div>
               )}
 
               <div
-              className={`grid ${
-                showSidebar
-                  ? "col-span-9"    
-                  : "col-span-12 "        
-              }`}
-              > 
+                className={`grid ${
+                  showSidebar ? "col-span-9" : "col-span-12 "
+                }`}
+              >
                 <Routes>
+                  <Route path="/" element={<Navigate to="/login" replace />} />
                   <Route
                     path="/login"
                     element={<Login setAuthenticated={setIsAuthenticated} />}
@@ -143,6 +139,14 @@
                   />
                   <Route
                     path="/sales/create-order-sales"
+                    element={
+                      <ProtectedRoute isAuthenticated={isAuthenticated}>
+                        <CreateOrderSale />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/sales/edit/:id"
                     element={
                       <ProtectedRoute isAuthenticated={isAuthenticated}>
                         <CreateOrderSale />
@@ -194,11 +198,10 @@
               </div>
             </div>
           </div>
-
         </main>
       </div>
-      </ThemeProvider>
-    );
-  }
+    </ThemeProvider>
+  );
+}
 
-  export default App;
+export default App;

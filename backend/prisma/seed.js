@@ -35,14 +35,12 @@ async function main() {
   // ----- ROLES -----
   const adminRole = await prisma.roles.create({
     data: {
-      storeId: store.storeId,
       roleName: "Admin",
     },
   });
 
   const userRole = await prisma.roles.create({
     data: {
-      storeId: store.storeId,
       roleName: "User",
     },
   });
@@ -133,6 +131,9 @@ async function main() {
       passwordHash: userPassword,
       requestedStoreTag: "DEV_STORE",
       status: "PENDING_APPROVAL",
+      store: {
+        connect: { storeId: store.storeId },
+      },
     },
   });
 

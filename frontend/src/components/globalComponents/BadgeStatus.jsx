@@ -2,8 +2,8 @@ import React from "react";
 
 const STATUS_STYLES = {
   // Products
-  Active: { bg: "bg-green-100", text: "text-green-700" },
-  Inactive: { bg: "bg-gray-100", text: "text-gray-700" },
+  ACTIVE: { bg: "bg-green-100", text: "text-green-700" },
+  INACTIVE: { bg: "bg-gray-100", text: "text-gray-700" },
   "Low Stock": { bg: "bg-yellow-100", text: "text-yellow-700" },
   "Out of Stock": { bg: "bg-red-100", text: "text-red-700" },
 

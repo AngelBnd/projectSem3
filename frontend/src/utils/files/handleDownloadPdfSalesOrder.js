@@ -2,19 +2,28 @@ import jsPDF from "jspdf";
 import "jspdf-autotable";
 
 const handleExportPDFSalesOrder = (rows) => {
-  console.log("test ini punya handle export");
-  console.log(rows);
-
   const doc = new jsPDF();
 
   /* ======================
-     CALCULATIONS (HERE)
+     CALCULATIONS
      ====================== */
 
-  const totalSales = rows.reduce(
-    (sum, row) => sum + Number(row.totalAmount ?? 0),
-    0
-  );
+  const collectedRevenue = rows.reduce((sum, row) => {
+    if (row.paymentStatus?.toUpperCase() === "PAID") {
+      return sum + Number(row.totalAmount ?? 0);
+    }
+    return sum;
+  }, 0);
+
+  const expectedRevenue = rows.reduce((sum, row) => {
+    const status = row.paymentStatus?.toUpperCase();
+    if (status === "UNPAID" || status === "PARTIALLY_PAID") {
+      return sum + Number(row.totalAmount ?? 0);
+    }
+    return sum;
+  }, 0);
+
+  const totalRevenue = collectedRevenue + expectedRevenue;
 
   const deliverySummary = {
     DELIVERED: rows.filter(
@@ -48,36 +57,71 @@ const handleExportPDFSalesOrder = (rows) => {
   doc.text(`Created at: ${new Date().toLocaleDateString()}`, 14, 22);
 
   /* ======================
-     SUMMARY SECTION
+     SUMMARY
      ====================== */
 
+  let y = 32;
+
   doc.setFontSize(11);
-  doc.text("Summary", 14, 32);
+  doc.text("Summary", 14, y);
+
+  y += 8;
+  doc.setFontSize(10);
+  doc.text(`Total Orders: ${rows.length}`, 14, y);
+
+  y += 6;
+  doc.text(
+    `Collected Revenue: Rp ${collectedRevenue.toLocaleString("id-ID")}`,
+    14,
+    y
+  );
+
+  y += 6;
+  doc.text(
+    `Expected Revenue: Rp ${expectedRevenue.toLocaleString("id-ID")}`,
+    14,
+    y
+  );
+
+  y += 6;
+  doc.text(
+    `Total Revenue (Gross): Rp ${totalRevenue.toLocaleString("id-ID")}`,
+    14,
+    y
+  );
+
+  /* ======================
+     STATUS BLOCKS
+     ====================== */
+
+  y += 10;
 
   doc.setFontSize(10);
-  doc.text(`Total Orders: ${rows.length}`, 14, 40);
-  doc.text(`Total Sales: Rp ${totalSales.toLocaleString("id-ID")}`, 14, 46);
+  doc.text("Delivery Status", 14, y);
+  doc.text("Payment Status", 110, y);
 
-  doc.text("Delivery Status:", 14, 56);
-  doc.text(`• Delivered: ${deliverySummary.DELIVERED}`, 20, 62);
+  y += 6;
+  doc.text(`• Delivered: ${deliverySummary.DELIVERED}`, 18, y);
+  doc.text(`• Paid: ${paymentSummary.PAID}`, 114, y);
+
+  y += 6;
   doc.text(
     `• Partially Delivered: ${deliverySummary.PARTIALLY_DELIVERED}`,
-    20,
-    68
+    18,
+    y
   );
-  doc.text(`• Undelivered: ${deliverySummary.UNDELIVERED}`, 20, 74);
+  doc.text(`• Partially Paid: ${paymentSummary.PARTIALLY_PAID}`, 114, y);
 
-  doc.text("Payment Status:", 110, 56);
-  doc.text(`• Paid: ${paymentSummary.PAID}`, 116, 62);
-  doc.text(`• Partially Paid: ${paymentSummary.PARTIALLY_PAID}`, 116, 68);
-  doc.text(`• Unpaid: ${paymentSummary.UNPAID}`, 116, 74);
+  y += 6;
+  doc.text(`• Undelivered: ${deliverySummary.UNDELIVERED}`, 18, y);
+  doc.text(`• Unpaid: ${paymentSummary.UNPAID}`, 114, y);
 
   /* ======================
      TABLE
      ====================== */
 
   doc.autoTable({
-    startY: 85,
+    startY: y + 10,
     head: [
       [
         "Order ID",
@@ -105,12 +149,12 @@ const handleExportPDFSalesOrder = (rows) => {
       cellPadding: 3,
     },
     headStyles: {
-      fillColor: [230, 230, 230], // light grey
+      fillColor: [230, 230, 230],
       textColor: 0,
       fontStyle: "bold",
     },
     alternateRowStyles: {
-      fillColor: [245, 245, 245], // zebra rows
+      fillColor: [245, 245, 245],
     },
   });
 
