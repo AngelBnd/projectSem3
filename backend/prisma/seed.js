@@ -346,6 +346,31 @@ async function main() {
     },
   });
 
+  const stockMovementsData = [
+    {
+      productVariantId: speakerVariant.productVariantId,
+      storeId: store.storeId,
+      referenceType: "SALES_ORDER",
+      referenceId: salesOrder.salesOrderId,
+      change: -2,
+      createdAt: new Date(),
+      reason: "demo",
+    },
+    {
+      productVariantId: amplifierVariant.productVariantId,
+      storeId: store.storeId,
+      referenceType: "SALES_ORDER",
+      referenceId: salesOrder.salesOrderId,
+      change: -1,
+      createdAt: new Date(),
+      reason: "demo",
+    },
+  ];
+
+  await prisma.stockMovements.createMany({
+    data: stockMovementsData,
+  });
+
   // ----- SALE DELIVERI ITEMS -----
   const deliveryItem1 = await prisma.salesDeliveryItems.create({
     data: {

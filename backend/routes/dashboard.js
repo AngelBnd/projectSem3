@@ -120,7 +120,11 @@ router.get("/top-selling-products", authenticateToken, async (req, res) => {
 
     const stockMovements = await prisma.stockMovements.groupBy({
       by: ["productVariantId"],
-      where: stockWhere,
+      where: {
+        productVariantId: { in: variantIds },
+        referenceType: "SALES_ORDER",
+        ...(startDate && { createdAt: { gte: startDate, lte: now } }),
+      },
       _sum: { change: true },
     });
 
