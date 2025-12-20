@@ -56,14 +56,18 @@ const ProductItem = ({
           }}
           options={autofill}
           getOptionLabel={(option) => option.variantName || ""}
-          value={product.selectedVariant || null}
+          value={
+            autofill.find(
+              (v) => v.productVariantId === product.productVariantId
+            ) || null
+          }
           onChange={(event, newValue) => {
             onProductChange(index, {
               type: "SELECT_VARIANT",
               data: newValue,
             });
           }}
-          inputValue={product.sku ?? ""}
+          inputValue={product.variantName ?? ""}
           onInputChange={(e, newInputValue) =>
             handleProductCodeChange(index, newInputValue)
           }
@@ -216,10 +220,10 @@ export default function StepGeneralInfo({
   const [hadAddedProduct, setHasAddedProduct] = useState(false);
   const orderDateRef = useRef(null);
 
-  useEffect(() => {
-    console.log(newProducts);
-    console.log(newServices);
-  }, [newProducts, newServices]);
+  // useEffect(() => {
+  //   console.log(newProducts);
+  //   console.log(newServices);
+  // }, [newProducts, newServices]);
 
   useEffect(() => {
     fetch("/api/product-variants", {
@@ -293,6 +297,7 @@ export default function StepGeneralInfo({
       thresholdStock: 0,
 
       quantitySold: 1,
+      unitPrice: 0,
       tempId: Date.now(),
     };
     setNewProducts([...newProducts, newBlankProduct]);
@@ -307,14 +312,12 @@ export default function StepGeneralInfo({
 
       updated[index] = {
         ...updated[index],
-        selectedVariant: v,
         productVariantId: v.productVariantId,
-        productId: v.productId,
-        productName: v.product?.productName || "",
-        sku: v.sku || "",
-        barcode: v.barcode || "",
-        sellingPrice: v.sellingPrice,
-        thresholdStock: v.thresholdStock,
+        productId: v.productId ?? null,
+        variantName: v.variantName ?? "",
+        sku: v.sku ?? "",
+        unitPrice: Number(v.sellingPrice),
+        quantitySold: updated[index].quantitySold || 1,
       };
 
       setNewProducts(updated);
@@ -326,7 +329,10 @@ export default function StepGeneralInfo({
 
       updated[index] = {
         ...updated[index],
-        [name]: value,
+        [name]:
+          name === "quantitySold"
+            ? Math.max(1, parseInt(value, 10) || 1)
+            : value,
       };
 
       setNewProducts(updated);
@@ -364,10 +370,19 @@ export default function StepGeneralInfo({
     const { name, value } = e.target;
     const updatedServices = [...newServices];
 
+    let formattedValue = value;
+
+    if (name === "unitPrice") {
+      formattedValue = parseFloat(value) || 0;
+    } else if (name === "quantity") {
+      formattedValue = Math.max(1, parseInt(value, 10) || 1);
+    }
+
     updatedServices[index] = {
       ...updatedServices[index],
-      [name]: name === "unitPrice" ? parseFloat(value) || 0 : value,
+      [name]: formattedValue,
     };
+
     setNewServices(updatedServices);
   };
 
@@ -393,7 +408,7 @@ export default function StepGeneralInfo({
         product: selectedProduct,
         productName: selectedProduct.productName,
         productCode: selectedProduct.productCode,
-        sellingPrice: selectedProduct.sellingPrice,
+        unitPrice: selectedProduct.unitPrice,
       };
       return updated;
     });
@@ -459,8 +474,8 @@ export default function StepGeneralInfo({
           }}
         >
           <MenuItem value="">Select Payment Term</MenuItem>
-          <MenuItem value="immediate">Immediate</MenuItem>
-          <MenuItem value="net7">Net 7</MenuItem>
+          <MenuItem value="Immediate">Immediate</MenuItem>
+          <MenuItem value="et7">Net 7</MenuItem>
           <MenuItem value="net14">Net 14</MenuItem>
           <MenuItem value="net30">Net 30</MenuItem>
         </TextField>

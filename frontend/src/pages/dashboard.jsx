@@ -5,6 +5,8 @@ import CategoryPieChart from "../components/localComponents/CategoryPieChart";
 import FilterDropdown from "../components/globalComponents/FilterButton";
 import TopSellingProducts from "../components/localComponents/TopSellingProducts";
 import RecentTransactionsTable from "../components/localComponents/RecentTransactionsTable";
+import Button from "../components/globalComponents/Button";
+import { ExportIcon } from "../assets/SvgIcons";
 
 const formatCurrency = (amount) =>
   `Rp ${new Intl.NumberFormat("id-ID", {
@@ -18,9 +20,7 @@ const DashboardTopBoxes = ({ summary }) => {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-2">
       <div className="bg-white p-6 shadow rounded-md flex flex-col justify-center">
-        <p className="text-3xl font-nunito font-bold">
-          {formatCurrency(totalSales)}
-        </p>
+        <p className="text-3xl font-nunito font-bold">{totalSales}</p>
         <span className="text-gray-600 mt-1">Total Sales</span>
       </div>
 
@@ -42,6 +42,26 @@ const DashboardTopBoxes = ({ summary }) => {
       </div>
     </div>
   );
+};
+
+const handleExportPDF = async () => {
+  const token = localStorage.getItem("token");
+
+  const res = await fetch("/api/dashboard/export", {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  const blob = await res.blob();
+  const url = window.URL.createObjectURL(blob);
+
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "dashboard.pdf";
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
 };
 
 export default function Dashboard() {
@@ -67,12 +87,9 @@ export default function Dashboard() {
 
     const fetchDashboardSummary = async () => {
       try {
-        const response = await fetch(
-          "http://localhost:3000/api/dashboard/summary",
-          {
-            headers: { Authorization: `Bearer ${token}` },
-          }
-        );
+        const response = await fetch("/api/dashboard/summary", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
         if (!response.ok) throw new Error("Failed to fetch dashboard summary");
         const data = await response.json();
 
@@ -99,11 +116,23 @@ export default function Dashboard() {
 
   return (
     <div className="grid grid-cols-9 gap-3 w-full text-black mb-10 !overflow-x-hidden">
-      <div className="col-span-9 flex flex-col mb-2">
-        <h1 className="text-2xl font-semibold font-nunito">Dashboard</h1>
-        <h3 className="text-[#777B7C] text-sm">
-          Overview of your store's performance
-        </h3>
+      <div className="col-span-9 flex justify-between items-center mb-2 w-full">
+        <div>
+          <h1 className="text-2xl font-semibold font-nunito">Dashboard</h1>
+          <h3 className="text-[#777B7C] text-sm">
+            Overview of your store's performance
+          </h3>
+        </div>
+
+        <div>
+          <Button
+            className="no-print"
+            onClick={handleExportPDF}
+            children={"Export All (Ini emang agak lama)"}
+            icon={ExportIcon}
+            variant="white"
+          />
+        </div>
       </div>
 
       <div className="col-span-9">
@@ -117,6 +146,7 @@ export default function Dashboard() {
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl font-bold font-nunito">Cashflow</h2>
               <FilterDropdown
+                className="no-print"
                 label={filterBarData}
                 options={categoryFilters}
                 onSelect={(option) => setFilterBarData(option)}

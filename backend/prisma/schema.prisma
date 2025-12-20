@@ -185,7 +185,6 @@ model Stores {
   owner       Users    @relation("StoreOwner", fields: [ownerId], references: [userId])
 
   users                 Users[]
-  roles                 Roles[]
   products              Products[]
   productVariants       ProductVariants[]
 
@@ -254,8 +253,6 @@ model Users {
 
 model Roles {
   roleId     Int    @id @default(autoincrement())
-  storeId    Int
-  store      Stores @relation(fields: [storeId], references: [storeId])
   roleName   String
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
@@ -264,7 +261,6 @@ model Roles {
   userRoles  UserRoles[]
   rolePermissions RolePermissions[]
 
-  @@index([storeId])
 }
 
 model Permissions {
@@ -409,7 +405,7 @@ model StockMovements {
   store             Stores @relation(fields: [storeId], references: [storeId])
   productVariantId  Int
   productVariant    ProductVariants @relation(fields: [productVariantId], references: [productVariantId])
-  referenceId       Int
+  referenceId       Int?
   referenceType     StockReferenceType
   change            Int 
   reason            String
