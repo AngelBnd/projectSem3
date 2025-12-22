@@ -12,7 +12,7 @@ export default function Users() {
   useEffect(() => {
     const fetchUsers = async () => {
       const token = localStorage.getItem("token");
-      const res = await fetch("/api/users", {
+      const res = await fetch("https://stockapi.jessfortress.com/api/users", {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await res.json();
@@ -23,7 +23,7 @@ export default function Users() {
 
   const handleApprove = async (userId) => {
     const token = localStorage.getItem("token");
-    await fetch(`/api/users/${userId}/approve`, {
+    await fetch(`https://stockapi.jessfortress.com/api/users/${userId}/approve`, {
       method: "POST",
       headers: { Authorization: `Bearer ${token}` },
     });

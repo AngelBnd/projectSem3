@@ -226,7 +226,7 @@ export default function StepGeneralInfo({
   // }, [newProducts, newServices]);
 
   useEffect(() => {
-    fetch("/api/product-variants", {
+    fetch("https://stockapi.jessfortress.com/api/product-variants", {
       headers: {
         Authorization: `Bearer ${token}`,
       },
@@ -241,7 +241,7 @@ export default function StepGeneralInfo({
   useEffect(() => {
     async function fetchChannels() {
       try {
-        const res = await fetch("/api/sales-order/channels", {
+        const res = await fetch("https://stockapi.jessfortress.com/api/sales-order/channels", {
           headers: {
             Authorization: `Bearer ${token}`,
           },

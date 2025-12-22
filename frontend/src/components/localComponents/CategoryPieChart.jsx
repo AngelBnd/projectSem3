@@ -32,7 +32,7 @@ export default function ChannelPieChart() {
     const fetchData = async () => {
       setIsLoading(true);
       try {
-        const salesRes = await fetch("http://localhost:3000/api/sales-order", {
+        const salesRes = await fetch("https://stockapi.jessfortress.com/api/sales-order", {
           headers,
         });
         if (!salesRes.ok) throw new Error("Failed to fetch sales orders");

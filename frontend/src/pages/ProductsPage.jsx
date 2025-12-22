@@ -94,7 +94,7 @@ export default function ProductsPage() {
     try {
       const token = localStorage.getItem("token");
 
-      const res = await fetch("/api/product-variants/quick-add", {
+      const res = await fetch("https://stockapi.jessfortress.com/api/product-variants/quick-add", {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -125,7 +125,7 @@ export default function ProductsPage() {
       try {
         const token = localStorage.getItem("token");
 
-        const res = await fetch("/api/product-variants", {
+        const res = await fetch("https://stockapi.jessfortress.com/api/product-variants", {
           headers: {
             Authorization: `Bearer ${token}`,
           },

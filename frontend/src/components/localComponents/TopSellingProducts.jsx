@@ -45,7 +45,7 @@ export default function TopSellingProducts() {
 
       const periodParams = getPeriodParam(filter);
       let topSellUrl =
-        "http://localhost:3000/api/dashboard/top-selling-products";
+        "https://stockapi.jessfortress.com/api/dashboard/top-selling-products";
 
       if (periodParams) {
         topSellUrl = `${topSellUrl}?period=${periodParams}`;

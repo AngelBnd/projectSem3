@@ -56,7 +56,7 @@ export default function RecentTransactionsTable() {
     const fetchRecentTransactions = async () => {
       try {
         const response = await fetch(
-          "http://localhost:3000/api/dashboard/recent-transactions",
+          "https://stockapi.jessfortress.com/api/dashboard/recent-transactions",
           {
             headers: {
               Authorization: `Bearer ${token}`,

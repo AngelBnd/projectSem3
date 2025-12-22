@@ -124,13 +124,13 @@ export default function Sales(){
   //   const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
 
   //   Promise.all([
-  //     fetch("http://localhost:3000/api/sales", { headers }).then((res) => {
+  //     fetch("https://stockapi.jessfortress.com/api/sales", { headers }).then((res) => {
   //       if (!res.ok) {
   //         throw new Error('Unauthorized access');
   //       }
   //       return res.json();
   //     }),
-  //     fetch("http://localhost:3000/api/inventory", { headers }).then((res) => {
+  //     fetch("https://stockapi.jessfortress.com/api/inventory", { headers }).then((res) => {
   //       if (!res.ok) {
   //         throw new Error('Unauthorized access');
   //       }
@@ -157,7 +157,7 @@ export default function Sales(){
 
     const fetchData = async () => {
       let salesUrl;
-      const categoryUrl = `http://localhost:3000/api/sales/categories`;
+      const categoryUrl = `https://stockapi.jessfortress.com/api/sales/categories`;
 
       const params = new URLSearchParams();
 
@@ -171,11 +171,11 @@ export default function Sales(){
         if (selectedCategory && selectedCategory !== 'All') params.append('category', selectedCategory);
       }
 
-      salesUrl = `http://localhost:3000/api/sales?${params.toString()}`;
+      salesUrl = `https://stockapi.jessfortress.com/api/sales?${params.toString()}`;
       
       try {
         const [inventoryResponse, salesResponse, categoryResponse] = await Promise.all([
-          fetch("http://localhost:3000/api/inventory", { headers }),
+          fetch("https://stockapi.jessfortress.com/api/inventory", { headers }),
           fetch(salesUrl, { headers }),
           fetch(categoryUrl, { headers })
         ]);
@@ -300,7 +300,7 @@ export default function Sales(){
                       const token = localStorage.getItem('token');
                       const headers = { 'Authorization': `Bearer ${token}` };
 
-                      fetch(`http://localhost:3000/api/sales/${encodeURIComponent(invoiceId)}`, {
+                      fetch(`https://stockapi.jessfortress.com/api/sales/${encodeURIComponent(invoiceId)}`, {
                         method: "DELETE",
                         headers: headers,
                       })

@@ -121,7 +121,7 @@ export default function SalesPage() {
     try {
       const token = localStorage.getItem("token");
 
-      const res = await fetch("/api/sales-order/populate", {
+      const res = await fetch("https://stockapi.jessfortress.com/api/sales-order/populate", {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -202,7 +202,7 @@ export default function SalesPage() {
   const fetchSalesOrders = async () => {
     setLoading(true);
     try {
-      const res = await fetch("/api/sales-order", {
+      const res = await fetch("https://stockapi.jessfortress.com/api/sales-order", {
         headers: { Authorization: `Bearer ${token}` },
       });
       const result = await res.json();

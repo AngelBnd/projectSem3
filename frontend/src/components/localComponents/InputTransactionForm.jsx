@@ -144,7 +144,7 @@ export default function InputTransactionForm({ mode, item, isEditMode, invoiceDa
             }
 
             const token = localStorage.getItem("token");
-            const url = `http://localhost:3000/api/inventory/search?q=${encodeURIComponent(debounceProduct)}`;
+            const url = `https://stockapi.jessfortress.com/api/inventory/search?q=${encodeURIComponent(debounceProduct)}`;
 
             try {
                 const response = await fetch(url, {
@@ -364,8 +364,8 @@ export default function InputTransactionForm({ mode, item, isEditMode, invoiceDa
             
             const url =
             mode === "edit"
-                ? `http://localhost:3000/api/sales/${item.invoiceId}`
-                : "http://localhost:3000/api/sales";
+                ? `https://stockapi.jessfortress.com/api/sales/${item.invoiceId}`
+                : "https://stockapi.jessfortress.com/api/sales";
 
             const method = mode === "edit" ? "PUT" : "POST";
 

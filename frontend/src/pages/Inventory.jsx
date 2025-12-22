@@ -38,7 +38,7 @@ export default function Inventory() {
     const token = localStorage.getItem('token');
     const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
 
-    fetch("http://localhost:3000/api/inventory/categories", { headers })
+    fetch("https://stockapi.jessfortress.com/api/inventory/categories", { headers })
       .then((res) => {
         if (!res.ok) {
           console.error("Category fetch failed with status:", res.status);
@@ -56,7 +56,7 @@ export default function Inventory() {
     const token = localStorage.getItem('token');
     const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
 
-    fetch("http://localhost:3000/api/inventory/", { headers })
+    fetch("https://stockapi.jessfortress.com/api/inventory/", { headers })
       .then((res) => {
         if (!res.ok) {
           console.error("Category fetch failed with status:", res.status);
@@ -77,9 +77,9 @@ export default function Inventory() {
     let url;
 
     if(searchTrigger) {
-      url = `http://localhost:3000/api/inventory/search?q=${encodeURIComponent(searchTrigger)}`;
+      url = `https://stockapi.jessfortress.com/api/inventory/search?q=${encodeURIComponent(searchTrigger)}`;
     } else {
-      url = `http://localhost:3000/api/inventory`;
+      url = `https://stockapi.jessfortress.com/api/inventory`;
 
       if(selectedCategory && selectedCategory !== 'All') {
         url += `?category=${encodeURIComponent(selectedCategory)}`;
@@ -119,8 +119,8 @@ export default function Inventory() {
   //   const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
 
   //   const url = debounceQuery
-  //     ? `http://localhost:3000/api/inventory/search?q=${encodeURIComponent(debounceQuery)}`
-  //     : `http://localhost:3000/api/inventory`;
+  //     ? `https://stockapi.jessfortress.com/api/inventory/search?q=${encodeURIComponent(debounceQuery)}`
+  //     : `https://stockapi.jessfortress.com/api/inventory`;
 
   //   const fetchData = async () => {
   //     try {
@@ -256,7 +256,7 @@ export default function Inventory() {
                     const token = localStorage.getItem('token');
                     const headers = { 'Authorization': `Bearer ${token}` };
 
-                    fetch(`http://localhost:3000/api/inventory/${encodeURIComponent(code)}`, {
+                    fetch(`https://stockapi.jessfortress.com/api/inventory/${encodeURIComponent(code)}`, {
                       method: "DELETE",
                       headers: headers,
                     })

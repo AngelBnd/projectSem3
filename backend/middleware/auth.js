@@ -6,8 +6,8 @@ const jwt = require('jsonwebtoken');
 const JWT_SECRET = process.env.JWT_SECRET;
 
 const publicRoutes = [
-  '/api/auth/login',
-  '/api/auth/register',
+  'https://stockapi.jessfortress.com/api/auth/login',
+  'https://stockapi.jessfortress.com/api/auth/register',
 ];
 
 const authenticateToken = async (req, res, next) => {

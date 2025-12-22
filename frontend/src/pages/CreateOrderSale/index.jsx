@@ -173,7 +173,7 @@ export default function CreateOrderSale() {
         services: newServices,
       };
 
-      const endpoint = id ? `/api/sales-order/${id}` : "/api/sales-order";
+      const endpoint = id ? `https://stockapi.jessfortress.com/api/sales-order/${id}` : "https://stockapi.jessfortress.com/api/sales-order";
       const method = id ? "PUT" : "POST";
 
       const response = await fetch(endpoint, {

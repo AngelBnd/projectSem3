@@ -47,7 +47,7 @@ const DashboardTopBoxes = ({ summary }) => {
 const handleExportPDF = async () => {
   const token = localStorage.getItem("token");
 
-  const res = await fetch("/api/dashboard/export", {
+  const res = await fetch("https://stockapi.jessfortress.com/api/dashboard/export", {
     headers: {
       Authorization: `Bearer ${token}`,
     },
@@ -87,7 +87,7 @@ export default function Dashboard() {
 
     const fetchDashboardSummary = async () => {
       try {
-        const response = await fetch("/api/dashboard/summary", {
+        const response = await fetch("https://stockapi.jessfortress.com/api/dashboard/summary", {
           headers: { Authorization: `Bearer ${token}` },
         });
         if (!response.ok) throw new Error("Failed to fetch dashboard summary");

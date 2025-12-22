@@ -12,7 +12,7 @@ export default function StepUserInfo({ formData, setFormData, role }) {
     setValidating(prev => ({ ...prev, email: true }));
 
     try {
-        const response = await fetch('/api/auth/validate', {
+        const response = await fetch('https://stockapi.jessfortress.com/api/auth/validate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ field: 'email', value: email })

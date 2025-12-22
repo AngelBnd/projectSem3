@@ -15,7 +15,7 @@ export default function ChartBar({ timeFrame }) {
     const token = localStorage.getItem("token");
     const headers = token ? { Authorization: `Bearer ${token}` } : {};
 
-    fetch("http://localhost:3000/api/sales-order", { headers })
+    fetch("https://stockapi.jessfortress.com/api/sales-order", { headers })
       .then((res) => {
         if (!res.ok) throw new Error("Network error");
         return res.json();

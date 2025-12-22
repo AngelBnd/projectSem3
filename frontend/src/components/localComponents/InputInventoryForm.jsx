@@ -46,8 +46,8 @@ export default function InputInventoryForm() {
     try {
       const url =
         mode === "edit"
-          ? `http://localhost:3000/api/inventory/${item.productCode}`
-          : "http://localhost:3000/api/inventory";
+          ? `https://stockapi.jessfortress.com/api/inventory/${item.productCode}`
+          : "https://stockapi.jessfortress.com/api/inventory";
 
       const method = mode === "edit" ? "PUT" : "POST";
 

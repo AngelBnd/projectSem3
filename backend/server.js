@@ -12,8 +12,8 @@ const PORT = 3000;
 app.use(cors());
 app.use(express.json());
 
-app.use("/api/auth", authRoutes);
-app.use("/api", authenticateToken, routes);
+app.use("https://stockapi.jessfortress.com/api/auth", authRoutes);
+app.use("https://stockapi.jessfortress.com/api", authenticateToken, routes);
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
