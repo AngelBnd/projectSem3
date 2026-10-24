@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import BadgeStatus from '../globalComponents/BadgeStatus';
 import Dropdown from "../globalComponents/Dropdown";
+import { api } from "../../lib/api";
 
 export default function TransactionRow({sale, products, onDelete }) {
   const {
@@ -9,9 +10,6 @@ export default function TransactionRow({sale, products, onDelete }) {
     name,
     totalAmount,
   } = sale;
-
-  const token = localStorage.getItem('token');
-  const headers = { 'Authorization': `Bearer ${token}` };
 
   const [lineItem, setLineItems] = useState([]);
 
@@ -34,14 +32,8 @@ export default function TransactionRow({sale, products, onDelete }) {
   useEffect(()=>{
     console.log(sale);
 
-    fetch(`http://localhost:3000/api/invoices/lineitems/${encodeURIComponent(sale.invoiceId)}`, {
-      method: "GET",
-      headers: headers,
-    })
-      .then((res)=>{
-        if (!res.ok) throw new Error("Delete failed");
-        return res.json();
-      })
+    api
+      .get(`/api/invoices/lineitems/${encodeURIComponent(sale.invoiceId)}`)
       .then((data)=>{
         console.log(data);
         setLineItems(data)

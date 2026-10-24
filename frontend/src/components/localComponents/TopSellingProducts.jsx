@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { api } from "../../lib/api";
 import FilterDropdown from "../globalComponents/FilterButton"; // Assuming you have this imported
 
 const TopSellingRow = ({ product }) => {
@@ -36,7 +37,6 @@ export default function TopSellingProducts() {
 
   useEffect(() => {
     const token = localStorage.getItem("token");
-    const headers = token ? { Authorization: `Bearer ${token}` } : {};
     if (!token) return;
 
     const fetchTopSellingProducts = async () => {
@@ -44,19 +44,14 @@ export default function TopSellingProducts() {
       setError(null);
 
       const periodParams = getPeriodParam(filter);
-      let topSellUrl =
-        "http://localhost:3000/api/dashboard/top-selling-products";
+      let topSellUrl = "/api/dashboard/top-selling-products";
 
       if (periodParams) {
         topSellUrl = `${topSellUrl}?period=${periodParams}`;
       }
 
       try {
-        const response = await fetch(topSellUrl, { headers });
-        if (!response.ok) {
-          throw new Error("Failed to fetch top-selling products");
-        }
-        const data = await response.json();
+        const data = await api.get(topSellUrl);
         setProducts(data);
       } catch (err) {
         console.error("Top selling products fetch error:", err);

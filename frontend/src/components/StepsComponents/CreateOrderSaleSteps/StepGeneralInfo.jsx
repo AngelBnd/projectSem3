@@ -10,6 +10,7 @@ import {
   Checkbox,
 } from "@mui/material";
 import { CalendarIcon } from "../../../assets/SvgIcons";
+import { api } from "../../../lib/api";
 
 const ProductItem = ({
   product,
@@ -204,7 +205,6 @@ export default function StepGeneralInfo({
   getValidationStatus = () => {},
 }) {
   console.log("formData:", formData);
-  const token = localStorage.getItem("token");
 
   const [activeTab, setActiveTab] = useState(0);
   const bottomRef = useRef(null);
@@ -226,12 +226,8 @@ export default function StepGeneralInfo({
   // }, [newProducts, newServices]);
 
   useEffect(() => {
-    fetch("/api/product-variants", {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    })
-      .then((res) => res.json())
+    api
+      .get("/api/product-variants")
       .then((data) => {
         console.log("DATA PRODUCT VARIANTS", data);
         setAutofill(data);
@@ -241,14 +237,7 @@ export default function StepGeneralInfo({
   useEffect(() => {
     async function fetchChannels() {
       try {
-        const res = await fetch("/api/sales-order/channels", {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-        console.log("Status:", res.status);
-
-        const data = await res.json();
+        const data = await api.get("/api/sales-order/channels");
         console.log("DATA CHANNELS:", data);
 
         setChannels(data);

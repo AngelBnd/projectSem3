@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef } from "react";
+import { api } from "../../../lib/api";
 
 export default function StepStoreInfoOwner({ formData, setFormData, role }) {
   const [errors, setErrors] = useState({});
@@ -11,25 +12,16 @@ export default function StepStoreInfoOwner({ formData, setFormData, role }) {
     setValidating(prev => ({ ...prev, storeTag: true }));
 
     try {
-      const response = await fetch('/api/auth/validate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ field: 'storeTag', value: tag })
+      await api.post('/api/auth/validate', { field: 'storeTag', value: tag });
+
+      setErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors.storeTag;
+        return newErrors;
       });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        setErrors(prev => ({ ...prev, storeTag: data.error }));
-      } else {
-        setErrors(prev => {
-          const newErrors = { ...prev };
-          delete newErrors.storeTag;
-          return newErrors;
-        });
-      }
     } catch (error) {
       console.error('Validation error:', error);
+      setErrors(prev => ({ ...prev, storeTag: error.message }));
     } finally {
       setValidating(prev => ({ ...prev, storeTag: false }));
     }

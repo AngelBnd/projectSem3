@@ -5,6 +5,7 @@ import StepUserInfo from "../../components/StepsComponents/RegisterSteps/StepUse
 import StepStoreInfoEmployee from "../../components/StepsComponents/RegisterSteps/StepStoreInfoEmployee";
 import StepStoreInfoOwner from "../../components/StepsComponents/RegisterSteps/StepStoreInfoOwner";
 import StepRole from "../../components/StepsComponents/RegisterSteps/StepRole";
+import { api } from "../../lib/api";
 import { ArrowNarrowLeft, ArrowNarrowRight, CheckIcon, AlertCircleIcon  } from "../../assets/SvgIcons";
 
 export default function Register(){
@@ -110,37 +111,16 @@ export default function Register(){
                 })
             };
 
-            const response = await fetch('/api/auth/register', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
+            await api.post('/api/auth/register', payload);
 
-            let data;
-            try {
-                data = await response.json();
-            } catch (err) {
-                console.error('Error parsing response:', err);
-                setAlert({ 
-                    show: true, 
-                    message: 'Registration succeeded but failed to read response.'
-                });
-                return;
-            }
-
-            if (response.ok) {
-                window.location.href = '/login';
-            } else {
-                setAlert({ 
-                    show: true, 
-                    message: data.error || 'Registration failed. Please try again.' 
-                });
-            }
+            window.location.href = '/login';
         } catch (error) {
             console.error('Registration error test:', error);
-            setAlert({ 
-                show: true, 
-                message: 'An error occurred during registration.' 
+            setAlert({
+                show: true,
+                message: error.status
+                    ? error.message || 'Registration failed. Please try again.'
+                    : 'An error occurred during registration.'
             });
         } finally {
             setLoading(false);

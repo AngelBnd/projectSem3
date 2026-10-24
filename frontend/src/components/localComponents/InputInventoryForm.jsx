@@ -1,5 +1,6 @@
 import { useState,useEffect } from "react";
 import Button from "./Button";
+import { api } from "../../lib/api";
 import { useLocation, useNavigate } from "react-router-dom"; 
 import { usePopup } from "../globalComponents/PopupContext.jsx";
 import { PopupOption, PopupOkay } from "../globalComponents/PopupComp.jsx";
@@ -46,10 +47,8 @@ export default function InputInventoryForm() {
     try {
       const url =
         mode === "edit"
-          ? `http://localhost:3000/api/inventory/${item.productCode}`
-          : "http://localhost:3000/api/inventory";
-
-      const method = mode === "edit" ? "PUT" : "POST";
+          ? `/api/inventory/${item.productCode}`
+          : "/api/inventory";
 
       const token = localStorage.getItem('token');
       if (!token) {
@@ -57,54 +56,41 @@ export default function InputInventoryForm() {
         return navigate('/login');
       }
 
-      const headers = {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${token}` 
-      };
-
       // For edit mode, we only want to send the stock addition, not replace the entire stock
       const submitData = mode === "edit" 
         ? { ...formData, stockToAdd: parseInt(formData.initialStock) || 0 }
         : formData;
 
-      const response = await fetch(url, {
-        method: method,
-        headers: headers, 
-        body: JSON.stringify(submitData),
+      const resultData = await (mode === "edit"
+        ? api.put(url, submitData)
+        : api.post(url, submitData));
+
+      setFormData({
+        productCode: "",
+        productName: "",
+        productBrand: "",
+        productCategory: "",
+        unitCost: "",
+        sellingPrice: "",
+        initialStock: "",
+        thresholdStock: "",
       });
 
-      if (response.status === 200 || response.status === 204 || response.status === 201) {
-        const resultData = await response.json(); 
-        setFormData({
-          productCode: "",
-          productName: "",
-          productBrand: "",
-          productCategory: "",
-          unitCost: "",
-          sellingPrice: "",
-          initialStock: "",
-          thresholdStock: "",
-        });
+      // Calls popup with autoclosems -> navigates back after time
+      const AUTO_CLOSE_MS = 2500;
 
-        // Calls popup with autoclosems -> navigates back after time
-        const AUTO_CLOSE_MS = 2500; 
+      const navigateBack = () => {
+          setTimeout(() => {
+              navigate(-1);
+          }, 1000);
+      };
 
-        const navigateBack = () => {
-            setTimeout(() => {
-                navigate(-1);
-            }, 1000); 
-        };
-
-        openPopup(
-          <PopupOkay message={`Inventory item ${mode === 'edit' ? 'updated' : 'saved'}! ${resultData.message || ''}`} />,
-          navigateBack(), AUTO_CLOSE_MS);
-      } else {
-        const errorData = await response.json();
-        alert(`Failed to save item: ${errorData.error}`);
-      }
+      openPopup(
+        <PopupOkay message={`Inventory item ${mode === 'edit' ? 'updated' : 'saved'}! ${resultData.message || ''}`} />,
+        navigateBack(), AUTO_CLOSE_MS);
     } catch (error) {
       console.error("Error:", error);
-      alert("An error occurred. Please check the network connection.");
+      alert(`Failed to save item: ${error.message}`);
     }
   };
 

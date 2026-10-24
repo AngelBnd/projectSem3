@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
+import { api } from '../../../lib/api';
 
 
 export default function StepUserInfo({ formData, setFormData, role }) {
@@ -12,25 +13,16 @@ export default function StepUserInfo({ formData, setFormData, role }) {
     setValidating(prev => ({ ...prev, email: true }));
 
     try {
-        const response = await fetch('/api/auth/validate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ field: 'email', value: email })
-        });
+        await api.post('/api/auth/validate', { field: 'email', value: email });
 
-        const data = await response.json();
-
-        if (!response.ok) {
-        setErrors(prev => ({ ...prev, email: data.error }));
-        } else {
         setErrors(prev => {
             const newErrors = { ...prev };
             delete newErrors.email;
             return newErrors;
         });
-        }
     } catch (error) {
         console.error('Validation error:', error);
+        setErrors(prev => ({ ...prev, email: error.message }));
     } finally {
         setValidating(prev => ({ ...prev, email: false }));
     }

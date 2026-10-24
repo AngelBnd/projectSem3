@@ -7,6 +7,7 @@ import TopSellingProducts from "../components/localComponents/TopSellingProducts
 import RecentTransactionsTable from "../components/localComponents/RecentTransactionsTable";
 import Button from "../components/globalComponents/Button";
 import { ExportIcon } from "../assets/SvgIcons";
+import { api } from "../lib/api";
 
 const formatCurrency = (amount) =>
   `Rp ${new Intl.NumberFormat("id-ID", {
@@ -45,13 +46,7 @@ const DashboardTopBoxes = ({ summary }) => {
 };
 
 const handleExportPDF = async () => {
-  const token = localStorage.getItem("token");
-
-  const res = await fetch("/api/dashboard/export", {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
+  const res = await api.get("/api/dashboard/export", true);
 
   const blob = await res.blob();
   const url = window.URL.createObjectURL(blob);
@@ -87,11 +82,7 @@ export default function Dashboard() {
 
     const fetchDashboardSummary = async () => {
       try {
-        const response = await fetch("/api/dashboard/summary", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        if (!response.ok) throw new Error("Failed to fetch dashboard summary");
-        const data = await response.json();
+        const data = await api.get("/api/dashboard/summary");
 
         setDashboardSummary({
           totalSales: parseFloat(data.totalSales) || 0,
