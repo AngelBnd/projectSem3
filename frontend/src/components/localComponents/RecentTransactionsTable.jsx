@@ -1,5 +1,6 @@
 // components/RecentTransactionsTable.jsx
 import React, { useEffect, useState } from "react";
+import { api } from "../../lib/api";
 
 // 💡 CORRECTED Helper function to format currency (Rp)
 const formatCurrency = (amount) => {
@@ -55,18 +56,7 @@ export default function RecentTransactionsTable() {
 
     const fetchRecentTransactions = async () => {
       try {
-        const response = await fetch(
-          "http://localhost:3000/api/dashboard/recent-transactions",
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
-        if (!response.ok) {
-          throw new Error("Failed to fetch recent transactions");
-        }
-        const data = await response.json();
+        const data = await api.get("/api/dashboard/recent-transactions");
         setTransactions(data);
       } catch (err) {
         console.error("Recent transactions fetch error:", err);

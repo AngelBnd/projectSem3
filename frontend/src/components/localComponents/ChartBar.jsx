@@ -1,5 +1,6 @@
 import { Bar } from "react-chartjs-2";
 import { useEffect, useState } from "react";
+import { api } from "../../lib/api";
 import { aggregateSalesValueByMonth } from "../../utils/aggregation";
 import { aggregateSalesValueByYear } from "../../utils/aggregation";
 import { aggregateSalesValueByWeekly } from "../../utils/aggregation";
@@ -12,14 +13,8 @@ export default function ChartBar({ timeFrame }) {
   });
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    const headers = token ? { Authorization: `Bearer ${token}` } : {};
-
-    fetch("http://localhost:3000/api/sales-order", { headers })
-      .then((res) => {
-        if (!res.ok) throw new Error("Network error");
-        return res.json();
-      })
+    api
+      .get("/api/sales-order")
       .then((d) => {
         setSalesData(d);
 

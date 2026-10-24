@@ -6,6 +6,7 @@ import { useDebounce } from "../globalComponents/Debounce";
 import { usePopup } from "../globalComponents/PopupContext";
 import { PopupOkay, PopupError } from "../globalComponents/PopupComp";
 import FilterTabs from "../globalComponents/FilterTabs";
+import { api } from "../../lib/api";
 
 // New component for individual product item in the list
 const ProductItem = ({ product, index, onProductChange, onDeleteProduct, onProductFocus, onProductBlur, activeProductIndex, mode}) => {
@@ -143,30 +144,20 @@ export default function InputTransactionForm({ mode, item, isEditMode, invoiceDa
                 return;
             }
 
-            const token = localStorage.getItem("token");
-            const url = `http://localhost:3000/api/inventory/search?q=${encodeURIComponent(debounceProduct)}`;
+            const url = `/api/inventory/search?q=${encodeURIComponent(debounceProduct)}`;
 
             try {
-                const response = await fetch(url, {
-                    headers: { Authorization: `Bearer ${token}` },
-                });
-                if (response.ok) {
-                    const data = await response.json();
-                    const exactMatch = data.find(p => p.productCode.toLowerCase() === debounceProduct.toLowerCase());
-                    const isInputFilled = !!newProducts[activeProductIndex]?.productName;
+                const data = await api.get(url);
+                const exactMatch = data.find(p => p.productCode.toLowerCase() === debounceProduct.toLowerCase());
+                const isInputFilled = !!newProducts[activeProductIndex]?.productName;
 
-                    if(exactMatch && !isInputFilled) {
-                        handleAutofillClick(exactMatch);
-                    } else {
-                        setAutofill(data);
-                    }
+                if(exactMatch && !isInputFilled) {
+                    handleAutofillClick(exactMatch);
                 } else {
-                    // Log errors for debugging the backend connection
-                    console.error("API Search Failed:", response.status, await response.text());
-                    setAutofill([]);
+                    setAutofill(data);
                 }
             } catch(error) {
-                console.error("Network or Fetch Error:", error);
+                console.error("API Search Failed:", error);
                 setAutofill([]);
             }
         };
@@ -364,26 +355,13 @@ export default function InputTransactionForm({ mode, item, isEditMode, invoiceDa
             
             const url =
             mode === "edit"
-                ? `http://localhost:3000/api/sales/${item.invoiceId}`
-                : "http://localhost:3000/api/sales";
+                ? `/api/sales/${item.invoiceId}`
+                : "/api/sales";
 
-            const method = mode === "edit" ? "PUT" : "POST";
+            await (mode === "edit"
+                ? api.put(url, finalInvoice)
+                : api.post(url, finalInvoice));
 
-            const token = localStorage.getItem("token");
-            const response = await fetch(url, { 
-                method: `${method}`, 
-                headers: { 
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`  
-                },
-                body: JSON.stringify(finalInvoice),
-            });
-
-            if (!response.ok) {
-                const errData = await response.json();
-                throw new Error(errData.error || "Failed to save the transaction.");
-            }
-            
             const AUTO_CLOSE_MS = 2500; 
 
             const navigateBack = () => {
@@ -392,13 +370,11 @@ export default function InputTransactionForm({ mode, item, isEditMode, invoiceDa
                 }, 1000); 
             };
 
-            if(response.ok) {
-                openPopup(
-                    <PopupOkay message="Transaction saved successfully! Returning to list..." />, 
-                    navigateBack(),
-                    AUTO_CLOSE_MS // Duration
-                );
-            }
+            openPopup(
+                <PopupOkay message="Transaction saved successfully! Returning to list..." />,
+                navigateBack(),
+                AUTO_CLOSE_MS // Duration
+            );
             
 
         } catch (error) {

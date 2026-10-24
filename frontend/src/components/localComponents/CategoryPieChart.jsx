@@ -1,5 +1,6 @@
 import { Pie } from "react-chartjs-2";
 import { useEffect, useState } from "react";
+import { api } from "../../lib/api";
 import { aggregateChannels } from "../../utils/aggregation"; // <-- aggregateChannels should handle channel/subchannel
 
 const generateColors = (count) => {
@@ -26,18 +27,10 @@ export default function ChannelPieChart() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    const headers = token ? { Authorization: `Bearer ${token}` } : {};
-
     const fetchData = async () => {
       setIsLoading(true);
       try {
-        const salesRes = await fetch("http://localhost:3000/api/sales-order", {
-          headers,
-        });
-        if (!salesRes.ok) throw new Error("Failed to fetch sales orders");
-
-        const sales = await salesRes.json();
+        const sales = await api.get("/api/sales-order");
 
         const { labels, data } = aggregateChannels(sales);
 

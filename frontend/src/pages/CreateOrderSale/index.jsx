@@ -15,13 +15,13 @@ import {
   PopupError,
 } from "../../components/globalComponents/PopupComp";
 import { useNavigate, useParams } from "react-router-dom";
+import { api } from "../../lib/api";
 
 export default function CreateOrderSale() {
   const { id } = useParams();
 
   const navigate = useNavigate();
   const { openPopup, closePopup } = usePopup();
-  const token = localStorage.getItem("token");
   const [step, setStep] = useState(0);
   const [selectedRole, setSelectedRole] = useState(null);
   const [role, setRole] = useState(null);
@@ -55,15 +55,7 @@ export default function CreateOrderSale() {
 
     const fetchSalesOrder = async () => {
       try {
-        const res = await fetch(`/api/sales-order/${id}`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-
-        const data = await res.json();
-
-        if (!res.ok) throw new Error(data.error || "Failed to fetch order");
+        const data = await api.get(`/api/sales-order/${id}`);
 
         setFormData({
           generalInfo: {
@@ -174,43 +166,25 @@ export default function CreateOrderSale() {
       };
 
       const endpoint = id ? `/api/sales-order/${id}` : "/api/sales-order";
-      const method = id ? "PUT" : "POST";
 
-      const response = await fetch(endpoint, {
-        method,
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(payload),
-      });
+      await (id ? api.put(endpoint, payload) : api.post(endpoint, payload));
 
-      const data = await response.json();
+      openPopup(
+        <PopupOkay
+          message={`Sales order ${id ? "updated" : "created"} successfully!`}
+        />
+      );
 
-      if (response.ok) {
-        openPopup(
-          <PopupOkay
-            message={`Sales order ${id ? "updated" : "created"} successfully!`}
-          />
-        );
-
-        setTimeout(() => {
-          closePopup();
-          navigate(-1);
-        }, AUTO_CLOSE_MS);
-      } else {
-        setAlert({
-          show: true,
-          message:
-            data.error || `Sales order ${id ? "update" : "creation"} failed.`,
-        });
-      }
+      setTimeout(() => {
+        closePopup();
+        navigate(-1);
+      }, AUTO_CLOSE_MS);
     } catch (error) {
       setAlert({
         show: true,
-        message: `An error occurred during sales order ${
-          id ? "update" : "creation"
-        }.`,
+        message:
+          error.message ||
+          `Sales order ${id ? "update" : "creation"} failed.`,
       });
     } finally {
       setLoading(false);

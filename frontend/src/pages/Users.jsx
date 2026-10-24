@@ -4,6 +4,7 @@ import { hasPermission, getCurrentUser } from "../utils/auth";
 import { EmailIcon, PhoneIcon } from "../assets/SvgIcons";
 import { useEffect, useState } from "react";
 import { UserCard } from "../components/localComponents/UserCard";
+import { api } from "../lib/api";
 
 export default function Users() {
   const [users, setUsers] = useState([]);
@@ -11,36 +12,21 @@ export default function Users() {
 
   useEffect(() => {
     const fetchUsers = async () => {
-      const token = localStorage.getItem("token");
-      const res = await fetch("/api/users", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const data = await res.json();
+      const data = await api.get("/api/users");
       setUsers(data.users || []);
     };
     fetchUsers();
   }, []);
 
   const handleApprove = async (userId) => {
-    const token = localStorage.getItem("token");
-    await fetch(`/api/users/${userId}/approve`, {
-      method: "POST",
-      headers: { Authorization: `Bearer ${token}` },
-    });
+    await api.post(`/api/users/${userId}/approve`);
     setUsers((prev) =>
       prev.map((u) => (u.userId === userId ? { ...u, status: "ACTIVE" } : u))
     );
   };
 
   const handleReject = async (userId) => {
-    const token = localStorage.getItem("token");
-
-    const res = await fetch(`/api/users/${userId}/reject`, {
-      method: "POST",
-      headers: { Authorization: `Bearer ${token}` },
-    });
-
-    const data = await res.json();
+    const data = await api.post(`/api/users/${userId}/reject`);
 
     if (data.success) {
       setUsers((prev) =>

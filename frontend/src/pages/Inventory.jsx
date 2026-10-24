@@ -7,6 +7,7 @@ import NotFound from "../components/globalComponents/NotFound";
 import { Link } from "react-router-dom";
 import { useEffect, useState, useSyncExternalStore } from "react";
 import { useDebounce } from "../components/globalComponents/Debounce";
+import { api } from "../lib/api";
 const stockStatuses = ["Low stock", "Good", "Out of Stock", "Low stock"];
 
 export default function Inventory() {
@@ -35,17 +36,8 @@ export default function Inventory() {
   ];
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
-
-    fetch("http://localhost:3000/api/inventory/categories", { headers })
-      .then((res) => {
-        if (!res.ok) {
-          console.error("Category fetch failed with status:", res.status);
-          throw new Error(`Failed to fetch categories: HTTP ${res.status}`);
-        }
-        return res.json();
-      })
+    api
+      .get("/api/inventory/categories")
       .then((data) => setCategories(data))
       .catch((err) => {
         console.error("Error fetching categories:", err.message);
@@ -53,17 +45,8 @@ export default function Inventory() {
   }, []);
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
-
-    fetch("http://localhost:3000/api/inventory/", { headers })
-      .then((res) => {
-        if (!res.ok) {
-          console.error("Category fetch failed with status:", res.status);
-          throw new Error(`Failed to fetch categories: HTTP ${res.status}`);
-        }
-        return res.json();
-      })
+    api
+      .get("/api/inventory/")
       .then((data) => setItems(data))
       .catch((err) => {
         console.error("Error fetching categories:", err.message);
@@ -71,15 +54,12 @@ export default function Inventory() {
   }, []);
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
-
     let url;
 
     if(searchTrigger) {
-      url = `http://localhost:3000/api/inventory/search?q=${encodeURIComponent(searchTrigger)}`;
+      url = `/api/inventory/search?q=${encodeURIComponent(searchTrigger)}`;
     } else {
-      url = `http://localhost:3000/api/inventory`;
+      url = `/api/inventory`;
 
       if(selectedCategory && selectedCategory !== 'All') {
         url += `?category=${encodeURIComponent(selectedCategory)}`;
@@ -88,16 +68,8 @@ export default function Inventory() {
 
     const fetchdata = async () => {
       try {
-        const res = await fetch(url, { headers });
+        const data = await api.get(url);
 
-        if(!res.ok) {
-          const errorData = await res.json();
-          const errorMessage = errorData.error || `HTTP error! status: ${res.status}`;
-          throw new Error(errorMessage);
-        }
-
-        const data = await res.json();
-        
         setUpdateItems(data);
 
         if(searchTrigger) {
@@ -253,17 +225,8 @@ export default function Inventory() {
                   key={item.productCode}
                   item={item}
                   onDelete={(code) => {
-                    const token = localStorage.getItem('token');
-                    const headers = { 'Authorization': `Bearer ${token}` };
-
-                    fetch(`http://localhost:3000/api/inventory/${encodeURIComponent(code)}`, {
-                      method: "DELETE",
-                      headers: headers,
-                    })
-                      .then((res) => {
-                        if (!res.ok) throw new Error("Delete failed");
-                        return res.json();
-                      })
+                    api
+                      .delete(`/api/inventory/${encodeURIComponent(code)}`)
                       .then(() => {
                         // The filter logic on the frontend is still correct
                         setItems((prev) => prev.filter((i) => String(i.productCode) !== String(code)));

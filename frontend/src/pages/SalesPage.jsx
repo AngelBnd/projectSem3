@@ -19,6 +19,7 @@ import Menu from "@mui/material/Menu";
 import MenuItem from "@mui/material/MenuItem";
 import { EditIcon, TrashIcon } from "../assets/SvgIcons";
 import { usePopup } from "../components/globalComponents/PopupContext";
+import { api } from "../lib/api";
 import {
   PopupOption,
   PopupError,
@@ -92,7 +93,6 @@ export default function SalesPage() {
   const [data, setData] = useState([]);
   const [loading, setLoading] = React.useState(false);
   const navigate = useNavigate();
-  const token = localStorage.getItem("token");
   const [selectionModel, setSelectionModel] = useState([]);
   const [searchInput, setSearchInput] = useState("");
   const [activeTab, setActiveTab] = useState(0);
@@ -119,30 +119,16 @@ export default function SalesPage() {
 
   const populateSalesOrder = async () => {
     try {
-      const token = localStorage.getItem("token");
-
-      const res = await fetch("/api/sales-order/populate", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      const result = await res.json();
-
-      if (!res.ok) {
-        if (result.error === "NO_PRODUCTS") {
-          alert("No products found to create demo order");
-          return;
-        }
-
-        alert("Failed to populate sales order");
-        return;
-      }
+      await api.post("/api/sales-order/populate");
 
       alert("Demo sales order created (RANDOMIZED STATUSES FOR FILTERING)");
       window.location.reload();
     } catch (err) {
+      if (err.message === "NO_PRODUCTS") {
+        alert("No products found to create demo order");
+        return;
+      }
+
       console.error(err);
       alert("Failed to populate sales order");
     }
@@ -155,28 +141,25 @@ export default function SalesPage() {
       closePopup();
 
       try {
-        const token = localStorage.getItem("token");
-        const res = await fetch(`/api/sales-order/${salesOrderId}`, {
-          method: "DELETE",
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        try {
+          await api.delete(`/api/sales-order/${salesOrderId}`);
+        } catch (err) {
+          const message = err.data?.message;
+          const errorMessage =
+            message === "ORDER_NOT_DELETABLE"
+              ? "Cannot delete sales order of pending or completed"
+              : message || "Failed to delete sales order";
 
-        const data = await res.json().catch(() => ({}));
-
-        setTimeout(() => {
-          if (!res.ok) {
-            const errorMessage =
-              data.message === "ORDER_NOT_DELETABLE"
-                ? "Cannot delete sales order of pending or completed"
-                : data.message || "Failed to delete sales order";
-
+          setTimeout(() => {
             setTimeout(() => {
               openPopup(<PopupError message={errorMessage} show={true} />);
               setTimeout(() => closePopup(), 2000);
             }, 300);
-            return;
-          }
+          }, 300);
+          return;
+        }
 
+        setTimeout(() => {
           openPopup(
             <PopupOkay
               message={`Sales order #${salesOrderId} deleted successfully`}
@@ -202,12 +185,7 @@ export default function SalesPage() {
   const fetchSalesOrders = async () => {
     setLoading(true);
     try {
-      const res = await fetch("/api/sales-order", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const result = await res.json();
-      if (!res.ok)
-        throw new Error(result.error || "Failed to load sales orders");
+      const result = await api.get("/api/sales-order");
 
       setAllOrders(result || []);
       setData(result || []);

@@ -14,6 +14,7 @@ import {
 } from "../../src/assets/SvgIcons";
 import Badge from "../components/globalComponents/BadgeStatus";
 import { usePopup } from "../components/globalComponents/PopupContext";
+import { api } from "../lib/api";
 import {
   PopupOkay,
   PopupError,
@@ -92,48 +93,24 @@ export default function ProductsPage() {
 
   const quickAddProducts = async () => {
     try {
-      const token = localStorage.getItem("token");
-
-      const res = await fetch("/api/product-variants/quick-add", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      const result = await res.json();
-
-      if (!res.ok) {
-        if (result.error === "PRODUCT_EXISTS") {
-          alert("Product already exists");
-          return;
-        }
-
-        alert(result.error || "Failed to add products");
-        return;
-      }
+      await api.post("/api/product-variants/quick-add");
 
       alert("Products added successfully!");
       window.location.reload();
     } catch (err) {
+      if (err.message === "PRODUCT_EXISTS") {
+        alert("Product already exists");
+        return;
+      }
+
       console.error("Quick add error:", err);
-      alert("Failed to add products");
+      alert(err.status ? err.message : "Failed to add products");
     }
   };
   useEffect(() => {
     const fetchVariants = async () => {
       try {
-        const token = localStorage.getItem("token");
-
-        const res = await fetch("/api/product-variants", {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-
-        if (!res.ok) throw new Error("Failed to fetch products");
-
-        const result = await res.json();
+        const result = await api.get("/api/product-variants");
 
         setData(result);
       } catch (err) {
