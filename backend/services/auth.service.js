@@ -1,9 +1,10 @@
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const prisma = require("../prisma/client");
+const config = require("../config");
 const { HttpError } = require("../utils/httpError");
 
-const JWT_SECRET = process.env.JWT_SECRET;
+const JWT_SECRET = config.JWT_SECRET;
 
 const register = async ({
   email,
