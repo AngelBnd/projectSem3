@@ -69,7 +69,7 @@ const approve = (currentUser, userId) =>
     approvedAt: new Date(),
     approvedBy: currentUser.userId,
   }));
-
+``;
 const reject = (currentUser, userId) =>
   changeStatus(currentUser, userId, "reject", () => ({
     status: UserStoreStatus.REJECTED,
