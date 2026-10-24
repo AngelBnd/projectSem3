@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import SidebarMUI from "./components/globalComponents/SidebarMUI";
-import ProtectedRoute from "./pages/ProtectedRoute";
+import ProtectedRoute from "./features/auth/components/ProtectedRoute";
 import BreadcrumbsMUI from "../src/components/globalComponents/BreadcrumbsMUI";
 import AvatarSettings from "../src/components/globalComponents/AvatarSettings";
 import {

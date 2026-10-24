@@ -1,13 +1,7 @@
-// src/pages/index.js
-export { default as Dashboard } from './Dashboard';
-export { default as Inventory } from './Inventory';
-export { default as SalesPage } from './SalesPage';
-export { default as Login } from './Login';
-export { default as Products } from './ProductsPage';
-export { default as InputSales } from './InputSales';
-export { default as SalesDetails } from './SalesDetails';
-export { default as CreateProduct } from './CreateProduct';
-export { default as CreateOrderSale } from './CreateOrderSale';
-export { default as Register } from './Register';
-export { default as Users } from './Users';
-export { default as AccessStatus } from './AccessStatus';
+// Pages are thin: each feature owns its screens, this file just collects them for the router.
+export { Dashboard } from "../features/dashboard";
+export { Inventory, InputInventory } from "../features/inventory";
+export { SalesPage, SalesDetails, InputSales, CreateOrderSale } from "../features/sales";
+export { Products, CreateProduct } from "../features/products";
+export { Login, Register, AccessStatus } from "../features/auth";
+export { Users } from "../features/users";

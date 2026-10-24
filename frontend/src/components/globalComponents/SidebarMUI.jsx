@@ -26,7 +26,7 @@ import {
   LogOutIcon,
   PurchaseOrdersIcon,
 } from "../../assets/SvgIcons";
-import SidebarFooter from "../localComponents/sidebarFooter";
+import SidebarFooter from "./sidebarFooter";
 import { useNavigate } from "react-router-dom";
 import { ExpandLess, ExpandMore } from "@mui/icons-material";
 import { hasPermission, hasAnyRole } from "../../utils/auth";
