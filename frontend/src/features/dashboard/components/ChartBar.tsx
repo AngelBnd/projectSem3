@@ -1,59 +1,32 @@
 import { Bar } from "react-chartjs-2";
 import type { ChartOptions } from "chart.js";
-import type { SalesOrderSummary } from "../../../types";
-import { useEffect, useState } from "react";
+import { useMemo } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { fetchSalesOrders } from "../../sales/api";
 import { aggregateSalesValueByMonth } from "../../../utils/aggregation";
 import { aggregateSalesValueByYear } from "../../../utils/aggregation";
 import { aggregateSalesValueByWeekly } from "../../../utils/aggregation";
 
 export default function ChartBar({ timeFrame }: { timeFrame: string }) {
-  const [salesData, setSalesData] = useState<SalesOrderSummary[]>([]);
-  const [chartDataState, setChartDataState] = useState<{
-    labels: string[];
-    data: number[];
-  }>({
-    labels: [],
-    data: [],
+  const {
+    data: salesData = [],
+    isLoading,
+    error,
+  } = useQuery({
+    queryKey: ["salesOrders"],
+    queryFn: fetchSalesOrders,
   });
-
-  useEffect(() => {
-    fetchSalesOrders()
-      .then((d) => {
-        setSalesData(d);
-
-        const { labels, data } = aggregateSalesValueByMonth(d);
-        setChartDataState({ labels, data });
-      })
-      .catch((error) => console.error("Fetch error:", error));
-  }, []);
-
-  useEffect(() => {
-    if (salesData.length === 0) return;
-
-    let labels: string[], data: number[];
-
+  const chartDataState = useMemo(() => {
     switch (timeFrame) {
       case "Yearly":
-        ({ labels, data } = aggregateSalesValueByYear(salesData));
-        break;
-      case "Monthly":
-        ({ labels, data } = aggregateSalesValueByMonth(salesData));
-        break;
+        return aggregateSalesValueByYear(salesData);
       case "Weekly":
-        ({ labels, data } = aggregateSalesValueByWeekly(salesData));
-        break;
+        return aggregateSalesValueByWeekly(salesData);
+      case "Monthly":
       default:
-        ({ labels, data } = aggregateSalesValueByMonth(salesData));
+        return aggregateSalesValueByMonth(salesData);
     }
-
-    setChartDataState({ labels, data });
   }, [salesData, timeFrame]);
-
-  useEffect(() => {
-    console.log("Raw Data:", salesData);
-    console.log("Chart Data:", chartDataState);
-  }, [salesData, chartDataState]);
 
   const chartData = {
     labels: chartDataState.labels,
@@ -121,9 +94,8 @@ export default function ChartBar({ timeFrame }: { timeFrame: string }) {
     },
   };
 
-  if (chartDataState.data.length === 0 && salesData.length === 0) {
-    return <div>Loading Sales Data...</div>;
-  }
+  if (isLoading) return <div>Loading Sales Data...</div>;
+  if (error) return <div>Error loading sales data: {error.message}</div>;
 
   if (chartDataState.data.length === 0 && salesData.length > 0) {
     return <div>No sales data found for charting.</div>;

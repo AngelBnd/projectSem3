@@ -5,28 +5,55 @@ import BadgeStatus from "../../../components/globalComponents/BadgeStatus";
 import InventoryRow from "../components/InventoryRow";
 import NotFound from "../../../components/globalComponents/NotFound";
 import { Link } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import type { KeyboardEvent } from "react";
 import type { InventoryItem } from "../../../types";
-import { getErrorMessage } from "../../../lib/api";
-import { useDebounce } from "../../../components/globalComponents/Debounce";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   deleteInventoryItem,
   fetchFilteredInventory,
   fetchInventoryCategories,
-  fetchInventoryItems,
 } from "../api";
 const stockStatuses = ["Low stock", "Good", "Out of Stock", "Low stock"];
 
 export default function Inventory() {
-  const [items, setItems] = useState<InventoryItem[]>([]);
   const [searchInput, setSearchInput] = useState(''); 
-  const [updateItems, setUpdateItems] = useState<InventoryItem[]>([])
-  
-  const [categories, setCategories] = useState<string[]>([]);
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [searchTrigger, setSearchTrigger] = useState('');
+  const queryClient = useQueryClient();
 
+  const {
+    data: categories = [],
+    error: categoriesError,
+  } = useQuery({
+    queryKey: ["inventory", "categories"],
+    queryFn: fetchInventoryCategories,
+  });
+  const {
+    data: updateItems = [],
+    isLoading,
+    error,
+  } = useQuery({
+    queryKey: ["inventory", "filtered", searchTrigger, selectedCategory],
+    queryFn: () =>
+      fetchFilteredInventory({
+        search: searchTrigger,
+        category: selectedCategory,
+      }),
+  });
+  const deleteMutation = useMutation({
+    mutationFn: deleteInventoryItem,
+    onSuccess: async () => {
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["inventory"] }),
+        queryClient.invalidateQueries({ queryKey: ["dashboard"] }),
+      ]);
+    },
+    onError: (deleteError) => {
+      console.error("Delete failed:", deleteError);
+      alert("Failed to delete item. Check console/server logs.");
+    },
+  });
   const categoryFilters = ['All', ...categories];
 
   const theBoxValues = [
@@ -42,44 +69,6 @@ export default function Inventory() {
       label: "Out of Stock Items",
     },
   ];
-
-  useEffect(() => {
-    fetchInventoryCategories()
-      .then((data) => setCategories(data))
-      .catch((err) => {
-        console.error("Error fetching categories:", err.message);
-      });
-  }, []);
-
-  useEffect(() => {
-    fetchInventoryItems()
-      .then((data) => setItems(data))
-      .catch((err) => {
-        console.error("Error fetching categories:", err.message);
-      });
-  }, []);
-
-  useEffect(() => {
-    const fetchdata = async () => {
-      try {
-        const data = await fetchFilteredInventory({
-          search: searchTrigger,
-          category: selectedCategory,
-        });
-
-        setUpdateItems(data);
-
-        if(searchTrigger) {
-          setSelectedCategory("All");
-        }
-
-      } catch(error) {
-        console.error("Error fetching inventory:", getErrorMessage(error));
-      }
-    };
-
-    fetchdata();
-  }, [searchTrigger, selectedCategory]);
 
   // const updateItems = items;
 
@@ -144,14 +133,16 @@ export default function Inventory() {
       if(searchInput === '') {
         setSearchTrigger('');
       } else {
+        setSelectedCategory("All");
         setSearchTrigger(searchInput);
       }
     }
   };
 
-  // useEffect(()=>{
-  //   setUpdateItems(items);
-  // },[items])
+  if (isLoading) return <div>Loading inventory...</div>;
+  if (error) return <div>Error fetching inventory: {error.message}</div>;
+  if (categoriesError)
+    return <div>Error fetching inventory categories: {categoriesError.message}</div>;
 
   return (
     <div className="w-full text-black">
@@ -222,16 +213,7 @@ export default function Inventory() {
                   key={item.productCode}
                   item={item}
                   onDelete={(code) => {
-                    deleteInventoryItem(code)
-                      .then(() => {
-                        // The filter logic on the frontend is still correct
-                        setItems((prev) => prev.filter((i) => String(i.productCode) !== String(code)));
-                        setUpdateItems((prev) => prev.filter((i) => String(i.productCode) !== String(code)));
-                      })
-                      .catch((err) => {
-                        console.error("Delete failed:", err);
-                        alert("Failed to delete item. Check console/server logs.");
-                      });
+                    deleteMutation.mutate(code);
                   }}
                 />
               ))}

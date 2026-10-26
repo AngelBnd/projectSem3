@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { useQuery } from "@tanstack/react-query";
 import BadgeStatus from '../../../components/globalComponents/BadgeStatus';
 import Dropdown from "../../../components/globalComponents/Dropdown";
 import type { MouseEvent as ReactMouseEvent } from 'react';
@@ -24,14 +25,23 @@ export default function TransactionRow({sale, products, onDelete }: TransactionR
     totalAmount,
   } = sale;
 
-  const [lineItem, setLineItems] = useState<InvoiceLineItem[]>([]);
+  const {
+    data: lineItems = [],
+    error: lineItemsError,
+  } = useQuery({
+    queryKey: ["invoiceLineItems", sale.invoiceId],
+    queryFn: () => fetchInvoiceLineItems(sale.invoiceId),
+  });
 
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [dropdownPosition, setDropdownPosition] = useState<{ top: number; left: number } | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const dropdownMenuRef = useRef<HTMLDivElement>(null);
   const dropdownTriggerRef = useRef<HTMLDivElement>(null);
-  const [totalQuantity, setTotalQuantity] = useState(0);
+  const totalQuantity = lineItems.reduce(
+    (sum, item) => sum + (item.quantitySold || 0),
+    0
+  );
 
   const handleToggleDropdown = (event: ReactMouseEvent<HTMLElement>) => {
     const rect = event.currentTarget.getBoundingClientRect();
@@ -41,31 +51,6 @@ export default function TransactionRow({sale, products, onDelete }: TransactionR
     });
     setIsDropdownOpen((prev) => !prev);
   };
-
-  useEffect(()=>{
-    console.log(sale);
-
-    fetchInvoiceLineItems(sale.invoiceId)
-      .then((data)=>{
-        console.log(data);
-        setLineItems(data)
-      })
-      .catch((err) => {
-        console.error("get failed:", err);
-        alert("Failed to get item. Check console/server logs.");
-      });
-  },[])
-
-
-  useEffect(() => {
-    if (lineItem.length > 0) {
-      const total = lineItem.reduce((sum, item) => sum + (item.quantitySold || 0), 0);
-      setTotalQuantity(total);
-    } else {
-      setTotalQuantity(0);
-    }
-  }, [lineItem]);
-
 
   useEffect(() => {
         console.log(`testtt ${invoiceId}`)
@@ -109,7 +94,9 @@ export default function TransactionRow({sale, products, onDelete }: TransactionR
     <tr className="bg-white rounded-md shadow text-sm ">
       <td className="w-1/6 text-center py-2">{invoiceId}</td>
       <td className="w-1/6 text-center py-2">{name || "Unknown"}</td>
-      <td className="w-1/6 text-center py-2">{totalQuantity}</td>
+      <td className="w-1/6 text-center py-2">
+        {lineItemsError ? "Error loading items" : totalQuantity}
+      </td>
       <td className="w-1/6 text-center py-2">
         Rp {parseFloat(String(totalAmount || 0)).toLocaleString('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
       </td>

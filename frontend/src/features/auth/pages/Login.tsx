@@ -5,19 +5,21 @@ import Button from "../../../components/globalComponents/Button";
 import { login } from "../api";
 import { ApiError } from "../../../lib/api";
 import loginImage from "../../../assets/loginimage.jpg";
+import { useMutation } from "@tanstack/react-query";
 
 function Login({ setAuthenticated }: { setAuthenticated: (value: boolean) => void }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const navigate = useNavigate();
+  const loginMutation = useMutation({ mutationFn: login });
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setError("");
 
     try {
-      const data = await login({ email, password });
+      const data = await loginMutation.mutateAsync({ email, password });
 
       localStorage.setItem("token", data.token);
       localStorage.setItem("user", JSON.stringify(data.user));

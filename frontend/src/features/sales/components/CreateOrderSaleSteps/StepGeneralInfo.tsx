@@ -1,4 +1,5 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef } from "react";
+import { useQuery } from "@tanstack/react-query";
 import type { ChangeEvent } from "react";
 import type { ProductVariant } from "../../../../types";
 import type { SalesChannel } from "../../api";
@@ -237,12 +238,21 @@ export default function StepGeneralInfo({
   const [activeTab, setActiveTab] = useState(0);
   const bottomRef = useRef<HTMLDivElement>(null);
 
-  const [autofill, setAutofill] = useState<ProductVariant[]>([]);
   const [activeProductIndex, setActiveProductIndex] = useState<number | null>(null);
   const [dropdownPosition] = useState<{ top?: number; left?: number; width?: number }>({});
 
-  const [channels, setChannels] = useState<SalesChannel[]>([]);
-  const [loadingChannels, setLoadingChannels] = useState(true);
+  const { data: autofill = [], error: productVariantsError } = useQuery({
+    queryKey: ["productVariants"],
+    queryFn: fetchProductVariants,
+  });
+  const {
+    data: channels = [],
+    isLoading: loadingChannels,
+    error: channelsError,
+  } = useQuery({
+    queryKey: ["salesChannels"],
+    queryFn: fetchSalesChannels,
+  });
 
   const [, setHasAddedProduct] = useState(false);
   const orderDateRef = useRef<HTMLInputElement>(null);
@@ -251,31 +261,6 @@ export default function StepGeneralInfo({
   //   console.log(newProducts);
   //   console.log(newServices);
   // }, [newProducts, newServices]);
-
-  useEffect(() => {
-    fetchProductVariants()
-      .then((data) => {
-        console.log("DATA PRODUCT VARIANTS", data);
-        setAutofill(data);
-      });
-  }, []);
-
-  useEffect(() => {
-    async function fetchChannels() {
-      try {
-        const data = await fetchSalesChannels();
-        console.log("DATA CHANNELS:", data);
-
-        setChannels(data);
-      } catch (error) {
-        console.error("Error loading channels:", error);
-      } finally {
-        setLoadingChannels(false);
-      }
-    }
-
-    fetchChannels();
-  }, []);
 
   const tabs = [{ label: "Products" }, { label: "Services" }];
 
@@ -495,6 +480,11 @@ export default function StepGeneralInfo({
           <MenuItem value="net14">Net 14</MenuItem>
           <MenuItem value="net30">Net 30</MenuItem>
         </TextField>
+        {channelsError && (
+          <div className="text-red-500 text-xs mt-1">
+            Failed to load channels: {channelsError.message}
+          </div>
+        )}
       </div>
 
       <div className="flex gap-3">
@@ -581,6 +571,11 @@ export default function StepGeneralInfo({
       </div>
 
       <div className="bg-white p-4 py-6 rounded-md shadow-md mt-4">
+        {productVariantsError && activeTab === 0 && (
+          <div className="text-red-500 text-xs mb-2">
+            Failed to load products: {productVariantsError.message}
+          </div>
+        )}
         {activeTab === 0 && (
           <>
             <div className="grid grid-cols-6 gap-4 text-sm font-semibold text-gray-500 font-nunito mb-2">

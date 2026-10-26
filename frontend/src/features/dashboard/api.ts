@@ -28,7 +28,7 @@ export const fetchRecentTransactions = () =>
 
 export const fetchTopSellingProducts = (period: string | null) =>
   api.get<TopSellingProduct[]>(
-    `/api/dashboard/top-selling-products${period ? `?period=${period}` : ""}`
+    `/api/dashboard/top-selling-products${period ? `?period=${period}` : ""}`,
   );
 
 // Returns the raw Response so the caller can read it as a blob.

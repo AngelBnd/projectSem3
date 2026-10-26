@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import FilterTabs from "../../../components/globalComponents/FilterTabs"; // adjust path
 import { Box, Grid, Card, CardContent, Typography } from "@mui/material";
 import SearchBar from "../../../components/globalComponents/SearchBar";
@@ -24,6 +24,7 @@ import {
   PopupError,
   PopupOption,
 } from "../../../components/globalComponents/PopupComp";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 const productColumns: GridColDef[] = [
   {
@@ -58,7 +59,8 @@ const productColumns: GridColDef[] = [
     headerName: "Selling Price",
     width: 150,
     type: "number",
-    renderCell: (params: GridRenderCellParams) => `Rp ${Number(params.value ?? 0).toFixed(2)}`,
+    renderCell: (params: GridRenderCellParams) =>
+      `Rp ${Number(params.value ?? 0).toFixed(2)}`,
   },
   {
     field: "thresholdStock",
@@ -70,7 +72,9 @@ const productColumns: GridColDef[] = [
     field: "productStatus",
     headerName: "Status",
     width: 130,
-    renderCell: (params: GridRenderCellParams) => <Badge status={params.value} />,
+    renderCell: (params: GridRenderCellParams) => (
+      <Badge status={params.value} />
+    ),
   },
 ];
 
@@ -91,17 +95,25 @@ const tabs: FilterTab<ProductVariant>[] = [
 ];
 
 export default function ProductsPage() {
-  const [data, setData] = useState<ProductVariant[]>([]);
   const [searchInput, setSearchInput] = useState("");
-  const [loading, setLoading] = useState(true);
   const { openPopup, closePopup } = usePopup();
+  const queryClient = useQueryClient();
+
+  const { data, isLoading, error } = useQuery<ProductVariant[]>({
+    queryKey: ["productVariants"],
+    queryFn: fetchProductVariants,
+  });
+  const quickAddMutation = useMutation({
+    mutationFn: quickAddProducts,
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: ["productVariants"] }),
+  });
 
   const handleQuickAddProducts = async () => {
     try {
-      await quickAddProducts();
+      await quickAddMutation.mutateAsync();
 
       alert("Products added successfully!");
-      window.location.reload();
     } catch (err) {
       if (err instanceof ApiError && err.message === "PRODUCT_EXISTS") {
         alert("Product already exists");
@@ -112,27 +124,15 @@ export default function ProductsPage() {
       alert(err instanceof ApiError ? err.message : "Failed to add products");
     }
   };
-  useEffect(() => {
-    const fetchVariants = async () => {
-      try {
-        const result = await fetchProductVariants();
-
-        setData(result);
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchVariants();
-  }, []);
 
   const addProductButton = (
     <Button icon={PlusIcon} onClick={() => alert("Opening add form")}>
       Add Product
     </Button>
   );
+
+  if (isLoading) return <div>Loading product variants...</div>;
+  if (error) return <div>Error fetching product variants: {error.message}</div>;
   return (
     <div className="grid grid-cols-9 gap-3 w-full text-black mb-10 !overflow-x-hidden">
       <div className="col-span-9 flex flex-col mb-2 w-full">
@@ -168,6 +168,7 @@ export default function ProductsPage() {
             children={"(Instant) Add a Product"}
             icon={PlusIcon}
             variant="primary"
+            disabled={quickAddMutation.isPending}
           />
         </div>
         {/* <div className="sm:ml-auto">
@@ -178,9 +179,9 @@ export default function ProductsPage() {
       <div className="col-span-9">
         <DataTable
           title="Product Inventory"
-          rows={data}
+          rows={data ?? []}
           columns={productColumns}
-          loading={loading}
+          loading={isLoading}
           CustomToolbar={addProductButton}
           gridProps={{
             checkboxSelection: true,

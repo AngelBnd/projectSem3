@@ -3,11 +3,15 @@ import type { ChangeEvent } from "react";
 import { validateField } from "../../api";
 import { getErrorMessage } from "../../../../lib/api";
 import type { StepFormProps, StoreInfoForm } from "../../types";
+import { useMutation } from "@tanstack/react-query";
 
 export default function StepStoreInfoOwner({ formData, setFormData }: StepFormProps<StoreInfoForm>) {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [validating, setValidating] = useState({ storeTag: false });
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const validationMutation = useMutation({
+    mutationFn: (tag: string) => validateField("storeTag", tag),
+  });
 
   const validateStoreTag = async (tag: string) => {
     if (!tag) return;
@@ -15,7 +19,7 @@ export default function StepStoreInfoOwner({ formData, setFormData }: StepFormPr
     setValidating(prev => ({ ...prev, storeTag: true }));
 
     try {
-      await validateField('storeTag', tag);
+      await validationMutation.mutateAsync(tag);
 
       setErrors(prev => {
         const newErrors = { ...prev };

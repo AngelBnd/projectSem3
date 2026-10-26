@@ -7,8 +7,12 @@ import TopSellingProducts from "../components/TopSellingProducts";
 import RecentTransactionsTable from "../components/RecentTransactionsTable";
 import Button from "../../../components/globalComponents/Button";
 import { ExportIcon } from "../../../assets/SvgIcons";
-import { exportDashboard, fetchDashboardSummary } from "../api";
-import { getErrorMessage } from "../../../lib/api";
+import {
+  DashboardSummary,
+  exportDashboard,
+  fetchDashboardSummary,
+} from "../api";
+import { useMutation, useQuery } from "@tanstack/react-query";
 
 interface SummaryState {
   totalSales: number;
@@ -69,14 +73,19 @@ const handleExportPDF = async () => {
 
 export default function Dashboard() {
   const navigate = useNavigate();
-  const [dashboardSummary, setDashboardSummary] = useState<SummaryState>({
-    totalSales: 0,
-    totalRevenue: 0,
-    lowStockItems: 0,
-    totalCustomers: 0,
+  const exportMutation = useMutation({ mutationFn: handleExportPDF });
+
+  const { data, isLoading, error } = useQuery<DashboardSummary>({
+    queryKey: ["dashboard"],
+    queryFn: fetchDashboardSummary,
   });
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+
+  const dashboardSummary: SummaryState = {
+    totalSales: parseFloat(String(data?.totalSales)) || 0,
+    totalRevenue: parseFloat(String(data?.totalRevenue)) || 0,
+    lowStockItems: data?.lowStockItems ?? 0,
+    totalCustomers: data?.totalCustomers ?? 0,
+  };
 
   const [filterBarData, setFilterBarData] = useState("Monthly");
   const categoryFilters = ["Yearly", "Monthly", "Weekly"];
@@ -87,31 +96,11 @@ export default function Dashboard() {
       navigate("/login");
       return;
     }
-
-    const loadDashboardSummary = async () => {
-      try {
-        const data = await fetchDashboardSummary();
-
-        setDashboardSummary({
-          totalSales: parseFloat(String(data.totalSales)) || 0,
-          totalRevenue: parseFloat(String(data.totalRevenue)) || 0,
-          lowStockItems: data.lowStockItems,
-          totalCustomers: data.totalCustomers,
-        });
-      } catch (err) {
-        console.error("Dashboard summary fetch error:", err);
-        setError(getErrorMessage(err));
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadDashboardSummary();
   }, [navigate]);
 
-  if (loading) return <div>Loading Dashboard...</div>;
+  if (isLoading) return <div>Loading Dashboard...</div>;
   if (error)
-    return <div>Error: {error}. Check server console for details.</div>;
+    return <div>Error: {error.message}. Check server console for details.</div>;
 
   return (
     <div className="grid grid-cols-9 gap-3 w-full text-black mb-10 !overflow-x-hidden">
@@ -126,11 +115,17 @@ export default function Dashboard() {
         <div>
           <Button
             className="no-print"
-            onClick={handleExportPDF}
-            children={"Export All (Ini emang agak lama)"}
+            onClick={() => exportMutation.mutate()}
+            children={"Export All as PDF"}
             icon={ExportIcon}
             variant="white"
+            disabled={exportMutation.isPending}
           />
+          {exportMutation.error && (
+            <div className="text-red-500 text-xs mt-1">
+              Export failed: {exportMutation.error.message}
+            </div>
+          )}
         </div>
       </div>
 
