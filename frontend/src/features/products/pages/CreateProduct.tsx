@@ -1,6 +1,5 @@
 import { useState, useRef, useEffect } from "react";
 import StepGeneralInfo from "../components/CreateProductSteps/StepGeneralInfo";
-import StepPricingStock from "../components/CreateProductSteps/StepPricingStock";
 import Button from "../../../components/globalComponents/Button";
 import {
   ArrowNarrowLeft,
@@ -10,6 +9,7 @@ import {
 import { ProductOrderStepProps } from "../../sales/types";
 import { ComponentType } from "react";
 import StepReview from "../components/CreateProductSteps/StepReview";
+import StepPricingStock from "../components/CreateProductSteps/StepPricingStock";
 
 export default function CreateProduct() {
   const [step, setStep] = useState(1);
@@ -21,7 +21,7 @@ export default function CreateProduct() {
     component: ComponentType<ProductOrderStepProps>;
   }> = [
     { id: 1, label: "General Information", component: StepGeneralInfo },
-    { id: 2, label: "Pricing & Stock", component: StepGeneralInfo },
+    { id: 2, label: "Pricing & Stock", component: StepPricingStock },
     { id: 3, label: "Review", component: StepReview },
   ];
 
