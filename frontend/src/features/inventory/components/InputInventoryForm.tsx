@@ -6,6 +6,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { usePopup } from "../../../components/globalComponents/PopupContext";
 import { PopupOkay } from "../../../components/globalComponents/PopupComp";
 import { getErrorMessage } from "../../../lib/api";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 export default function InputInventoryForm() {
   const navigate = useNavigate();
@@ -13,6 +14,7 @@ export default function InputInventoryForm() {
   const { mode, item } = location.state || {};
 
   const { openPopup } = usePopup();
+  const queryClient = useQueryClient();
 
   const [formData, setFormData] = useState({
     productCode: "",
@@ -23,6 +25,29 @@ export default function InputInventoryForm() {
     sellingPrice: "",
     initialStock: "",
     thresholdStock: "",
+  });
+  const saveInventoryMutation = useMutation({
+    mutationFn: ({
+      productCode,
+      submitData,
+    }: {
+      productCode?: string;
+      submitData: typeof formData | (typeof formData & { stockToAdd: number });
+    }) => {
+      if (mode === "edit") {
+        if (!productCode) {
+          throw new Error("Product code is required to update an inventory item.");
+        }
+        return updateInventoryItem(productCode, submitData);
+      }
+      return createInventoryItem(submitData);
+    },
+    onSuccess: async () => {
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["inventory"] }),
+        queryClient.invalidateQueries({ queryKey: ["dashboard"] }),
+      ]);
+    },
   });
 
   useEffect(() => {
@@ -58,9 +83,10 @@ export default function InputInventoryForm() {
         ? { ...formData, stockToAdd: parseInt(formData.initialStock) || 0 }
         : formData;
 
-      const resultData = await (mode === "edit"
-        ? updateInventoryItem(item.productCode, submitData)
-        : createInventoryItem(submitData));
+      const resultData = await saveInventoryMutation.mutateAsync({
+        productCode: item?.productCode,
+        submitData,
+      });
 
       setFormData({
         productCode: "",

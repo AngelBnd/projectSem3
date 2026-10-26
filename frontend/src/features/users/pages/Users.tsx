@@ -2,43 +2,36 @@ import Button from "../../../components/globalComponents/Button";
 import FilterTabs from "../../../components/globalComponents/FilterTabs";
 import { hasPermission, getCurrentUser } from "../../../utils/auth";
 import { EmailIcon, PhoneIcon } from "../../../assets/SvgIcons";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { UserCard } from "../components/UserCard";
 import { approveUser, fetchUsers, rejectUser } from "../api";
 import type { ManagedUser } from "../../../types";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 export default function Users() {
-  const [users, setUsers] = useState<ManagedUser[]>([]);
   const [activeTab, setActiveTab] = useState(0);
-
-  useEffect(() => {
-    const loadUsers = async () => {
-      const data = await fetchUsers();
-      setUsers(data.users || []);
-    };
-    loadUsers();
-  }, []);
+  const queryClient = useQueryClient();
+  const { data, isLoading, error } = useQuery({
+    queryKey: ["users"],
+    queryFn: fetchUsers,
+  });
+  const users = data?.users ?? [];
+  const approveMutation = useMutation({
+    mutationFn: approveUser,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["users"] }),
+  });
+  const rejectMutation = useMutation({
+    mutationFn: rejectUser,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["users"] }),
+  });
 
   const handleApprove = async (userId: ManagedUser["userId"]) => {
-    await approveUser(userId);
-    setUsers((prev) =>
-      prev.map((u) => (u.userId === userId ? { ...u, status: "ACTIVE" } : u))
-    );
+    await approveMutation.mutateAsync(userId);
   };
 
   const handleReject = async (userId: ManagedUser["userId"]) => {
-    const data = await rejectUser(userId);
-
-    if (data.success) {
-      setUsers((prev) =>
-        prev.map((u) => (u.userId === userId ? data.user : u))
-      );
-    }
+    await rejectMutation.mutateAsync(userId);
   };
-
-  useEffect(() => {
-    console.log(`TESSSSTTTT`, users);
-  }, [users]);
 
   const tabs = [
     {
@@ -60,6 +53,9 @@ export default function Users() {
   ];
 
   const filteredUsers = tabs[activeTab]?.filterFn(users) || users;
+
+  if (isLoading) return <div>Loading users...</div>;
+  if (error) return <div>Error fetching users: {error.message}</div>;
 
   return (
     <div className="grid grid-cols-9 gap-3 w-full text-black mb-10 !overflow-x-hidden">

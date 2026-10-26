@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { fetchTopSellingProducts, type TopSellingProduct } from "../api";
-import { getErrorMessage } from "../../../lib/api";
+import { useQuery } from "@tanstack/react-query";
 import FilterDropdown from "../../../components/globalComponents/FilterButton"; // Assuming you have this imported
 
 const TopSellingRow = ({ product }: { product: TopSellingProduct }) => {
@@ -17,10 +17,6 @@ const TopSellingRow = ({ product }: { product: TopSellingProduct }) => {
 };
 
 export default function TopSellingProducts() {
-  const [products, setProducts] = useState<TopSellingProduct[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
   const [filter, setFilter] = useState("All");
   const categoryFilters = ["All", "Last 7 Days", "Last 30 Days"];
 
@@ -36,27 +32,15 @@ export default function TopSellingProducts() {
     }
   };
 
-  useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (!token) return;
-
-    const loadTopSellingProducts = async () => {
-      setLoading(true);
-      setError(null);
-
-      try {
-        const data = await fetchTopSellingProducts(getPeriodParam(filter));
-        setProducts(data);
-      } catch (err) {
-        console.error("Top selling products fetch error:", err);
-        setError(getErrorMessage(err));
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadTopSellingProducts();
-  }, [filter]);
+  const period = getPeriodParam(filter);
+  const {
+    data: products = [],
+    isLoading: loading,
+    error,
+  } = useQuery({
+    queryKey: ["dashboard", "topSellingProducts", period],
+    queryFn: () => fetchTopSellingProducts(period),
+  });
 
   if (loading)
     return (
@@ -67,7 +51,7 @@ export default function TopSellingProducts() {
   if (error)
     return (
       <div className="basis-1/3 bg-white p-6 shadow rounded-lg h-full flex flex-col justify-center items-center">
-        Error: {error}
+        Error: {error.message}
       </div>
     );
 

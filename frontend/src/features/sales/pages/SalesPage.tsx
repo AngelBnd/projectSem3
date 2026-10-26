@@ -31,6 +31,7 @@ import { EditIcon, TrashIcon } from "../../../assets/SvgIcons";
 import { usePopup } from "../../../components/globalComponents/PopupContext";
 import { deleteSalesOrder, populateSalesOrder, type OrderId } from "../api";
 import useSalesOrders from "../hooks/useSalesOrders";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   PopupOption,
   PopupError,
@@ -110,8 +111,27 @@ export default function SalesPage() {
   const {
     orders: allOrders,
     loading,
-    refetch: fetchSalesOrders,
+    error: salesOrdersError,
   } = useSalesOrders();
+  const queryClient = useQueryClient();
+  const deleteMutation = useMutation({
+    mutationFn: deleteSalesOrder,
+    onSuccess: async () => {
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["salesOrders"] }),
+        queryClient.invalidateQueries({ queryKey: ["dashboard"] }),
+      ]);
+    },
+  });
+  const populateMutation = useMutation({
+    mutationFn: populateSalesOrder,
+    onSuccess: async () => {
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["salesOrders"] }),
+        queryClient.invalidateQueries({ queryKey: ["dashboard"] }),
+      ]);
+    },
+  });
   const [data, setData] = useState<SalesOrderSummary[]>([]);
   const navigate = useNavigate();
   const [selectionModel, setSelectionModel] = useState<GridRowSelectionModel>({
@@ -139,10 +159,9 @@ export default function SalesPage() {
 
   const handlePopulateSalesOrder = async () => {
     try {
-      await populateSalesOrder();
+      await populateMutation.mutateAsync();
 
       alert("Demo sales order created (RANDOMIZED STATUSES FOR FILTERING)");
-      window.location.reload();
     } catch (err) {
       if (err instanceof ApiError && err.message === "NO_PRODUCTS") {
         alert("No products found to create demo order");
@@ -162,7 +181,7 @@ export default function SalesPage() {
 
       try {
         try {
-          await deleteSalesOrder(salesOrderId);
+          await deleteMutation.mutateAsync(salesOrderId);
         } catch (err) {
           const message = err instanceof ApiError ? err.data.message : undefined;
           const errorMessage =
@@ -188,7 +207,6 @@ export default function SalesPage() {
           );
           setTimeout(() => closePopup(), 2000);
 
-          fetchSalesOrders();
         }, 300);
       } catch (err) {
         console.error(err);
@@ -250,6 +268,9 @@ export default function SalesPage() {
 
     handleExportPDFSalesOrder(rowsToExport);
   };
+
+  if (salesOrdersError)
+    return <div>Error fetching sales orders: {salesOrdersError.message}</div>;
 
   const salesColumns: GridColDef<SalesOrderSummary>[] = [
     { field: "id", headerName: "ID", width: 50 },

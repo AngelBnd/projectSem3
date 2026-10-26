@@ -1,7 +1,6 @@
 // components/RecentTransactionsTable.jsx
-import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { fetchRecentTransactions, type RecentTransaction } from "../api";
-import { getErrorMessage } from "../../../lib/api";
 
 // 💡 CORRECTED Helper function to format currency (Rp)
 const formatCurrency = (amount?: number) => {
@@ -47,28 +46,14 @@ const RecentTransactionRow = ({ transaction }: { transaction: RecentTransaction 
 
 // Main Component (Fetching and Display)
 export default function RecentTransactionsTable() {
-  const [transactions, setTransactions] = useState<RecentTransaction[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (!token) return;
-
-    const loadRecentTransactions = async () => {
-      try {
-        const data = await fetchRecentTransactions();
-        setTransactions(data);
-      } catch (err) {
-        console.error("Recent transactions fetch error:", err);
-        setError(getErrorMessage(err));
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadRecentTransactions();
-  }, []);
+  const {
+    data: transactions = [],
+    isLoading: loading,
+    error,
+  } = useQuery({
+    queryKey: ["dashboard", "recentTransactions"],
+    queryFn: fetchRecentTransactions,
+  });
 
   if (loading)
     return (
@@ -79,7 +64,7 @@ export default function RecentTransactionsTable() {
   if (error)
     return (
       <div className="basis-2/3 bg-white p-6 shadow rounded-lg h-full flex flex-col justify-center items-center">
-        Error: {error}
+        Error: {error.message}
       </div>
     );
 

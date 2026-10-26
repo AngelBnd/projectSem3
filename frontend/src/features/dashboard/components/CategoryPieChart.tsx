@@ -1,6 +1,7 @@
 import { Pie } from "react-chartjs-2";
 import type { ChartOptions, TooltipItem } from "chart.js";
-import { useEffect, useState } from "react";
+import { useMemo } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { fetchSalesOrders } from "../../sales/api";
 import { aggregateChannels } from "../../../utils/aggregation"; // <-- aggregateChannels should handle channel/subchannel
 
@@ -21,30 +22,15 @@ const generateColors = (count: number) => {
 };
 
 export default function ChannelPieChart() {
-  const [chartDataState, setChartDataState] = useState<{ labels: string[]; data: number[] }>({
-    labels: [],
-    data: [],
+  const {
+    data: sales = [],
+    isLoading,
+    error,
+  } = useQuery({
+    queryKey: ["salesOrders"],
+    queryFn: fetchSalesOrders,
   });
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchData = async () => {
-      setIsLoading(true);
-      try {
-        const sales = await fetchSalesOrders();
-
-        const { labels, data } = aggregateChannels(sales);
-
-        setChartDataState({ labels, data });
-      } catch (error) {
-        console.error("Fetch error for Pie Chart:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchData();
-  }, []);
+  const chartDataState = useMemo(() => aggregateChannels(sales), [sales]);
 
   const backgroundColors = generateColors(chartDataState.labels.length);
 
@@ -92,6 +78,7 @@ export default function ChannelPieChart() {
   };
 
   if (isLoading) return <div>Loading Sales by Channels...</div>;
+  if (error) return <div>Error loading sales data: {error.message}</div>;
   if (chartDataState.data.length === 0)
     return <div>No channel data found for charting.</div>;
 

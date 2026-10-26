@@ -9,12 +9,14 @@ import { register } from "../api";
 import { ApiError } from "../../../lib/api";
 import type { Role, StoreInfoForm, UserInfoForm } from "../types";
 import { ArrowNarrowLeft, ArrowNarrowRight, CheckIcon, AlertCircleIcon  } from "../../../assets/SvgIcons";
+import { useMutation } from "@tanstack/react-query";
 
 export default function Register(){
     const [step, setStep] = useState(0);
     const [role, setRole] = useState<Role | null>(null);
     const [alert, setAlert] = useState({ show: false, message: '' });
     const [loading, setLoading] = useState(false);
+    const registerMutation = useMutation({ mutationFn: register });
 
     const [formData, setFormData] = useState<{
         userInfo: UserInfoForm;
@@ -120,7 +122,7 @@ export default function Register(){
                 })
             };
 
-            await register(payload);
+            await registerMutation.mutateAsync(payload);
 
             window.location.href = '/login';
         } catch (error) {

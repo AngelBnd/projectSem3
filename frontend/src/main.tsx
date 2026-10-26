@@ -1,45 +1,50 @@
-import React from 'react';
-import ReactDOM from 'react-dom/client';
-import App from './App';
-import './index.css';
-import { PopupProvider } from './components/globalComponents/PopupContext';
+import React from "react";
+import ReactDOM from "react-dom/client";
+import App from "./App";
+import "./index.css";
+import { PopupProvider } from "./components/globalComponents/PopupContext";
 
 import {
   Chart as ChartJS,
   CategoryScale,
-  LinearScale, 
+  LinearScale,
   BarElement,
-  ArcElement,   
-  PointElement,  
-  LineElement,  
-  Title,       
-  Tooltip,      
-  Legend       
-} from 'chart.js';
+  ArcElement,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend,
+} from "chart.js";
 
 // **Register the components with Chart.js**
 ChartJS.register(
   CategoryScale,
   LinearScale,
-  BarElement, 
+  BarElement,
   PointElement,
   ArcElement,
   LineElement,
   Title,
   Tooltip,
-  Legend
+  Legend,
 );
 
-// Import BrowserRouter
-import { BrowserRouter } from 'react-router-dom';
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
-ReactDOM.createRoot(document.getElementById('root')!).render(
+// Import BrowserRouter
+import { BrowserRouter } from "react-router-dom";
+
+const queryClient = new QueryClient();
+
+ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
-    <PopupProvider> 
-    {/* Wrap the App component with BrowserRouter */}
-    <BrowserRouter>
-      <App />
-    </BrowserRouter>
+    <PopupProvider>
+      <QueryClientProvider client={queryClient}>
+        <BrowserRouter>
+          <App />
+        </BrowserRouter>
+      </QueryClientProvider>
     </PopupProvider>
-  </React.StrictMode>
+  </React.StrictMode>,
 );

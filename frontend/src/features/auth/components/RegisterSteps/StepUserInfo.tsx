@@ -3,11 +3,15 @@ import type { ChangeEvent, FocusEvent } from 'react';
 import { validateField } from '../../api';
 import { getErrorMessage } from '../../../../lib/api';
 import type { StepFormProps, UserInfoForm } from '../../types';
+import { useMutation } from "@tanstack/react-query";
 
 export default function StepUserInfo({ formData, setFormData }: StepFormProps<UserInfoForm>) {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [validating, setValidating] = useState({ email: false });
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const validationMutation = useMutation({
+    mutationFn: (email: string) => validateField("email", email),
+  });
 
   const validateEmail = async (email: string) => {
     if (!email) return;
@@ -15,7 +19,7 @@ export default function StepUserInfo({ formData, setFormData }: StepFormProps<Us
     setValidating(prev => ({ ...prev, email: true }));
 
     try {
-        await validateField('email', email);
+        await validationMutation.mutateAsync(email);
 
         setErrors(prev => {
             const newErrors = { ...prev };

@@ -20,6 +20,7 @@ import {
 import { useNavigate, useParams } from "react-router-dom";
 import { saveSalesOrder } from "../api";
 import useSalesOrder from "../hooks/useSalesOrder";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 export default function CreateOrderSale() {
   const { id } = useParams();
@@ -34,6 +35,31 @@ export default function CreateOrderSale() {
   const [errors, setErrors] = useState({});
   const [newServices, setNewServices] = useState<OrderService[]>([]);
   const [newProducts, setNewProducts] = useState<OrderProduct[]>([]);
+  const queryClient = useQueryClient();
+  const saveMutation = useMutation({
+    mutationFn: ({
+      orderId,
+      payload,
+    }: {
+      orderId: string | undefined;
+      payload: {
+        formData: OrderFormData;
+        products: OrderProduct[];
+        services: OrderService[];
+      };
+    }) => saveSalesOrder(orderId, payload),
+    onSuccess: async (_data, variables) => {
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["salesOrders"] }),
+        queryClient.invalidateQueries({ queryKey: ["dashboard"] }),
+      ]);
+      if (variables.orderId) {
+        await queryClient.invalidateQueries({
+          queryKey: ["salesOrder", variables.orderId],
+        });
+      }
+    },
+  });
 
   const AUTO_CLOSE_MS = 2500;
 
@@ -54,7 +80,11 @@ export default function CreateOrderSale() {
     },
   });
 
-  const order = useSalesOrder(id);
+  const {
+    data: order,
+    isLoading: orderLoading,
+    error: orderError,
+  } = useSalesOrder(id);
 
   useEffect(() => {
     if (!order) return;
@@ -175,7 +205,7 @@ export default function CreateOrderSale() {
         services: newServices,
       };
 
-      await saveSalesOrder(id, payload);
+      await saveMutation.mutateAsync({ orderId: id, payload });
 
       openPopup(
         <PopupOkay
@@ -226,6 +256,10 @@ export default function CreateOrderSale() {
       }
     );
   };
+
+  if (id && orderLoading) return <div>Loading sales order...</div>;
+  if (orderError)
+    return <div>Error fetching sales order: {orderError.message}</div>;
 
   return (
     <div className="grid grid-cols-4 md:grid-cols-9 gap-3 w-full text-black mb-10 !overflow-x-hidden">

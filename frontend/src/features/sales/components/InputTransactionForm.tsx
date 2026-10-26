@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import type { ChangeEvent, FocusEvent, FormEvent } from "react";
 import type { InventoryItem, InvoiceData } from "../../../types";
 import type { Setter, TransactionProduct, TransactionService } from "../types";
@@ -12,6 +12,7 @@ import { PopupOkay, PopupError } from "../../../components/globalComponents/Popu
 import FilterTabs from "../../../components/globalComponents/FilterTabs";
 import { saveInvoice } from "../api";
 import { searchInventory } from "../../inventory/api";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 type ProductChangeEvent = { target: { name: string; value: unknown } };
 
@@ -164,49 +165,43 @@ export default function InputTransactionForm({ mode, item, isEditMode, invoiceDa
 
     const { openPopup } = usePopup();
 
-    const [autofill, setAutofill] = useState<InventoryItem[]>([]);
     const [activeProductIndex, setActiveProductIndex] = useState<number | null>(null);
     const [dropdownPosition, setDropdownPosition] = useState<{ top?: number; left?: number; width?: number }>({});
     
     const activeProduct = activeProductIndex !== null ? newProducts[activeProductIndex] : undefined;
     const activeProductCode = activeProduct?.productCode;
     const debounceProduct = useDebounce(activeProductCode, 300);
-
-    useEffect(() => {
-        const fetchAutofill = async () => {
-            if (debounceProduct !== activeProduct?.productCode) {
-                return; 
-            }
-
-            console.log("Debounced:", debounceProduct);
-            console.log("Active Item:", activeProduct);
-
-            if(!debounceProduct || debounceProduct.trim().length === 0) {
-                setAutofill([]);
-                return;
-            }
-
-            try {
-                const data = await searchInventory(debounceProduct);
-                const exactMatch = data.find(p => p.productCode.toLowerCase() === debounceProduct.toLowerCase());
-                const isInputFilled = !!activeProduct?.productName;
-
-                if(exactMatch && !isInputFilled) {
-                    handleAutofillClick(exactMatch);
-                } else {
-                    setAutofill(data);
-                }
-            } catch(error) {
-                console.error("API Search Failed:", error);
-                setAutofill([]);
-            }
-        };
-        
-        if(activeProductIndex !== null) {
-            fetchAutofill();
-        }
-
-    }, [debounceProduct, activeProductIndex]);
+    const queryClient = useQueryClient();
+    const {
+        data: autofill = [],
+        error: inventorySearchError,
+    } = useQuery({
+        queryKey: ["inventory", "search", debounceProduct],
+        queryFn: () => searchInventory(debounceProduct ?? ""),
+        enabled:
+            activeProductIndex !== null &&
+            !!debounceProduct?.trim() &&
+            debounceProduct === activeProduct?.productCode,
+    });
+    const saveInvoiceMutation = useMutation({
+        mutationFn: ({
+            invoiceId,
+            invoice,
+        }: {
+            invoiceId: string | number | null;
+            invoice: typeof invoiceData & {
+                discount: number | string;
+                products: Array<{
+                    productCode: string;
+                    quantitySold: number;
+                    sellingPrice: number;
+                }>;
+                services: Array<{ serviceName: string; price: number }>;
+            };
+        }) => saveInvoice(invoiceId, invoice),
+        onSuccess: () =>
+            queryClient.invalidateQueries({ queryKey: ["invoiceLineItems"] }),
+    });
 
     const handleProductFocus = (index: number, event: FocusEvent<HTMLInputElement>) => {
         // Get the input's position on the screen
@@ -235,19 +230,47 @@ export default function InputTransactionForm({ mode, item, isEditMode, invoiceDa
         }, 200);
     };
 
-    const handleAutofillClick = (suggest: InventoryItem) => {
+    const handleAutofillClick = useCallback((suggest: InventoryItem) => {
         if (activeProductIndex === null) return;
-        const updatedProductData: TransactionProduct = {
-            productCode: suggest.productCode,
-            productName: suggest.productName,
-            quantitySold: newProducts[activeProductIndex]?.quantitySold || 1, // Default to 1
-            sellingPrice: suggest.sellingPrice ?? 0,
-            initialStock: suggest.initialStock, // Store stock for later validation
-            tempId: newProducts[activeProductIndex].tempId, // Keep the original tempId
-        };
-        handleProductChange(activeProductIndex, { target: { name: 'product', value: updatedProductData } });
-        setAutofill([]); // Clear suggestions
-    };
+        setNewProducts((previousProducts) => {
+            const currentProduct = previousProducts[activeProductIndex];
+            if (!currentProduct) return previousProducts;
+
+            const updatedProductData: TransactionProduct = {
+                productCode: suggest.productCode,
+                productName: suggest.productName,
+                quantitySold: currentProduct.quantitySold || 1,
+                sellingPrice: suggest.sellingPrice ?? 0,
+                initialStock: suggest.initialStock,
+                tempId: currentProduct.tempId,
+            };
+            return previousProducts.map((product, index) =>
+                index === activeProductIndex ? updatedProductData : product
+            );
+        });
+    }, [activeProductIndex, setNewProducts]);
+
+    useEffect(() => {
+        if (
+            activeProductIndex === null ||
+            !debounceProduct ||
+            debounceProduct !== activeProduct?.productCode
+        ) return;
+
+        const exactMatch = autofill.find(
+            (product) =>
+                product.productCode.toLowerCase() === debounceProduct.toLowerCase()
+        );
+        if (exactMatch && !activeProduct?.productName) {
+            handleAutofillClick(exactMatch);
+        }
+    }, [
+        autofill,
+        debounceProduct,
+        activeProduct,
+        activeProductIndex,
+        handleAutofillClick,
+    ]);
 
     const handleAddProduct = () => {
         const newBlankProduct: TransactionProduct = {
@@ -396,7 +419,10 @@ export default function InputTransactionForm({ mode, item, isEditMode, invoiceDa
             };
 
             
-            await saveInvoice(mode === "edit" ? item?.invoiceId ?? null : null, finalInvoice);
+            await saveInvoiceMutation.mutateAsync({
+                invoiceId: mode === "edit" ? item?.invoiceId ?? null : null,
+                invoice: finalInvoice,
+            });
 
             const AUTO_CLOSE_MS = 2500; 
 
@@ -562,6 +588,11 @@ export default function InputTransactionForm({ mode, item, isEditMode, invoiceDa
                    mode = {mode}
                  />
                ))}
+               {activeProductIndex !== null && inventorySearchError && (
+                   <div className="text-red-500 text-xs">
+                       Inventory search failed: {inventorySearchError.message}
+                   </div>
+               )}
                {activeProductIndex !== null && autofill.length > 0 && (
                  <div
                     className="absolute bg-white border border-gray-300 rounded-md shadow-lg z-20 max-h-[100px] overflow-y-auto no-scrollbar-arrows"
