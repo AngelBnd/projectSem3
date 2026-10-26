@@ -45,7 +45,6 @@ export interface OrderFormData {
   totals: OrderTotals;
 }
 
-
 /** A product row of the invoice form (inventory based, no variants). */
 export interface TransactionProduct {
   tempId: string | number;
@@ -70,4 +69,14 @@ export interface OrderStepProps {
   newServices: OrderService[];
   setNewProducts: Setter<OrderProduct[]>;
   setNewServices: Setter<OrderService[]>;
+}
+
+// Props for product form data
+export interface ProductOrderStepProps {
+  // formData: OrderFormData;
+  // setFormData: Setter<OrderFormData>;
+  // newProducts: OrderProduct[];
+  // newServices: OrderService[];
+  // setNewProducts: Setter<OrderProduct[]>;
+  // setNewServices: Setter<OrderService[]>;
 }
