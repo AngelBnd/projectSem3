@@ -6,15 +6,55 @@ import {
   ArrowNarrowRight,
   CheckIcon,
 } from "../../../assets/SvgIcons";
-import { ProductOrderStepProps } from "../../sales/types";
+import { ProductOrderStepProps } from "../../products/types";
 import { ComponentType } from "react";
 import StepReview from "../components/CreateProductSteps/StepReview";
 import StepPricingStock from "../components/CreateProductSteps/StepPricingStock";
+import { ProductInfo, ProductVariantRow, ProductStatus } from "../types";
+import { useCreateProduct } from "../useCreateProduct";
+import { useNavigate } from "react-router-dom";
 
 export default function CreateProduct() {
+  const { submit, errors, serverErrors, isPending } = useCreateProduct();
   const [step, setStep] = useState(1);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const navigate = useNavigate();
 
+  const handleSubmit = () =>
+    submit(formData, { onSuccess: () => navigate("/products") });
+
+  // Creating the Product & Product variant form
+  const createEmptyVariant = (): ProductVariantRow => ({
+    tempId: crypto.randomUUID(),
+    attributes: {},
+    sku: "",
+    barcode: "",
+    sellingPrice: "",
+    thresholdStock: "",
+    productStatus: ProductStatus.ACTIVE,
+    isDefault: true,
+    imageRef: null,
+    images: [],
+    suppliers: [],
+  });
+
+  const createEmptyProduct = (): ProductInfo => ({
+    productName: "",
+    productCategory: "",
+    productBrand: "",
+    description: "",
+    productStatus: ProductStatus.ACTIVE,
+    hasVariants: false,
+    attributes: [],
+    variants: [createEmptyVariant()], // a product with no variants is its own single variant
+    images: [],
+    sameCost: false,
+  });
+
+  const [newProduct] = useState<ProductInfo>(createEmptyProduct);
+  const [formData, setFormData] = useState<ProductInfo>(createEmptyProduct);
+
+  // Step Component
   const steps: Array<{
     id: number;
     label: string;
@@ -30,6 +70,7 @@ export default function CreateProduct() {
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, [step]);
+
   return (
     <div className="grid grid-cols-9 gap-3 w-full text-black mb-10 !overflow-x-hidden ">
       <div className="col-span-2 flex flex-col space-y-4 mt-24 font-nunito">
@@ -64,7 +105,7 @@ export default function CreateProduct() {
         </div>
 
         <div className="bg-white h-[800px] rounded-sm px-7 py-8 mb-16">
-          <StepComponent />
+          <StepComponent formData={formData} setFormData={setFormData} />
         </div>
 
         <div className="flex justify-between">
@@ -100,14 +141,20 @@ export default function CreateProduct() {
               />
             ) : (
               <Button
-                onClick={() => alert("Submit!")}
+                onClick={handleSubmit}
                 children={"Submit"}
                 icon={CheckIcon}
                 variant="primary"
                 iconPosition="right"
+                disabled={isPending}
               />
             )}
           </div>
+          {[...errors, ...serverErrors].map((m) => (
+            <div key={m} className="text-red-500 text-xs">
+              {m}
+            </div>
+          ))}
         </div>
       </div>
     </div>

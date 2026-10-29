@@ -9,7 +9,12 @@ import {
 import Button from "../../../components/globalComponents/Button";
 import { useState, useEffect } from "react";
 import type { ComponentType } from "react";
-import type { OrderFormData, OrderProduct, OrderService, OrderStepProps } from "../types";
+import type {
+  OrderFormData,
+  OrderProduct,
+  OrderService,
+  OrderStepProps,
+} from "../types";
 import { getErrorMessage } from "../../../lib/api";
 import { usePopup } from "../../../components/globalComponents/PopupContext";
 import {
@@ -210,7 +215,7 @@ export default function CreateOrderSale() {
       openPopup(
         <PopupOkay
           message={`Sales order ${id ? "updated" : "created"} successfully!`}
-        />
+        />,
       );
 
       setTimeout(() => {
@@ -253,7 +258,7 @@ export default function CreateOrderSale() {
         setTimeout(async () => {
           await handleSubmitWithSuccess();
         }, 300);
-      }
+      },
     );
   };
 

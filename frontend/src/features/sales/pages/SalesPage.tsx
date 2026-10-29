@@ -351,13 +351,13 @@ export default function SalesPage() {
           onChange={(index) => setActiveTab(index)}
         />
         <div className="flex gap-3 items-center">
-          <Button
+          {/* <Button
             onClick={handlePopulateSalesOrder}
             children="Populate (for demo)"
             icon={PlusIcon}
             variant="primary"
             iconPosition="left"
-          />
+          /> */}
           <Button
             onClick={handleExport}
             children={"Export All"}

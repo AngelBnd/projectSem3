@@ -101,7 +101,7 @@ async function main() {
 
   // User gets only view permissions
   const viewPermissions = permissionRecords.filter(
-    (p) => p.permission === "view"
+    (p) => p.permission === "view",
   );
   for (const perm of viewPermissions) {
     await prisma.rolePermissions.create({
@@ -260,6 +260,46 @@ async function main() {
     },
   });
 
+  // ----- SUPPLIERS -----
+  const audioDistributors = await prisma.suppliers.create({
+    data: {
+      storeId: store.storeId,
+      name: "Audio Distributors Inc.",
+    },
+  });
+
+  const carAudioWholesale = await prisma.suppliers.create({
+    data: {
+      storeId: store.storeId,
+      name: "Car Audio Wholesale",
+    },
+  });
+
+  // ----- PRODUCT VARIANT SUPPLIERS -----
+  // One variant can have several suppliers, each with its own cost
+  await prisma.productVariantSuppliers.createMany({
+    data: [
+      {
+        storeId: store.storeId,
+        productVariantId: speakerVariant.productVariantId,
+        supplierId: audioDistributors.supplierId,
+        cost: 89.99,
+      },
+      {
+        storeId: store.storeId,
+        productVariantId: speakerVariant.productVariantId,
+        supplierId: carAudioWholesale.supplierId,
+        cost: 92.5,
+      },
+      {
+        storeId: store.storeId,
+        productVariantId: amplifierVariant.productVariantId,
+        supplierId: audioDistributors.supplierId,
+        cost: 199.99,
+      },
+    ],
+  });
+
   // ----- CHANNELS -----
   const retailChannel = await prisma.channels.create({
     data: {
@@ -411,9 +451,9 @@ async function main() {
   const purchaseOrder = await prisma.purchaseOrders.create({
     data: {
       storeId: store.storeId,
-      supplierName: "Audio Distributors Inc.",
+      supplierId: audioDistributors.supplierId, // was: supplierName: "Audio Distributors Inc."
       orderDate: new Date(),
-      expectedArrivalDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days from now
+      expectedArrivalDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
       status: "ORDERED",
       totalCost: 899.9,
     },

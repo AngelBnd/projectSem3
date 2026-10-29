@@ -26,6 +26,7 @@ import {
 } from "../../../components/globalComponents/PopupComp";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
+import { RowActions } from "../components/RowActions";
 
 const productColumns: GridColDef[] = [
   {
@@ -75,6 +76,19 @@ const productColumns: GridColDef[] = [
     width: 130,
     renderCell: (params: GridRenderCellParams) => (
       <Badge status={params.value} />
+    ),
+  },
+  {
+    field: "actions",
+    headerName: "Action",
+    width: 130,
+    renderCell: (params: GridRenderCellParams) => (
+      <RowActions
+        row={params.row}
+        onView={(row) => {}}
+        onEdit={(row) => {}}
+        onDelete={(row) => {}}
+      />
     ),
   },
 ];

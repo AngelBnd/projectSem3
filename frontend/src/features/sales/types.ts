@@ -70,13 +70,3 @@ export interface OrderStepProps {
   setNewProducts: Setter<OrderProduct[]>;
   setNewServices: Setter<OrderService[]>;
 }
-
-// Props for product form data
-export interface ProductOrderStepProps {
-  // formData: OrderFormData;
-  // setFormData: Setter<OrderFormData>;
-  // newProducts: OrderProduct[];
-  // newServices: OrderService[];
-  // setNewProducts: Setter<OrderProduct[]>;
-  // setNewServices: Setter<OrderService[]>;
-}
