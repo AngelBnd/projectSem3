@@ -25,6 +25,8 @@ import {
   PopupOption,
 } from "../../../components/globalComponents/PopupComp";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useNavigate } from "react-router-dom";
+import { RowActions } from "../components/RowActions";
 
 const productColumns: GridColDef[] = [
   {
@@ -76,6 +78,19 @@ const productColumns: GridColDef[] = [
       <Badge status={params.value} />
     ),
   },
+  {
+    field: "actions",
+    headerName: "Action",
+    width: 130,
+    renderCell: (params: GridRenderCellParams) => (
+      <RowActions
+        row={params.row}
+        onView={(row) => {}}
+        onEdit={(row) => {}}
+        onDelete={(row) => {}}
+      />
+    ),
+  },
 ];
 
 // PLACEHOLDER FILTER TABS
@@ -95,6 +110,7 @@ const tabs: FilterTab<ProductVariant>[] = [
 ];
 
 export default function ProductsPage() {
+  const navigate = useNavigate();
   const [searchInput, setSearchInput] = useState("");
   const { openPopup, closePopup } = usePopup();
   const queryClient = useQueryClient();
@@ -157,15 +173,17 @@ export default function ProductsPage() {
         </div>
 
         <div className="flex gap-3 items-center">
-          {/* <Button
+          <Button
             onClick={() => {}}
             children={"Export All"}
             icon={ExportIcon}
             variant="white"
-          /> */}
+          />
           <Button
-            onClick={handleQuickAddProducts}
-            children={"(Instant) Add a Product"}
+            onClick={() => {
+              navigate(`/products/create-product`);
+            }}
+            children={"Add a Product"}
             icon={PlusIcon}
             variant="primary"
             disabled={quickAddMutation.isPending}

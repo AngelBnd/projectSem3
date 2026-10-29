@@ -45,7 +45,6 @@ export interface OrderFormData {
   totals: OrderTotals;
 }
 
-
 /** A product row of the invoice form (inventory based, no variants). */
 export interface TransactionProduct {
   tempId: string | number;

@@ -170,7 +170,7 @@ function App() {
                     }
                   />
                   <Route
-                    path="/create-product"
+                    path="/products/create-product"
                     element={
                       <ProtectedRoute isAuthenticated={isAuthenticated}>
                         <CreateProduct />

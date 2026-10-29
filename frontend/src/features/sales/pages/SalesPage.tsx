@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useMemo, useState } from "react";
 import type { MouseEvent } from "react";
 import type {
   GridColDef,
@@ -37,6 +37,7 @@ import {
   PopupError,
   PopupOkay,
 } from "../../../components/globalComponents/PopupComp";
+import SalesOrderActionsCell from "../components/SalesOrderActionsCell";
 
 // PLACEHOLDER
 const products = [
@@ -53,7 +54,12 @@ interface SalesTopBoxesProps {
   unpaid: number;
 }
 
-const SalesTopBoxes = ({ total, delivered, paid, unpaid }: SalesTopBoxesProps) => {
+const SalesTopBoxes = ({
+  total,
+  delivered,
+  paid,
+  unpaid,
+}: SalesTopBoxesProps) => {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-2">
       <div className="bg-white p-6 shadow rounded-md">
@@ -101,7 +107,7 @@ const tabs: FilterTab<SalesOrderSummary>[] = [
     label: "Completed",
     filterFn: (rows) =>
       rows.filter(
-        (r) => r.deliveryStatus === "DELIVERED" && r.paymentStatus === "PAID"
+        (r) => r.deliveryStatus === "DELIVERED" && r.paymentStatus === "PAID",
       ),
   },
 ];
@@ -132,7 +138,6 @@ export default function SalesPage() {
       ]);
     },
   });
-  const [data, setData] = useState<SalesOrderSummary[]>([]);
   const navigate = useNavigate();
   const [selectionModel, setSelectionModel] = useState<GridRowSelectionModel>({
     type: "include",
@@ -142,20 +147,16 @@ export default function SalesPage() {
   const [activeTab, setActiveTab] = useState(0);
   const totalOrders = allOrders.length;
   const deliveredOrders = allOrders.filter(
-    (row) => row.deliveryStatus === "DELIVERED"
+    (row) => row.deliveryStatus === "DELIVERED",
   ).length;
   const paidOrders = allOrders.filter(
-    (row) => row.paymentStatus === "PAID"
+    (row) => row.paymentStatus === "PAID",
   ).length;
   const unpaidOrders = allOrders.filter(
-    (row) => row.paymentStatus === "UNPAID"
+    (row) => row.paymentStatus === "UNPAID",
   ).length;
 
   const AUTO_CLOSE_MS = 2000;
-
-  useEffect(() => {
-    applySearchAndTabFilter();
-  }, [searchInput, activeTab, allOrders]);
 
   const handlePopulateSalesOrder = async () => {
     try {
@@ -183,7 +184,8 @@ export default function SalesPage() {
         try {
           await deleteMutation.mutateAsync(salesOrderId);
         } catch (err) {
-          const message = err instanceof ApiError ? err.data.message : undefined;
+          const message =
+            err instanceof ApiError ? err.data.message : undefined;
           const errorMessage =
             message === "ORDER_NOT_DELETABLE"
               ? "Cannot delete sales order of pending or completed"
@@ -203,16 +205,15 @@ export default function SalesPage() {
             <PopupOkay
               message={`Sales order #${salesOrderId} deleted successfully`}
               show={true}
-            />
+            />,
           );
           setTimeout(() => closePopup(), 2000);
-
         }, 300);
       } catch (err) {
         console.error(err);
         setTimeout(() => {
           openPopup(
-            <PopupError message="Failed to delete sales order" show={true} />
+            <PopupError message="Failed to delete sales order" show={true} />,
           );
           setTimeout(() => closePopup(), 2000);
         }, 300);
@@ -220,37 +221,44 @@ export default function SalesPage() {
     });
   };
 
-  const applySearchAndTabFilter = () => {
-    let filtered = [...allOrders];
+  const data = useMemo(() => {
+    const statusFilter = ["all", "delivered", "paid", "cancelled", "completed"][
+      activeTab
+    ];
+    const query = searchInput.toLowerCase();
 
-    const tabFilters = ["all", "delivered", "paid", "cancelled", "completed"];
-    const statusFilter = tabFilters[activeTab];
-    if (statusFilter && statusFilter !== "all") {
-      if (statusFilter === "delivered")
-        filtered = filtered.filter((r) => r.deliveryStatus === "DELIVERED");
-      else if (statusFilter === "cancelled")
-        filtered = filtered.filter((r) => r.deliveryStatus === "CANCELLED");
-      else if (statusFilter === "paid")
-        filtered = filtered.filter((r) => r.paymentStatus === "PAID");
-      else if (statusFilter === "completed")
-        filtered = filtered.filter(
-          (r) => r.deliveryStatus === "DELIVERED" && r.paymentStatus === "PAID"
-        );
-    }
+    return allOrders.filter((order) => {
+      if (
+        statusFilter === "delivered" &&
+        order.deliveryStatus !== "DELIVERED"
+      ) {
+        return false;
+      }
+      if (
+        statusFilter === "cancelled" &&
+        order.deliveryStatus !== "CANCELLED"
+      ) {
+        return false;
+      }
+      if (statusFilter === "paid" && order.paymentStatus !== "PAID") {
+        return false;
+      }
+      if (
+        statusFilter === "completed" &&
+        (order.deliveryStatus !== "DELIVERED" || order.paymentStatus !== "PAID")
+      ) {
+        return false;
+      }
+      if (!query) return true;
 
-    if (searchInput) {
-      const q = searchInput.toLowerCase();
-      filtered = filtered.filter(
-        (r) =>
-          r.customer.toLowerCase().includes(q) ||
-          r.id.toString().includes(q) ||
-          r.channel.toLowerCase().includes(q) ||
-          r.subChannel.toLowerCase().includes(q)
+      return (
+        (order.customer ?? "").toLowerCase().includes(query) ||
+        String(order.id).includes(query) ||
+        (order.channel ?? "").toLowerCase().includes(query) ||
+        (order.subChannel ?? "").toLowerCase().includes(query)
       );
-    }
-
-    setData(filtered);
-  };
+    });
+  }, [activeTab, allOrders, searchInput]);
   const addProductButton = (
     <Button icon={PlusIcon} onClick={() => alert("Opening add form")}>
       Add Product
@@ -263,8 +271,8 @@ export default function SalesPage() {
       type === "exclude"
         ? data.filter((row) => !ids.has(row.id))
         : ids.size > 0
-        ? data.filter((row) => ids.has(row.id))
-        : data;
+          ? data.filter((row) => ids.has(row.id))
+          : data;
 
     handleExportPDFSalesOrder(rowsToExport);
   };
@@ -281,7 +289,8 @@ export default function SalesPage() {
       headerName: "Total",
       width: 140,
       type: "number",
-      renderCell: (params: GridRenderCellParams) => `Rp ${Number(params.value ?? 0).toFixed(2)}`,
+      renderCell: (params: GridRenderCellParams) =>
+        `Rp ${Number(params.value ?? 0).toFixed(2)}`,
     },
     { field: "channel", headerName: "Channel", width: 120 },
     { field: "subChannel", headerName: "Sub Channel", width: 160 },
@@ -289,13 +298,17 @@ export default function SalesPage() {
       field: "deliveryStatus",
       headerName: "Delivery Status",
       width: 150,
-      renderCell: (params: GridRenderCellParams) => <Badge status={params.value} />,
+      renderCell: (params: GridRenderCellParams) => (
+        <Badge status={params.value} />
+      ),
     },
     {
       field: "paymentStatus",
       headerName: "Payment Status",
       width: 150,
-      renderCell: (params: GridRenderCellParams) => <Badge status={params.value} />,
+      renderCell: (params: GridRenderCellParams) => (
+        <Badge status={params.value} />
+      ),
     },
     {
       field: "actions",
@@ -304,116 +317,12 @@ export default function SalesPage() {
       align: "center",
       headerAlign: "center",
       sortable: false,
-      renderCell: (params: GridRenderCellParams<SalesOrderSummary>) => {
-        const [anchorEl, setAnchorEl] = React.useState<HTMLElement | null>(null);
-        const open = Boolean(anchorEl);
-
-        const handleOpen = (event: MouseEvent<HTMLElement>) => {
-          setAnchorEl(event.currentTarget);
-        };
-
-        const handleClose = () => {
-          setAnchorEl(null);
-        };
-
-        const handleEditClick = () => {
-          handleClose();
-
-          const isPaid = params.row.paymentStatus === "PAID";
-          const isDelivered = params.row.deliveryStatus === "DELIVERED";
-
-          if (isPaid && isDelivered) {
-            openPopup(
-              <PopupError message="You cannot edit orders that are already Paid and Delivered." />
-            );
-
-            setTimeout(() => {
-              closePopup();
-            }, 2000);
-          } else {
-            navigate(`/sales/edit/${params.row.id}`);
-          }
-        };
-
-        return (
-          <Box
-            sx={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: 1,
-              height: "100%",
-            }}
-          >
-            {/* View */}
-            {/* <Tooltip title="View">
-              <IconButton
-                onClick={() => navigate(`/sales/${params.row.id}`)}
-                sx={{
-                  backgroundColor: "rgba(51, 118, 252, 0.1)",
-                  color: "#3376FC",
-                  "&:hover": { backgroundColor: "rgba(51, 118, 252, 0.18)" },
-                  width: 28,
-                  height: 28,
-                }}
-              >
-                <LookFurtherMoreIntoWhatIsClickedIcon fontSize="small" />
-              </IconButton>
-            </Tooltip> */}
-
-            {/* More */}
-            <Tooltip title="More actions">
-              <IconButton
-                onClick={handleOpen}
-                sx={{
-                  backgroundColor: "rgba(51, 118, 252, 0.1)",
-                  color: "#3376FC",
-                  "&:hover": { backgroundColor: "rgba(51, 118, 252, 0.18)" },
-                  width: 28,
-                  height: 28,
-                }}
-              >
-                <ThreeDotsIcon />
-              </IconButton>
-            </Tooltip>
-
-            <Menu
-              anchorEl={anchorEl}
-              open={open}
-              onClose={handleClose}
-              anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
-              transformOrigin={{ vertical: "top", horizontal: "right" }}
-              slotProps={{
-                paper: {
-                  sx: {
-                    boxShadow: "0px 4px 12px rgba(0,0,0,0.08)",
-                  },
-                },
-              }}
-            >
-              <MenuItem onClick={handleEditClick}>
-                <div className="flex gap-3">
-                  <EditIcon className="text-blue-500" />
-                  Edit
-                </div>
-              </MenuItem>
-
-              <MenuItem
-                onClick={() => {
-                  handleClose();
-                  handleDeleteSalesOrder(params.row.id);
-                }}
-                sx={{ color: "error.main" }}
-              >
-                <div className="flex gap-3 items-center">
-                  <TrashIcon className="text-red-500" />
-                  Delete
-                </div>
-              </MenuItem>
-            </Menu>
-          </Box>
-        );
-      },
+      renderCell: (params: GridRenderCellParams<SalesOrderSummary>) => (
+        <SalesOrderActionsCell
+          params={params}
+          onDelete={handleDeleteSalesOrder}
+        />
+      ),
     },
   ];
 
@@ -442,13 +351,13 @@ export default function SalesPage() {
           onChange={(index) => setActiveTab(index)}
         />
         <div className="flex gap-3 items-center">
-          <Button
+          {/* <Button
             onClick={handlePopulateSalesOrder}
             children="Populate (for demo)"
             icon={PlusIcon}
             variant="primary"
             iconPosition="left"
-          />
+          /> */}
           <Button
             onClick={handleExport}
             children={"Export All"}

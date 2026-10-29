@@ -209,6 +209,9 @@ model Stores {
   productVariantAttributes ProductVariantAttributes[]
 
   auditLogs             AuditLogs[]
+
+  suppliers               Suppliers[]
+  productVariantSuppliers ProductVariantSuppliers[]
 }
 
 // --------------------------------------
@@ -319,7 +322,7 @@ model Products {
 
   variants          ProductVariants[]
   createdBy         Int
-  createdByUser     Users @relation(fields: [createdBy], references: [userId])
+  createdByUser     Users @relation(fields: [createdBy], references: [userId]) 
 
   @@index([storeId])
   @@index([createdBy])
@@ -341,14 +344,15 @@ model ProductVariants {
   updatedAt        DateTime @updatedAt
   image            String?
 
-  salesOrderItems        SalesOrderItems[]
-  purchaseOrderItems     PurchaseOrderItems[]
-  receivedGoodsNotes     ReceivedGoodsNotes[]
-  purchaseReturnItems    PurchaseReturnItems[]
-  stockMovements         StockMovements[]
-  productVariantAttributes ProductVariantAttributes[]
+  salesOrderItems           SalesOrderItems[]
+  purchaseOrderItems        PurchaseOrderItems[]
+  receivedGoodsNotes        ReceivedGoodsNotes[]
+  purchaseReturnItems       PurchaseReturnItems[]
+  stockMovements            StockMovements[]
+  productVariantAttributes  ProductVariantAttributes[]
   stockAdjustmentPerProduct StockAdjustmentPerProduct[]
-  invoiceLineItems      InvoiceLineItems[]
+  invoiceLineItems          InvoiceLineItems[]
+  productVariantSuppliers   ProductVariantSuppliers[]
 
   @@unique([storeId, sku])
   @@index([storeId])
@@ -523,7 +527,7 @@ model PurchaseOrders {
   purchaseOrderId      Int @id @default(autoincrement())
   storeId              Int
   store                Stores @relation(fields: [storeId], references: [storeId])
-  supplierName         String
+  supplierId           Int? 
   orderDate            DateTime
   expectedArrivalDate  DateTime?
   status               PurchaseOrderStatus @default(DRAFT)
@@ -531,12 +535,14 @@ model PurchaseOrders {
   createdAt            DateTime @default(now())
   updatedAt            DateTime @updatedAt
 
+  supplier             Suppliers? @relation(fields: [supplierId], references: [supplierId])
   items                PurchaseOrderItems[]
   receivedGoodsNotes   ReceivedGoodsNotes[]
   purchaseReturns      PurchaseReturns[]
 
   @@index([storeId])
   @@index([orderDate])
+  @@index([supplierId])   
 }
 
 model PurchaseOrderItems {
@@ -737,4 +743,41 @@ model AuditLogs {
   @@index([userId])
   @@index([tableName])
   @@index([action])
+}
+
+// --------------------------------------
+// SUPPLIERS
+// --------------------------------------
+
+model Suppliers {
+  supplierId   Int      @id @default(autoincrement())
+  storeId      Int
+  store        Stores   @relation(fields: [storeId], references: [storeId])
+  name         String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  purchaseOrders          PurchaseOrders[]
+  productVariantSuppliers ProductVariantSuppliers[]
+
+  @@unique([storeId, name])
+  @@index([storeId])
+}
+
+model ProductVariantSuppliers {
+  productVariantSupplierId Int      @id @default(autoincrement())
+  storeId                  Int
+  productVariantId         Int
+  supplierId               Int
+  cost                     Decimal  @default(0)
+  createdAt                DateTime @default(now())
+  updatedAt                DateTime @updatedAt
+
+  store          Stores          @relation(fields: [storeId], references: [storeId])
+  productVariant ProductVariants @relation(fields: [productVariantId], references: [productVariantId], onDelete: Cascade)
+  supplier       Suppliers       @relation(fields: [supplierId], references: [supplierId])
+
+  @@unique([productVariantId, supplierId])
+  @@index([storeId])
+  @@index([supplierId])
 }
