@@ -16,7 +16,7 @@ export class ApiError extends Error {
 
 async function request(
   path: string,
-  options: { method?: string; body?: string; headers?: Headers } = {},
+  options: { method?: string; body?: string | FormData; headers?: Headers } = {},
   raw = false
 ): Promise<any> {
   const token = localStorage.getItem("token");
@@ -25,10 +25,14 @@ async function request(
     options.headers = { ...options.headers, Authorization: `Bearer ${token}` };
   }
 
+  // A FormData body must not get a Content-Type: the browser sets
+  // multipart/form-data itself, including the boundary.
+  const isForm = options.body instanceof FormData;
+
   const response = await fetch(`${BASE_URL}${path}`, {
     ...options,
     headers: {
-      "Content-Type": "application/json",
+      ...(isForm ? {} : { "Content-Type": "application/json" }),
       ...options.headers,
     },
   });
@@ -62,6 +66,9 @@ export const api = {
     request(path, { headers }, raw),
   post: <T = any>(path: string, body?: unknown, headers?: Headers): Promise<T> =>
     request(path, { method: "POST", body: JSON.stringify(body), headers }),
+  /** POST a FormData body (file uploads). */
+  postForm: <T = any>(path: string, body: FormData, headers?: Headers): Promise<T> =>
+    request(path, { method: "POST", body, headers }),
   put: <T = any>(path: string, body?: unknown, headers?: Headers): Promise<T> =>
     request(path, { method: "PUT", body: JSON.stringify(body), headers }),
   delete: <T = any>(path: string, headers?: Headers): Promise<T> =>
