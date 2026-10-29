@@ -10,3 +10,7 @@ export {
 export { Products, CreateProduct } from "../features/products";
 export { Login, Register, AccessStatus } from "../features/auth";
 export { Users } from "../features/users";
+export { AuditLogs } from "../features/auditlogs";
+export { InventoryMovement } from "../features/inventoryMovement";
+export { Suppliers } from "../features/suppliers";
+export { PurchaseOrders } from "../features/purchaseorders";

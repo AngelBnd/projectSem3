@@ -18,6 +18,10 @@ import {
   Users,
   CreateOrderSale,
   AccessStatus,
+  AuditLogs,
+  InventoryMovement,
+  Suppliers,
+  PurchaseOrders,
 } from "./pages";
 import { ThemeProvider } from "@emotion/react";
 import theme from "./theme";
@@ -185,6 +189,40 @@ function App() {
                       </ProtectedRoute>
                     }
                   />
+                  <Route
+                    path="/inventory/auditLogs"
+                    element={
+                      <ProtectedRoute isAuthenticated={isAuthenticated}>
+                        <AuditLogs />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/inventory/invMovement"
+                    element={
+                      <ProtectedRoute isAuthenticated={isAuthenticated}>
+                        <InventoryMovement />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/inventory/suppliers"
+                    element={
+                      <ProtectedRoute isAuthenticated={isAuthenticated}>
+                        <Suppliers />
+                      </ProtectedRoute>
+                    }
+                  />
+
+                  <Route
+                    path="/purchase-orders"
+                    element={
+                      <ProtectedRoute isAuthenticated={isAuthenticated}>
+                        <PurchaseOrders />
+                      </ProtectedRoute>
+                    }
+                  />
+
                   <Route
                     path="/"
                     element={

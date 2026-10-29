@@ -130,11 +130,7 @@ const SidebarMUI = ({ mobileOpen, handleDrawerToggle }: SidebarMUIProps) => {
 
         <Collapse in={openInventory} timeout="auto" unmountOnExit>
           <List component="div" disablePadding>
-            <ListItem
-              sx={{ pl: 6 }}
-              component={Link}
-              to="/inventory/auditLogs"
-            >
+            <ListItem sx={{ pl: 6 }} component={Link} to="/inventory/auditLogs">
               <ListItemText primary="Audit Logs" />
             </ListItem>
             <ListItem
@@ -144,17 +140,13 @@ const SidebarMUI = ({ mobileOpen, handleDrawerToggle }: SidebarMUIProps) => {
             >
               <ListItemText primary="Inv Movement" />
             </ListItem>
-            <ListItem
-              sx={{ pl: 6 }}
-              component={Link}
-              to="/inventory/suppliers"
-            >
+            <ListItem sx={{ pl: 6 }} component={Link} to="/inventory/suppliers">
               <ListItemText primary="Suppliers" />
             </ListItem>
           </List>
         </Collapse>
 
-        <ListItem component={Link} to="/purchaseOrders">
+        <ListItem component={Link} to="/purchase-orders">
           <ListItemIcon sx={{ minWidth: 28, mr: 1.5 }}>
             <PurchaseOrdersIcon />
           </ListItemIcon>
