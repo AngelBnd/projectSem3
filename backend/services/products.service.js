@@ -15,6 +15,116 @@ const list = async (currentUser) => {
   });
 };
 
+/* ---------------------------- product details ---------------------------- */
+
+const round1 = (n) => Math.round(n * 10) / 10;
+
+const movementType = (m) => {
+  if (m.referenceType === "ADJUSTMENT") return "Adjustment";
+  return m.change >= 0 ? "Inbound" : "Outbound";
+};
+
+const titleCase = (s) =>
+  s.toLowerCase().replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+
+// Detail page: the variant that was opened, plus its product and sibling variants.
+const getByVariant = async (currentUser, variantId) => {
+  const { storeId } = currentUser;
+  if (!storeId) {
+    throw new HttpError(400, { error: "User does not belong to a store" });
+  }
+
+  const variant = await prisma.productVariants.findFirst({
+    where: { productVariantId: variantId, storeId },
+    include: { product: true, productVariantSuppliers: true },
+  });
+  if (!variant) {
+    throw new HttpError(404, { error: "Product not found." });
+  }
+
+  const [siblings, movements] = await Promise.all([
+    prisma.productVariants.findMany({
+      where: { productId: variant.productId, storeId },
+      orderBy: { productVariantId: "asc" },
+      include: {
+        productVariantAttributes: {
+          include: { attributeValue: true },
+        },
+      },
+    }),
+    prisma.stockMovements.findMany({
+      where: { productVariantId: variantId, storeId },
+      orderBy: { createdAt: "desc" },
+    }),
+  ]);
+
+  // Stock is never stored as a number: it is the sum of all movements.
+  const available = movements.reduce((sum, m) => sum + m.change, 0);
+  const sold = movements
+    .filter((m) => m.change < 0 && ["INVOICE", "SALES_ORDER"].includes(m.referenceType))
+    .reduce((sum, m) => sum - m.change, 0);
+
+  const costs = variant.productVariantSuppliers.map((s) => Number(s.cost));
+  const selling = Number(variant.sellingPrice);
+  const minCost = costs.length ? Math.min(...costs) : null;
+  const maxCost = costs.length ? Math.max(...costs) : null;
+  const avgCost = costs.length ? costs.reduce((a, b) => a + b, 0) / costs.length : null;
+
+  const margin =
+    selling > 0 && minCost !== null
+      ? {
+          min: round1(((selling - maxCost) / selling) * 100),
+          max: round1(((selling - minCost) / selling) * 100),
+        }
+      : null;
+
+  const variants = siblings.map((v) => ({
+    productVariantId: v.productVariantId,
+    sku: v.sku,
+    label:
+      v.productVariantAttributes.map((a) => a.attributeValue.valueName).join(" / ") ||
+      v.sku,
+    image: v.image,
+  }));
+
+  return {
+    productId: variant.productId,
+    productName: variant.product.productName,
+    productDescription: variant.product.productDescription,
+    category: variant.product.category,
+    brand: variant.product.brand,
+    createdAt: variant.product.createdAt,
+    updatedAt: variant.product.updatedAt,
+    variants,
+    images: variants.filter((v) => v.image).map((v) => v.image),
+    variant: {
+      productVariantId: variant.productVariantId,
+      sku: variant.sku,
+      barcode: variant.barcode,
+      productStatus: variant.productStatus,
+      sellingPrice: selling,
+      purchasePrice: minCost === null ? null : { min: minCost, max: maxCost },
+      margin,
+      stock: {
+        available,
+        reserved: null, // no reservation data is stored yet
+        sold,
+        value: avgCost === null ? null : Math.round(available * avgCost),
+      },
+    },
+    activity: movements.slice(0, 100).map((m) => ({
+      id: m.stockMovementId,
+      date: m.createdAt,
+      type: movementType(m),
+      qty: m.change,
+      reason: m.reason,
+      description: m.referenceId
+        ? `${titleCase(m.referenceType)} #${m.referenceId}`
+        : titleCase(m.referenceType),
+    })),
+  };
+};
+
 /* ---------------------------- create product ---------------------------- */
 
 const can = (user, module, permission) =>
@@ -160,4 +270,4 @@ const create = async (currentUser, input, imageUrls = {}) => {
   }
 };
 
-module.exports = { list, create };
+module.exports = { list, create, getByVariant };

@@ -111,7 +111,7 @@ export default function CreateProduct() {
         <div className="flex justify-between">
           <div>
             <Button
-              onClick={() => setStep(1)}
+              onClick={() => navigate("/products")}
               children={"Cancel"}
               variant="tertiary"
               iconPosition="left"
@@ -150,10 +150,12 @@ export default function CreateProduct() {
               />
             )}
           </div>
+        </div>
+        <div className="flex flex-wrap gap-x-3 gap-y-1 mt-2">
           {[...errors, ...serverErrors].map((m) => (
-            <div key={m} className="text-red-500 text-xs">
+            <span key={m} className="text-red-500 text-xs">
               {m}
-            </div>
+            </span>
           ))}
         </div>
       </div>

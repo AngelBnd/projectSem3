@@ -28,71 +28,6 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { RowActions } from "../components/RowActions";
 
-const productColumns: GridColDef[] = [
-  {
-    field: "productVariantId",
-    headerName: "ID",
-    width: 90,
-  },
-  {
-    field: "productName",
-    headerName: "Product",
-    flex: 1,
-    minWidth: 200,
-  },
-  {
-    field: "variantName",
-    headerName: "Variant",
-    flex: 1,
-    minWidth: 250,
-  },
-  {
-    field: "sku",
-    headerName: "SKU",
-    width: 140,
-  },
-  {
-    field: "barcode",
-    headerName: "Barcode",
-    width: 160,
-  },
-  {
-    field: "sellingPrice",
-    headerName: "Selling Price",
-    width: 150,
-    type: "number",
-    renderCell: (params: GridRenderCellParams) =>
-      `Rp ${Number(params.value ?? 0).toFixed(2)}`,
-  },
-  {
-    field: "thresholdStock",
-    headerName: "Stock Threshold",
-    width: 160,
-    type: "number",
-  },
-  {
-    field: "productStatus",
-    headerName: "Status",
-    width: 130,
-    renderCell: (params: GridRenderCellParams) => (
-      <Badge status={params.value} />
-    ),
-  },
-  {
-    field: "actions",
-    headerName: "Action",
-    width: 130,
-    renderCell: (params: GridRenderCellParams) => (
-      <RowActions
-        row={params.row}
-        onView={(row) => {}}
-        onEdit={(row) => {}}
-        onDelete={(row) => {}}
-      />
-    ),
-  },
-];
-
 // PLACEHOLDER FILTER TABS
 const tabs: FilterTab<ProductVariant>[] = [
   {
@@ -119,27 +54,71 @@ export default function ProductsPage() {
     queryKey: ["productVariants"],
     queryFn: fetchProductVariants,
   });
-  const quickAddMutation = useMutation({
-    mutationFn: quickAddProducts,
-    onSuccess: () =>
-      queryClient.invalidateQueries({ queryKey: ["productVariants"] }),
-  });
 
-  const handleQuickAddProducts = async () => {
-    try {
-      await quickAddMutation.mutateAsync();
-
-      alert("Products added successfully!");
-    } catch (err) {
-      if (err instanceof ApiError && err.message === "PRODUCT_EXISTS") {
-        alert("Product already exists");
-        return;
-      }
-
-      console.error("Quick add error:", err);
-      alert(err instanceof ApiError ? err.message : "Failed to add products");
-    }
-  };
+  const productColumns: GridColDef[] = [
+    {
+      field: "productVariantId",
+      headerName: "ID",
+      width: 90,
+    },
+    {
+      field: "productName",
+      headerName: "Product",
+      flex: 1,
+      minWidth: 200,
+    },
+    {
+      field: "variantName",
+      headerName: "Variant",
+      flex: 1,
+      minWidth: 250,
+    },
+    {
+      field: "sku",
+      headerName: "SKU",
+      width: 140,
+    },
+    {
+      field: "barcode",
+      headerName: "Barcode",
+      width: 160,
+    },
+    {
+      field: "sellingPrice",
+      headerName: "Selling Price",
+      width: 150,
+      type: "number",
+      renderCell: (params: GridRenderCellParams) =>
+        `Rp ${Number(params.value ?? 0).toFixed(2)}`,
+    },
+    {
+      field: "thresholdStock",
+      headerName: "Stock Threshold",
+      width: 160,
+      type: "number",
+    },
+    {
+      field: "productStatus",
+      headerName: "Status",
+      width: 130,
+      renderCell: (params: GridRenderCellParams) => (
+        <Badge status={params.value} />
+      ),
+    },
+    {
+      field: "actions",
+      headerName: "Action",
+      width: 130,
+      renderCell: (params: GridRenderCellParams) => (
+        <RowActions
+          row={params.row}
+          onView={(row) => navigate(`/products/${row.productVariantId}`)}
+          onEdit={(row) => {}}
+          onDelete={(row) => {}}
+        />
+      ),
+    },
+  ];
 
   const addProductButton = (
     <Button icon={PlusIcon} onClick={() => alert("Opening add form")}>
@@ -186,7 +165,6 @@ export default function ProductsPage() {
             children={"Add a Product"}
             icon={PlusIcon}
             variant="primary"
-            disabled={quickAddMutation.isPending}
           />
         </div>
         {/* <div className="sm:ml-auto">

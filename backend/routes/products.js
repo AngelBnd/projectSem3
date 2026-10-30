@@ -8,6 +8,7 @@ const router = express.Router();
 router.use(authenticateToken);
 
 router.get("/", authenticateToken, productsController.list);
+router.get("/variant/:id", productsController.getByVariant);
 router.post(
   "/",
   uploadImages,

@@ -25,6 +25,7 @@ import {
 } from "./pages";
 import { ThemeProvider } from "@emotion/react";
 import theme from "./theme";
+import { ProductPage } from "./features/products";
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -170,6 +171,14 @@ function App() {
                     element={
                       <ProtectedRoute isAuthenticated={isAuthenticated}>
                         <Products />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/products/:id"
+                    element={
+                      <ProtectedRoute isAuthenticated={isAuthenticated}>
+                        <ProductPage />
                       </ProtectedRoute>
                     }
                   />

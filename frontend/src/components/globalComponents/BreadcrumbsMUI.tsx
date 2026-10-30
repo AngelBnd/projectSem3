@@ -10,6 +10,7 @@ const BreadcrumbsMUI = () => {
   // Map fixed paths to friendly names
   const pathNameMap: Record<string, string> = {
     sales: "Sales",
+    products: "Product",
     edit: "Edit Sales Order",
     "create-order-sales": "Create Sales Order",
   };
@@ -40,10 +41,15 @@ const BreadcrumbsMUI = () => {
         } else {
           displayName =
             pathNameMap[name] ||
-            name.replace("-", " ").replace(/\b\w/g, (c: string) => c.toUpperCase());
+            name
+              .replace("-", " ")
+              .replace(/\b\w/g, (c: string) => c.toUpperCase());
         }
 
-        if (index < pathnames.length - 1 && !isNaN(Number(pathnames[index + 1]))) {
+        if (
+          index < pathnames.length - 1 &&
+          !isNaN(Number(pathnames[index + 1]))
+        ) {
           return null;
         }
 

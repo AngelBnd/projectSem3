@@ -7,6 +7,7 @@ import Button from "../../../components/globalComponents/Button";
 import DataTable from "../../../components/globalComponents/DataTable";
 import ColorTag from "../../../components/globalComponents/ColorTag";
 import { ExportIcon, PlusIcon, ThreeDotsIcon } from "../../../assets/SvgIcons";
+import { data } from "react-router-dom";
 
 interface PurchaseOrderRow {
   id: number;
@@ -53,8 +54,18 @@ const columns: GridColDef<PurchaseOrderRow>[] = [
   { field: "name", headerName: "Supplier Name", flex: 1, minWidth: 140 },
   { field: "contact", headerName: "Contact Person", flex: 1, minWidth: 140 },
   { field: "phone", headerName: "Phone", flex: 1, minWidth: 150 },
-  { field: "totalProducts", headerName: "Total Products", flex: 1, minWidth: 130 },
-  { field: "lastTransaction", headerName: "Last Transaction", flex: 1, minWidth: 140 },
+  {
+    field: "totalProducts",
+    headerName: "Total Products",
+    flex: 1,
+    minWidth: 130,
+  },
+  {
+    field: "lastTransaction",
+    headerName: "Last Transaction",
+    flex: 1,
+    minWidth: 140,
+  },
   {
     field: "status",
     headerName: "Status",
@@ -106,16 +117,10 @@ export default function PurchaseOrders() {
     <div className="grid grid-cols-9 gap-3 w-full text-black mb-10 !overflow-x-hidden">
       <div className="col-span-9 flex flex-col gap-3 mb-2 w-full sm:flex-row sm:justify-between sm:items-start">
         <div className="flex flex-col">
-          <h1 className="text-2xl font-semibold font-nunito">Purchase Orders</h1>
+          <h1 className="text-2xl font-semibold font-nunito">
+            Purchase Orders
+          </h1>
           <h3 className="text-[#777B7C] text-sm">Overview of suppliers</h3>
-        </div>
-        <div className="flex gap-3 items-center">
-          <Button onClick={() => {}} icon={ExportIcon} variant="white">
-            Export All
-          </Button>
-          <Button onClick={() => {}} icon={PlusIcon} variant="primary">
-            Add Supplier
-          </Button>
         </div>
       </div>
 
@@ -146,12 +151,23 @@ export default function PurchaseOrders() {
             placeholder="Search by Supplier Name..."
           />
         </div>
-        <FilterDropdown
-          label="Filter"
-          options={STATUS_FILTER}
-          selectedValue={status}
-          onSelect={setStatus}
-        />
+
+        <div className="flex gap-2">
+          <div className="flex gap-3 items-center">
+            <Button onClick={() => {}} icon={ExportIcon} variant="white">
+              Export All
+            </Button>
+            <Button onClick={() => {}} icon={PlusIcon} variant="primary">
+              Add Supplier
+            </Button>
+          </div>
+          <FilterDropdown
+            label="Filter"
+            options={STATUS_FILTER}
+            selectedValue={status}
+            onSelect={setStatus}
+          />
+        </div>
       </div>
 
       <div className="col-span-9">
@@ -162,35 +178,12 @@ export default function PurchaseOrders() {
           gridProps={{ checkboxSelection: true, hideFooter: true }}
         />
       </div>
-
-      <div className="col-span-9 flex flex-col gap-3 items-start sm:flex-row sm:justify-between sm:items-center text-sm text-gray-600 font-nunito">
-        <span>
-          Result {from}-{to} of 27
-        </span>
-        <div className="flex items-center gap-2">
-          <span>Rows per page</span>
-          <Select
-            size="small"
-            value={pageSize}
-            onChange={(e) => {
-              setPageSize(Number(e.target.value));
-              setPage(1);
-            }}
-            sx={{ fontSize: 14, bgcolor: "#fff" }}
-          >
-            {[8, 16, 24].map((n) => (
-              <MenuItem key={n} value={n}>
-                {n}
-              </MenuItem>
-            ))}
-          </Select>
-        </div>
-        <Pagination
-          count={15}
-          page={page}
-          onChange={(_, p) => setPage(p)}
-          shape="rounded"
-          color="primary"
+      <div className="col-span-9">
+        <DataTable
+          title="Product Inventory"
+          rows={rows ?? []}
+          columns={columns}
+          gridProps={{ checkboxSelection: true }}
         />
       </div>
     </div>

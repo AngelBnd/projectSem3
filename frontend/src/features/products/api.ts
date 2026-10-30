@@ -2,6 +2,7 @@ import { api } from "../../lib/api";
 import type { ProductVariant } from "../../types";
 import { buildProductSubmission } from "./productMappers";
 import type { ProductInfo, SupplierOption } from "./types";
+import type { ProductDetail } from "./productDetail";
 
 export const fetchProductVariants = () =>
   api.get<ProductVariant[]>("/api/product-variants");
@@ -20,3 +21,6 @@ export const createProduct = (form: ProductInfo) =>
     "/api/products",
     buildProductSubmission(form)
   );
+
+export const fetchProductDetail = (variantId: number | string) =>
+  api.get<ProductDetail>(`/api/products/variant/${variantId}`);

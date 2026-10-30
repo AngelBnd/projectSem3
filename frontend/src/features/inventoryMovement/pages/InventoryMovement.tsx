@@ -24,12 +24,66 @@ interface MovementRow {
 }
 
 const MOVEMENTS: MovementRow[] = [
-  { id: 1, timestamp: "20/20/2020", product: "Product 1", reference: "INV-123123123", type: "Outbound", change: "-2", reason: "Sale", performedBy: "Human" },
-  { id: 2, timestamp: "20/20/2020", product: "Product 2", reference: "INV-12309123", type: "Outbound", change: "-2", reason: "Sale", performedBy: "NotAHuman" },
-  { id: 3, timestamp: "20/20/2020", product: "Product 3", reference: "AUD-123123", type: "Adjustment", change: "-2", reason: "Miscount", performedBy: "NotAHuman" },
-  { id: 4, timestamp: "20/20/2020", product: "Product 5", reference: "ODR-23123", type: "Inbound", change: "+2", reason: "Purchase Order", performedBy: "NotAHuman" },
-  { id: 5, timestamp: "20/20/2020", product: "Product 9", reference: "AUD-123123", type: "Adjustment", change: "-2", reason: "Unrecorded Receipt", performedBy: "NotAHuman" },
-  { id: 6, timestamp: "22/20/2020", product: "Product 10", reference: "AUD-100000", type: "Adjustment", change: "-2", reason: "Unrecorded Receipt", performedBy: "NotAHuman" },
+  {
+    id: 1,
+    timestamp: "20/20/2020",
+    product: "Product 1",
+    reference: "INV-123123123",
+    type: "Outbound",
+    change: "-2",
+    reason: "Sale",
+    performedBy: "Human",
+  },
+  {
+    id: 2,
+    timestamp: "20/20/2020",
+    product: "Product 2",
+    reference: "INV-12309123",
+    type: "Outbound",
+    change: "-2",
+    reason: "Sale",
+    performedBy: "NotAHuman",
+  },
+  {
+    id: 3,
+    timestamp: "20/20/2020",
+    product: "Product 3",
+    reference: "AUD-123123",
+    type: "Adjustment",
+    change: "-2",
+    reason: "Miscount",
+    performedBy: "NotAHuman",
+  },
+  {
+    id: 4,
+    timestamp: "20/20/2020",
+    product: "Product 5",
+    reference: "ODR-23123",
+    type: "Inbound",
+    change: "+2",
+    reason: "Purchase Order",
+    performedBy: "NotAHuman",
+  },
+  {
+    id: 5,
+    timestamp: "20/20/2020",
+    product: "Product 9",
+    reference: "AUD-123123",
+    type: "Adjustment",
+    change: "-2",
+    reason: "Unrecorded Receipt",
+    performedBy: "NotAHuman",
+  },
+  {
+    id: 6,
+    timestamp: "22/20/2020",
+    product: "Product 10",
+    reference: "AUD-100000",
+    type: "Adjustment",
+    change: "-2",
+    reason: "Unrecorded Receipt",
+    performedBy: "NotAHuman",
+  },
 ];
 
 const REASON_TONE: Record<string, TagTone> = {
@@ -45,7 +99,12 @@ const TABS = [
   { label: "Outbound" },
   { label: "Adjustments" },
 ];
-const TAB_TYPE: (MovementType | null)[] = [null, "Inbound", "Outbound", "Adjustment"];
+const TAB_TYPE: (MovementType | null)[] = [
+  null,
+  "Inbound",
+  "Outbound",
+  "Adjustment",
+];
 const PERFORMERS = ["All", "Human", "NotAHuman"];
 
 const columns: GridColDef<MovementRow>[] = [
@@ -113,7 +172,11 @@ export default function InventoryMovement() {
           { value: "27", label: "Total Movements", hint: "" },
           { value: "+20 Units", label: "Stock Inbound", hint: "" },
           { value: "-20 Units", label: "Stock Outbound", hint: "" },
-          { value: "-24 Units", label: "Net Change", hint: "(inbound - outbound)" },
+          {
+            value: "-24 Units",
+            label: "Net Change",
+            hint: "(inbound - outbound)",
+          },
         ].map((c) => (
           <div
             key={c.label}

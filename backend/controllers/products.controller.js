@@ -25,4 +25,18 @@ const create = async (req, res) => {
   }
 };
 
-module.exports = { list, create };
+const getByVariant = async (req, res) => {
+  const id = Number(req.params.id);
+  if (!Number.isInteger(id) || id <= 0) {
+    return res.status(400).json({ error: "Invalid product id." });
+  }
+  try {
+    res.json(await productsService.getByVariant(req.user, id));
+  } catch (error) {
+    sendError(res, error, "Error fetching product:", {
+      error: "Failed to retrieve product.",
+    });
+  }
+};
+
+module.exports = { list, create, getByVariant };
