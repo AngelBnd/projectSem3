@@ -14,7 +14,7 @@ import {
 } from "../../../assets/SvgIcons";
 import Badge from "../../../components/globalComponents/BadgeStatus";
 import { usePopup } from "../../../components/globalComponents/PopupContext";
-import { fetchProductVariants, quickAddProducts } from "../api";
+import { fetchProductVariantsPage, quickAddProducts } from "../api";
 import { ApiError } from "../../../lib/api";
 import type { ProductVariant } from "../../../types";
 import type { GridColDef, GridRenderCellParams } from "@mui/x-data-grid";
@@ -24,7 +24,12 @@ import {
   PopupError,
   PopupOption,
 } from "../../../components/globalComponents/PopupComp";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  keepPreviousData,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { RowActions } from "../components/RowActions";
 
@@ -50,9 +55,16 @@ export default function ProductsPage() {
   const { openPopup, closePopup } = usePopup();
   const queryClient = useQueryClient();
 
-  const { data, isLoading, error } = useQuery<ProductVariant[]>({
-    queryKey: ["productVariants"],
-    queryFn: fetchProductVariants,
+  const [paginationModel, setPaginationModel] = useState({
+    page: 0,
+    pageSize: 10,
+  });
+
+  const { data, isLoading, isFetching, error } = useQuery({
+    queryKey: ["productVariants", paginationModel],
+    queryFn: () =>
+      fetchProductVariantsPage(paginationModel.page, paginationModel.pageSize),
+    placeholderData: keepPreviousData,
   });
 
   const productColumns: GridColDef[] = [
@@ -175,13 +187,17 @@ export default function ProductsPage() {
       <div className="col-span-9">
         <DataTable
           title="Product Inventory"
-          rows={data ?? []}
+          rows={data?.items ?? []}
           columns={productColumns}
-          loading={isLoading}
+          loading={isFetching}
           CustomToolbar={addProductButton}
           gridProps={{
             checkboxSelection: true,
             getRowId: (row) => row.productVariantId,
+            paginationMode: "server",
+            rowCount: data?.total ?? 0,
+            paginationModel,
+            onPaginationModelChange: setPaginationModel,
           }}
         />
       </div>

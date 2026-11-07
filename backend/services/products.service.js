@@ -25,7 +25,10 @@ const movementType = (m) => {
 };
 
 const titleCase = (s) =>
-  s.toLowerCase().replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+  s
+    .toLowerCase()
+    .replace(/_/g, " ")
+    .replace(/\b\w/g, (c) => c.toUpperCase());
 
 // Detail page: the variant that was opened, plus its product and sibling variants.
 const getByVariant = async (currentUser, variantId) => {
@@ -61,14 +64,19 @@ const getByVariant = async (currentUser, variantId) => {
   // Stock is never stored as a number: it is the sum of all movements.
   const available = movements.reduce((sum, m) => sum + m.change, 0);
   const sold = movements
-    .filter((m) => m.change < 0 && ["INVOICE", "SALES_ORDER"].includes(m.referenceType))
+    .filter(
+      (m) =>
+        m.change < 0 && ["INVOICE", "SALES_ORDER"].includes(m.referenceType),
+    )
     .reduce((sum, m) => sum - m.change, 0);
 
   const costs = variant.productVariantSuppliers.map((s) => Number(s.cost));
   const selling = Number(variant.sellingPrice);
   const minCost = costs.length ? Math.min(...costs) : null;
   const maxCost = costs.length ? Math.max(...costs) : null;
-  const avgCost = costs.length ? costs.reduce((a, b) => a + b, 0) / costs.length : null;
+  const avgCost = costs.length
+    ? costs.reduce((a, b) => a + b, 0) / costs.length
+    : null;
 
   const margin =
     selling > 0 && minCost !== null
@@ -82,8 +90,9 @@ const getByVariant = async (currentUser, variantId) => {
     productVariantId: v.productVariantId,
     sku: v.sku,
     label:
-      v.productVariantAttributes.map((a) => a.attributeValue.valueName).join(" / ") ||
-      v.sku,
+      v.productVariantAttributes
+        .map((a) => a.attributeValue.valueName)
+        .join(" / ") || v.sku,
     image: v.image,
   }));
 
@@ -130,25 +139,38 @@ const getByVariant = async (currentUser, variantId) => {
 const can = (user, module, permission) =>
   (user.userRoles ?? []).some((ur) =>
     (ur.role?.rolePermissions ?? []).some(
-      (rp) => rp.permission?.module === module && rp.permission?.permission === permission
-    )
+      (rp) =>
+        rp.permission?.module === module &&
+        rp.permission?.permission === permission,
+    ),
   );
 
-const pairKey = (name, value) => `${name.trim().toLowerCase()}::${value.trim().toLowerCase()}`;
+const pairKey = (name, value) =>
+  `${name.trim().toLowerCase()}::${value.trim().toLowerCase()}`;
 
 // MySQL compares strings case-insensitively by default, so a plain `equals`
 // already matches "color" with "Color".
 const findOrCreateAttributeValue = async (tx, storeId, name, value) => {
   const attribute =
-    (await tx.attributes.findFirst({ where: { storeId, name: name.trim() } })) ??
+    (await tx.attributes.findFirst({
+      where: { storeId, name: name.trim() },
+    })) ??
     (await tx.attributes.create({ data: { storeId, name: name.trim() } }));
 
   const attributeValue =
     (await tx.attributeValues.findFirst({
-      where: { storeId, attributeId: attribute.attributeId, valueName: value.trim() },
+      where: {
+        storeId,
+        attributeId: attribute.attributeId,
+        valueName: value.trim(),
+      },
     })) ??
     (await tx.attributeValues.create({
-      data: { storeId, attributeId: attribute.attributeId, valueName: value.trim() },
+      data: {
+        storeId,
+        attributeId: attribute.attributeId,
+        valueName: value.trim(),
+      },
     }));
 
   return attributeValue.attributeValuesId;
@@ -157,7 +179,9 @@ const findOrCreateAttributeValue = async (tx, storeId, name, value) => {
 // Existing supplier (by id, only if it belongs to this store, or by name), else create it.
 const resolveSupplierId = async (tx, storeId, { supplierId, supplierName }) => {
   if (supplierId) {
-    const byId = await tx.suppliers.findFirst({ where: { supplierId, storeId } });
+    const byId = await tx.suppliers.findFirst({
+      where: { supplierId, storeId },
+    });
     if (byId) return byId.supplierId;
   }
   const name = supplierName.trim();
@@ -173,11 +197,15 @@ const create = async (currentUser, input, imageUrls = {}) => {
     throw new HttpError(400, { error: "User does not belong to a store" });
   }
   if (!can(currentUser, "product", "create")) {
-    throw new HttpError(403, { error: "You do not have permission to create products." });
+    throw new HttpError(403, {
+      error: "You do not have permission to create products.",
+    });
   }
 
   // Users who may approve products publish directly; everyone else waits for approval.
-  const approvalStatus = can(currentUser, "product", "approve") ? "APPROVED" : "PENDING";
+  const approvalStatus = can(currentUser, "product", "approve")
+    ? "APPROVED"
+    : "PENDING";
 
   // Exactly one default variant: the first one flagged, otherwise the first one.
   const flagged = input.variants.findIndex((v) => v.isDefault);
@@ -205,7 +233,10 @@ const create = async (currentUser, input, imageUrls = {}) => {
           for (const a of v.attributes) {
             const key = pairKey(a.name, a.value);
             if (!valueIds.has(key)) {
-              valueIds.set(key, await findOrCreateAttributeValue(tx, storeId, a.name, a.value));
+              valueIds.set(
+                key,
+                await findOrCreateAttributeValue(tx, storeId, a.name, a.value),
+              );
             }
           }
         }
@@ -230,7 +261,8 @@ const create = async (currentUser, input, imageUrls = {}) => {
               thresholdStock: v.thresholdStock,
               productStatus: v.productStatus,
               isDefault: i === defaultIndex,
-              image: (v.imageRef && imageUrls[v.imageRef]) || v.imageUrl || null,
+              image:
+                (v.imageRef && imageUrls[v.imageRef]) || v.imageUrl || null,
               productVariantAttributes: {
                 create: v.attributes.map((a) => ({
                   storeId,
@@ -256,14 +288,18 @@ const create = async (currentUser, input, imageUrls = {}) => {
           }
         }
 
-        return { productId: product.productId, variants: input.variants.length };
+        return {
+          productId: product.productId,
+          variants: input.variants.length,
+        };
       },
-      { timeout: 20000 } // many sequential queries; the 5s default can be too short
+      { timeout: 20000 }, // many sequential queries; the 5s default can be too short
     );
   } catch (error) {
     if (error.code === "P2002") {
       throw new HttpError(409, {
-        error: "A SKU or supplier with the same name already exists in this store.",
+        error:
+          "A SKU or supplier with the same name already exists in this store.",
       });
     }
     throw error;
@@ -352,7 +388,9 @@ const update = async (currentUser, productId, input, imageUrls = {}) => {
     throw new HttpError(400, { error: "User does not belong to a store" });
   }
   if (!can(currentUser, "product", "update")) {
-    throw new HttpError(403, { error: "You do not have permission to edit products." });
+    throw new HttpError(403, {
+      error: "You do not have permission to edit products.",
+    });
   }
 
   const flagged = input.variants.findIndex((v) => v.isDefault);
@@ -386,13 +424,20 @@ const update = async (currentUser, productId, input, imageUrls = {}) => {
           for (const a of v.attributes) {
             const key = pairKey(a.name, a.value);
             if (!valueIds.has(key)) {
-              valueIds.set(key, await findOrCreateAttributeValue(tx, storeId, a.name, a.value));
+              valueIds.set(
+                key,
+                await findOrCreateAttributeValue(tx, storeId, a.name, a.value),
+              );
             }
           }
         }
 
-        const byId = new Map(product.variants.map((v) => [v.productVariantId, v]));
-        const bySku = new Map(product.variants.map((v) => [v.sku.toLowerCase(), v]));
+        const byId = new Map(
+          product.variants.map((v) => [v.productVariantId, v]),
+        );
+        const bySku = new Map(
+          product.variants.map((v) => [v.sku.toLowerCase(), v]),
+        );
         const keptIds = new Set();
 
         for (const [i, v] of input.variants.entries()) {
@@ -401,7 +446,9 @@ const update = async (currentUser, productId, input, imageUrls = {}) => {
             bySku.get(v.sku.trim().toLowerCase());
 
           if (current && keptIds.has(current.productVariantId)) {
-            throw new HttpError(400, { error: `Variant "${v.sku}" is listed twice.` });
+            throw new HttpError(400, {
+              error: `Variant "${v.sku}" is listed twice.`,
+            });
           }
 
           // Suppliers first, so a brand-new one exists before its link row.
@@ -444,13 +491,21 @@ const update = async (currentUser, productId, input, imageUrls = {}) => {
           const id = current.productVariantId;
           keptIds.add(id);
 
-          await tx.productVariants.update({ where: { productVariantId: id }, data: fields });
+          await tx.productVariants.update({
+            where: { productVariantId: id },
+            data: fields,
+          });
 
           // attributes: replace the links
-          await tx.productVariantAttributes.deleteMany({ where: { productVariantsId: id } });
+          await tx.productVariantAttributes.deleteMany({
+            where: { productVariantsId: id },
+          });
           if (attributeLinks.length) {
             await tx.productVariantAttributes.createMany({
-              data: attributeLinks.map((l) => ({ ...l, productVariantsId: id })),
+              data: attributeLinks.map((l) => ({
+                ...l,
+                productVariantsId: id,
+              })),
             });
           }
 
@@ -469,7 +524,12 @@ const update = async (currentUser, productId, input, imageUrls = {}) => {
                   supplierId: row.supplierId,
                 },
               },
-              create: { storeId, productVariantId: id, supplierId: row.supplierId, cost: row.cost },
+              create: {
+                storeId,
+                productVariantId: id,
+                supplierId: row.supplierId,
+                cost: row.cost,
+              },
               update: { cost: row.cost },
             });
           }
@@ -477,18 +537,23 @@ const update = async (currentUser, productId, input, imageUrls = {}) => {
 
         // Variants the form no longer has: keep their history, take them out of use.
         await tx.productVariants.updateMany({
-          where: { productId, storeId, productVariantId: { notIn: [...keptIds] } },
+          where: {
+            productId,
+            storeId,
+            productVariantId: { notIn: [...keptIds] },
+          },
           data: { productStatus: "DISCONTINUED", isDefault: false },
         });
 
         return { productId, variantIds: [...keptIds] };
       },
-      { timeout: 20000 }
+      { timeout: 20000 },
     );
   } catch (error) {
     if (error.code === "P2002") {
       throw new HttpError(409, {
-        error: "A SKU or supplier with the same name already exists in this store.",
+        error:
+          "A SKU or supplier with the same name already exists in this store.",
       });
     }
     throw error;

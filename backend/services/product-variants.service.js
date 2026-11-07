@@ -1,31 +1,41 @@
 const prisma = require("../prisma/client");
 const { HttpError } = require("../utils/httpError");
 
-const list = async (currentUser) => {
+// Without `pagination` every variant is returned as a plain array (used by the
+// sales form autofill). With `{ page, pageSize }` (page is 0-based) it returns
+// `{ items, total }` for a single page.
+const list = async (currentUser, pagination) => {
   if (!currentUser.storeId) {
     throw new HttpError(400, { error: "User does not belong to a store" });
   }
 
-  const variants = await prisma.productVariants.findMany({
-    where: {
-      storeId: currentUser.storeId,
-    },
-    include: {
-      product: true,
-      productVariantAttributes: {
-        include: {
-          attributeValue: {
-            include: {
-              attribute: true,
+  const where = { storeId: currentUser.storeId };
+
+  const [variants, total] = await Promise.all([
+    prisma.productVariants.findMany({
+      where,
+      ...(pagination && {
+        skip: pagination.page * pagination.pageSize,
+        take: pagination.pageSize,
+      }),
+      include: {
+        product: true,
+        productVariantAttributes: {
+          include: {
+            attributeValue: {
+              include: {
+                attribute: true,
+              },
             },
           },
         },
       },
-    },
-    orderBy: {
-      productVariantId: "asc",
-    },
-  });
+      orderBy: {
+        productVariantId: "asc",
+      },
+    }),
+    pagination ? prisma.productVariants.count({ where }) : null,
+  ]);
 
   const formatted = variants.map((v) => {
     const attrValues = v.productVariantAttributes
@@ -64,8 +74,7 @@ const list = async (currentUser) => {
     };
   });
 
-  console.log(formatted);
-  return formatted;
+  return pagination ? { items: formatted, total } : formatted;
 };
 
 const quickAdd = async (user) => {

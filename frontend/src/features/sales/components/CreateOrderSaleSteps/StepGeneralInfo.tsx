@@ -242,7 +242,7 @@ export default function StepGeneralInfo({
   const [dropdownPosition] = useState<{ top?: number; left?: number; width?: number }>({});
 
   const { data: autofill = [], error: productVariantsError } = useQuery({
-    queryKey: ["productVariants"],
+    queryKey: ["productVariantsAll"],
     queryFn: fetchProductVariants,
   });
   const {

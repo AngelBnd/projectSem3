@@ -5,8 +5,20 @@ import type { ProductInfo, SupplierOption } from "./types";
 import type { ProductDetail } from "./productDetail";
 import type { ProductFormResponse } from "./productEdit";
 
+export interface Paginated<T> {
+  items: T[];
+  total: number;
+}
+
+// Every variant (no pagination), e.g. for dropdown/autofill data.
 export const fetchProductVariants = () =>
   api.get<ProductVariant[]>("/api/product-variants");
+
+// One page of variants. `page` is 0-based.
+export const fetchProductVariantsPage = (page: number, pageSize: number) =>
+  api.get<Paginated<ProductVariant>>(
+    `/api/product-variants?page=${page}&pageSize=${pageSize}`
+  );
 
 export const quickAddProducts = () =>
   api.post("/api/product-variants/quick-add");

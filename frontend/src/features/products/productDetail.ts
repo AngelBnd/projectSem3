@@ -43,13 +43,20 @@ export interface ProductDetail {
 export const rupiah = (n: number) => `Rp${n.toLocaleString("id-ID")}`;
 
 export const rupiahRange = (r: { min: number; max: number } | null) =>
-  !r ? "—" : r.min === r.max ? rupiah(r.min) : `${rupiah(r.min)}–${r.max.toLocaleString("id-ID")}`;
+  !r
+    ? "—"
+    : r.min === r.max
+      ? rupiah(r.min)
+      : `${rupiah(r.min)}–${r.max.toLocaleString("id-ID")}`;
 
 export const percentRange = (r: { min: number; max: number } | null) =>
   !r ? "—" : r.min === r.max ? `${r.min}%` : `${r.min}% - ${r.max}%`;
 
 export const titleCase = (s: string) =>
-  s.toLowerCase().replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+  s
+    .toLowerCase()
+    .replace(/_/g, " ")
+    .replace(/\b\w/g, (c) => c.toUpperCase());
 
 export const shortDate = (iso: string) =>
   new Date(iso).toLocaleDateString("en-GB");
