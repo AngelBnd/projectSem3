@@ -191,6 +191,14 @@ function App() {
                     }
                   />
                   <Route
+                    path="/products/:id/edit"
+                    element={
+                      <ProtectedRoute isAuthenticated={isAuthenticated}>
+                        <CreateProduct />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
                     path="/users"
                     element={
                       <ProtectedRoute isAuthenticated={isAuthenticated}>

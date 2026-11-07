@@ -3,6 +3,7 @@ import type { ProductVariant } from "../../types";
 import { buildProductSubmission } from "./productMappers";
 import type { ProductInfo, SupplierOption } from "./types";
 import type { ProductDetail } from "./productDetail";
+import type { ProductFormResponse } from "./productEdit";
 
 export const fetchProductVariants = () =>
   api.get<ProductVariant[]>("/api/product-variants");
@@ -24,3 +25,12 @@ export const createProduct = (form: ProductInfo) =>
 
 export const fetchProductDetail = (variantId: number | string) =>
   api.get<ProductDetail>(`/api/products/variant/${variantId}`);
+
+export const fetchProductForm = (variantId: number | string) =>
+  api.get<ProductFormResponse>(`/api/products/variant/${variantId}/form`);
+
+export const updateProduct = (productId: number, form: ProductInfo) =>
+  api.putForm<{ productId: number; variantIds: number[] }>(
+    `/api/products/${productId}`,
+    buildProductSubmission(form)
+  );

@@ -49,57 +49,79 @@ const variant = z.object({
 
 const lower = (s) => s.trim().toLowerCase();
 
-const createBody = z
-  .object({
-    productName: required("productName").max(255),
-    productDescription: z.string().trim().nullish(),
-    category: z.enum(Object.values(ProductCategory), { error: "category is invalid" }),
-    brand: z.enum(Object.values(ProductBrand), { error: "brand is invalid" }),
-    productStatus: z.enum(Object.values(ProductStatus), {
-      error: "productStatus is invalid",
-    }),
-    variants: z.array(variant).min(1, "At least one variant is required"),
-  })
-  .superRefine((body, ctx) => {
-    const issue = (message, path) => ctx.addIssue({ code: "custom", message, path });
+// Rules shared by create and update.
+const checkVariants = (body, ctx) => {
+  const issue = (message, path) => ctx.addIssue({ code: "custom", message, path });
 
-    const skus = new Set();
-    const combos = new Set();
+  const skus = new Set();
+  const combos = new Set();
 
-    body.variants.forEach((v, i) => {
-      const sku = lower(v.sku);
-      if (skus.has(sku)) issue(`Duplicate SKU "${v.sku}"`, ["variants", i, "sku"]);
-      skus.add(sku);
+  body.variants.forEach((v, i) => {
+    const sku = lower(v.sku);
+    if (skus.has(sku)) issue(`Duplicate SKU "${v.sku}"`, ["variants", i, "sku"]);
+    skus.add(sku);
 
-      // a variant can use each attribute once
-      const names = v.attributes.map((a) => lower(a.name));
-      if (new Set(names).size !== names.length) {
-        issue("A variant cannot use the same attribute twice", ["variants", i, "attributes"]);
-      }
+    // a variant can use each attribute once
+    const names = v.attributes.map((a) => lower(a.name));
+    if (new Set(names).size !== names.length) {
+      issue("A variant cannot use the same attribute twice", ["variants", i, "attributes"]);
+    }
 
-      // two variants of one product cannot have identical attributes
-      const combo = JSON.stringify(
-        v.attributes.map((a) => [lower(a.name), lower(a.value)]).sort()
-      );
-      if (combos.has(combo)) {
-        issue("Two variants have the same attribute values", ["variants", i, "attributes"]);
-      }
-      combos.add(combo);
-
-      // one line per supplier (unique per variant in the database)
-      const suppliers = v.suppliers.map((s) => lower(s.supplierName));
-      if (new Set(suppliers).size !== suppliers.length) {
-        issue("The same supplier is listed twice", ["variants", i, "suppliers"]);
-      }
-    });
-
-    // every variant must use the same set of attributes
-    const attributeSets = new Set(
-      body.variants.map((v) => JSON.stringify(v.attributes.map((a) => lower(a.name)).sort()))
+    // two variants of one product cannot have identical attributes
+    const combo = JSON.stringify(
+      v.attributes.map((a) => [lower(a.name), lower(a.value)]).sort()
     );
-    if (attributeSets.size > 1) {
-      issue("All variants must use the same attributes", ["variants"]);
+    if (combos.has(combo)) {
+      issue("Two variants have the same attribute values", ["variants", i, "attributes"]);
+    }
+    combos.add(combo);
+
+    // one line per supplier (unique per variant in the database)
+    const suppliers = v.suppliers.map((s) => lower(s.supplierName));
+    if (new Set(suppliers).size !== suppliers.length) {
+      issue("The same supplier is listed twice", ["variants", i, "suppliers"]);
     }
   });
 
-module.exports = { create: createBody };
+  // every variant must use the same set of attributes
+  const attributeSets = new Set(
+    body.variants.map((v) => JSON.stringify(v.attributes.map((a) => lower(a.name)).sort()))
+  );
+  if (attributeSets.size > 1) {
+    issue("All variants must use the same attributes", ["variants"]);
+  }
+};
+
+const productFields = {
+  productName: required("productName").max(255),
+  productDescription: z.string().trim().nullish(),
+  category: z.enum(Object.values(ProductCategory), { error: "category is invalid" }),
+  brand: z.enum(Object.values(ProductBrand), { error: "brand is invalid" }),
+  productStatus: z.enum(Object.values(ProductStatus), {
+    error: "productStatus is invalid",
+  }),
+};
+
+const createBody = z
+  .object({
+    ...productFields,
+    variants: z.array(variant).min(1, "At least one variant is required"),
+  })
+  .superRefine(checkVariants);
+
+// Editing never touches stock: any `stock` a client sends is accepted and ignored.
+const variantUpdate = variant.extend({
+  productVariantId: z.number().int().positive().nullish(), // missing = a new variant
+  suppliers: z
+    .array(supplierLine.extend({ stock: z.number().optional() }))
+    .default([]),
+});
+
+const updateBody = z
+  .object({
+    ...productFields,
+    variants: z.array(variantUpdate).min(1, "At least one variant is required"),
+  })
+  .superRefine(checkVariants);
+
+module.exports = { create: createBody, update: updateBody };

@@ -71,6 +71,9 @@ export const api = {
     request(path, { method: "POST", body, headers }),
   put: <T = any>(path: string, body?: unknown, headers?: Headers): Promise<T> =>
     request(path, { method: "PUT", body: JSON.stringify(body), headers }),
+  /** PUT a FormData body (edits that may upload files). */
+  putForm: <T = any>(path: string, body: FormData, headers?: Headers): Promise<T> =>
+    request(path, { method: "PUT", body, headers }),
   delete: <T = any>(path: string, headers?: Headers): Promise<T> =>
     request(path, { method: "DELETE", headers }),
 };

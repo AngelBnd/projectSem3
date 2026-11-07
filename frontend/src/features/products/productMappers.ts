@@ -47,7 +47,8 @@ export const imageForVariant = (
     const img = a.images[v.attributes[a.name]]?.[0];
     if (img) return img;
   }
-  return undefined;
+  // an image the variant already had (set when editing a stored product)
+  return v.images[0];
 };
 
 /** Every distinct image that will be sent (variants can share one). */
@@ -65,6 +66,7 @@ const toVariantPayload = (
   v: ProductVariantRow,
   image: ImageItem | undefined
 ) => ({
+  productVariantId: v.productVariantId, // only set when editing a stored variant
   sku: v.sku.trim(),
   barcode: v.barcode.trim() || null,
   sellingPrice: v.sellingPrice.trim() === "" ? "0" : v.sellingPrice.trim(),

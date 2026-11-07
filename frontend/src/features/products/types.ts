@@ -114,6 +114,8 @@ export interface ProductInfo {
 export interface ProductOrderStepProps {
   formData: ProductInfo;
   setFormData: React.Dispatch<React.SetStateAction<ProductInfo>>;
+  /** "edit" locks the stock inputs; defaults to "create". */
+  mode?: "create" | "edit";
 }
 
 export interface AttributeInput {

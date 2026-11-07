@@ -113,6 +113,18 @@ export default function ({ formData, setFormData }: StepGeneralInfoProps) {
     isNaN(Number(k)),
   );
 
+  const setVariantField = <K extends keyof ProductVariantRow>(
+    tempId: string,
+    key: K,
+    value: ProductVariantRow[K],
+  ) =>
+    setFormData((prev) => ({
+      ...prev,
+      variants: prev.variants.map((v) =>
+        v.tempId === tempId ? { ...v, [key]: value } : v,
+      ),
+    }));
+
   useEffect(() => {
     console.log(formData);
   }, [formData]);
@@ -200,7 +212,6 @@ export default function ({ formData, setFormData }: StepGeneralInfoProps) {
           }
         />
       </div>
-      {/* SKU + Barcode: only here when the product is its own single variant */}
       {!formData.hasVariants ? (
         <>
           {/* Active toggle */}
@@ -214,6 +225,45 @@ export default function ({ formData, setFormData }: StepGeneralInfoProps) {
               }
               label={<span className="text-sm font-nunito">Active</span>}
             />
+          </div>
+
+          {/* SKU + Barcode: only here when the product is its own single variant */}
+          <div className="flex gap-3">
+            <div className="mb-4 w-full">
+              <div className="text-sm mb-1 font-nunito font-bold">SKU</div>
+              <input
+                type="text"
+                name="sku"
+                value={formData.variants[0].sku}
+                onChange={(e) =>
+                  setVariantField(
+                    formData.variants[0].tempId,
+                    "sku",
+                    e.target.value,
+                  )
+                }
+                className="w-full p-2 border border-gray-300 rounded-md bg-white"
+                placeholder="AUD-2025-001"
+              />
+            </div>
+
+            <div className="mb-4 w-full">
+              <div className="text-sm mb-1 font-nunito font-bold">Barcode</div>
+              <input
+                type="text"
+                name="barcode"
+                value={formData.variants[0].barcode}
+                onChange={(e) =>
+                  setVariantField(
+                    formData.variants[0].tempId,
+                    "barcode",
+                    e.target.value,
+                  )
+                }
+                className="w-full p-2 border border-gray-300 rounded-md bg-white"
+                placeholder="AUD-2025-001"
+              />
+            </div>
           </div>
 
           {/* Images */}

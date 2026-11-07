@@ -12,16 +12,45 @@ import StepReview from "../components/CreateProductSteps/StepReview";
 import StepPricingStock from "../components/CreateProductSteps/StepPricingStock";
 import { ProductInfo, ProductVariantRow, ProductStatus } from "../types";
 import { useCreateProduct } from "../useCreateProduct";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
+import { fetchProductForm } from "../api";
+import { productToForm } from "../productEdit";
+import { useUpdateProduct } from "../useUpdateProduct";
 
 export default function CreateProduct() {
-  const { submit, errors, serverErrors, isPending } = useCreateProduct();
+  // /products/:id/edit reuses this page: :id is the variant that was opened
+  const { id } = useParams();
+  const isEdit = !!id;
+
+  const create = useCreateProduct();
   const [step, setStep] = useState(1);
   const scrollRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
 
+  const {
+    data: stored,
+    isLoading: loadingStored,
+    isError: storedFailed,
+  } = useQuery({
+    queryKey: ["product-form", id],
+    queryFn: () => fetchProductForm(id!),
+    enabled: isEdit,
+    refetchOnWindowFocus: false, // a refetch must not overwrite what is being typed
+  });
+
+  const update = useUpdateProduct(stored?.productId);
+  const { errors, serverErrors, isPending } = isEdit ? update : create;
+
   const handleSubmit = () =>
-    submit(formData, { onSuccess: () => navigate("/products") });
+    isEdit
+      ? update.submit(formData, {
+          onSuccess: ({ variantIds }) =>
+            navigate(
+              variantIds.includes(Number(id)) ? `/products/${id}` : "/products",
+            ),
+        })
+      : create.submit(formData, { onSuccess: () => navigate("/products") });
 
   // Creating the Product & Product variant form
   const createEmptyVariant = (): ProductVariantRow => ({
@@ -50,8 +79,6 @@ export default function CreateProduct() {
     images: [],
     sameCost: false,
   });
-
-  const [newProduct] = useState<ProductInfo>(createEmptyProduct);
   const [formData, setFormData] = useState<ProductInfo>(createEmptyProduct);
 
   // Step Component
@@ -70,6 +97,20 @@ export default function CreateProduct() {
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, [step]);
+
+  // editing: fill the form once the stored product arrives
+  useEffect(() => {
+    if (stored) setFormData(productToForm(stored));
+  }, [stored]);
+
+  if (isEdit && loadingStored) {
+    return <p className="text-sm text-[#777B7C] py-10">Loading product...</p>;
+  }
+  if (isEdit && (storedFailed || !stored)) {
+    return (
+      <p className="text-sm text-red-500 py-10">Could not load this product.</p>
+    );
+  }
 
   return (
     <div className="grid grid-cols-9 gap-3 w-full text-black mb-10 !overflow-x-hidden ">
@@ -98,20 +139,26 @@ export default function CreateProduct() {
 
       <div className="col-span-5 bg-red h-[800px] overflow-y-auto custom-scrollbar rounded-md shadow flex flex-col">
         <div className="flex flex-col flex-none  items-center justify-center w-full mb-3">
-          <div className="text-sm text-gray-500">Create a Product</div>
+          <div className="text-sm text-gray-500">
+            {isEdit ? "Edit Product" : "Create a Product"}
+          </div>
           <div className="text-xl font-nunito text-black font-bold">
             {steps[step - 1].label}
           </div>
         </div>
 
         <div className="bg-white h-[800px] rounded-sm px-7 py-8 mb-16">
-          <StepComponent formData={formData} setFormData={setFormData} />
+          <StepComponent
+            formData={formData}
+            setFormData={setFormData}
+            mode={isEdit ? "edit" : "create"}
+          />
         </div>
 
         <div className="flex justify-between">
           <div>
             <Button
-              onClick={() => navigate("/products")}
+              onClick={() => navigate(isEdit ? `/products/${id}` : "/products")}
               children={"Cancel"}
               variant="tertiary"
               iconPosition="left"
@@ -142,7 +189,7 @@ export default function CreateProduct() {
             ) : (
               <Button
                 onClick={handleSubmit}
-                children={"Submit"}
+                children={isEdit ? "Save" : "Submit"}
                 icon={CheckIcon}
                 variant="primary"
                 iconPosition="right"

@@ -113,7 +113,7 @@ export default function ProductsPage() {
         <RowActions
           row={params.row}
           onView={(row) => navigate(`/products/${row.productVariantId}`)}
-          onEdit={(row) => {}}
+          onEdit={(row) => navigate(`/products/${row.productVariantId}/edit`)}
           onDelete={(row) => {}}
         />
       ),

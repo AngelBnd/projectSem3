@@ -9,12 +9,21 @@ router.use(authenticateToken);
 
 router.get("/", authenticateToken, productsController.list);
 router.get("/variant/:id", productsController.getByVariant);
+router.get("/variant/:id/form", productsController.getFormByVariant);
 router.post(
   "/",
   uploadImages,
   parseJsonField("data"),
   validate(productsValidator.create),
   productsController.create
+);
+
+router.put(
+  "/:id",
+  uploadImages,
+  parseJsonField("data"),
+  validate(productsValidator.update),
+  productsController.update
 );
 
 module.exports = router;

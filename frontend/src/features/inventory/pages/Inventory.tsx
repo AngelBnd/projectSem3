@@ -70,57 +70,6 @@ export default function Inventory() {
     },
   ];
 
-  // const updateItems = items;
-
-  // useEffect(() => {
-  //   const token = localStorage.getItem('token');
-  //   const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
-
-  //   const url = debounceQuery
-  //     ? `http://localhost:3000/api/inventory/search?q=${encodeURIComponent(debounceQuery)}`
-  //     : `http://localhost:3000/api/inventory`;
-
-  //   const fetchData = async () => {
-  //     try {
-  //       const res = await fetch(url, { headers });
-  //       if (!res.ok) {
-  //         throw new Error('Unauthorized access');
-  //       }
-
-  //       const data = await res.json();
-  //       setItems(data);
-  //       if(!debounceQuery) {
-  //         setStaticItems(data);
-  //       }
-        
-  //     } catch (err) {
-  //       console.error("Error fetching inventory:", err);
-  //       if (err.message === 'Unauthorized access') {
-  //         window.location.href = '/login';
-  //       }
-  //     }
-  //   };
-
-  //   fetchData();
-  // }, [debounceQuery]);
-
-  // const updateItems = items.filter(item => {
-  //   if (filter != 'All' && item.productCategory !== filter) {
-  //     return false;
-  //   }
-
-  //   if (query) {
-  //     const searchTerm = query.toLowerCase();
-  //     const matchesName = item.productName.toLowerCase().includes(searchTerm);
-  //     const matchesCode = item.productCode.toLowerCase().includes(searchTerm);
-  //     if (!matchesName && !matchesCode) {
-  //       return false;
-  //     }
-  //   }
-  //   return true;
-  // });
-
-
   const handleKeyDown = async (e: KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
       // const token = localStorage.getItem('token');

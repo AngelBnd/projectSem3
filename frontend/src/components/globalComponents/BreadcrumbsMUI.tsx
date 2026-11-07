@@ -40,7 +40,10 @@ const BreadcrumbsMUI = () => {
           }
         } else {
           displayName =
-            pathNameMap[name] ||
+            // "edit" belongs to whichever section it sits under
+            (name === "edit" && pathnames[0] === "products"
+              ? "Edit Product"
+              : pathNameMap[name]) ||
             name
               .replace("-", " ")
               .replace(/\b\w/g, (c: string) => c.toUpperCase());

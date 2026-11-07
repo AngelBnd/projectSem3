@@ -71,15 +71,19 @@ const PriceInput = ({
 const NumberInput = ({
   value,
   onChange,
+  disabled,
 }: {
   value: string;
   onChange: (value: string) => void;
+  disabled?: boolean;
 }) => (
   <TextField
     fullWidth
     size="small"
     type="number"
     value={value}
+    disabled={disabled}
+    placeholder={disabled ? "Locked" : undefined}
     onChange={(e) => onChange(e.target.value)}
     sx={fieldSx}
     InputProps={{ inputProps: { min: 0 } }}
@@ -125,12 +129,16 @@ const SummaryItem = ({ label, value }: { label: string; value: string }) => (
 interface StepPricingStockProps {
   formData: ProductInfo;
   setFormData: Dispatch<SetStateAction<ProductInfo>>;
+  mode?: "create" | "edit";
 }
 
 export default function StepPricingStock({
   formData,
   setFormData,
+  mode = "create",
 }: StepPricingStockProps) {
+  // Stock only ever changes through stock movements, so editing a product locks it.
+  const isEdit = mode === "edit";
   const {
     data: supplierOptions = [],
     isLoading,
@@ -295,8 +303,10 @@ export default function StepPricingStock({
   return (
     <div className="h-full overflow-y-auto">
       {/* ---------- Summary (computed from the form) ---------- */}
-      <div className="grid grid-cols-3 gap-4 mb-5">
-        <SummaryItem label="Initial Stock" value={String(initialStock)} />
+      <div className={`grid gap-4 mb-5 ${isEdit ? "grid-cols-2" : "grid-cols-3"}`}>
+        {!isEdit && (
+          <SummaryItem label="Initial Stock" value={String(initialStock)} />
+        )}
         <SummaryItem label="Margin" value={range(margins, percent)} />
         <SummaryItem label="Profit" value={range(profits, rupiah)} />
       </div>
@@ -408,7 +418,7 @@ export default function StepPricingStock({
             style={{ gridTemplateColumns: lineCols }}
           >
             <span>Supplier</span>
-            <span>Stock</span>
+            <span>{isEdit ? "Stock (locked)" : "Stock"}</span>
             <span>Cost</span>
           </div>
         </div>
@@ -462,6 +472,7 @@ export default function StepPricingStock({
                   />
                   <NumberInput
                     value={line.stock}
+                    disabled={isEdit}
                     onChange={(val) =>
                       setSupplierField(v.tempId, line.tempId, "stock", val)
                     }

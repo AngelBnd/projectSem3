@@ -39,4 +39,35 @@ const getByVariant = async (req, res) => {
   }
 };
 
-module.exports = { list, create, getByVariant };
+const getFormByVariant = async (req, res) => {
+  const id = Number(req.params.id);
+  if (!Number.isInteger(id) || id <= 0) {
+    return res.status(400).json({ error: "Invalid product id." });
+  }
+  try {
+    res.json(await productsService.getFormByVariant(req.user, id));
+  } catch (error) {
+    sendError(res, error, "Error fetching product form:", {
+      error: "Failed to retrieve product.",
+    });
+  }
+};
+
+const update = async (req, res) => {
+  const id = Number(req.params.id);
+  if (!Number.isInteger(id) || id <= 0) {
+    return res.status(400).json({ error: "Invalid product id." });
+  }
+  try {
+    const imageUrls = Object.fromEntries(
+      (req.files ?? []).map((f) => [f.originalname, `/api/uploads/${f.filename}`])
+    );
+    res.json(await productsService.update(req.user, id, req.body, imageUrls));
+  } catch (error) {
+    sendError(res, error, "Error updating product:", {
+      error: "Failed to update product.",
+    });
+  }
+};
+
+module.exports = { list, create, getByVariant, getFormByVariant, update };

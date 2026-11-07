@@ -25,7 +25,12 @@ const TABS = [
   { label: "Outbound" },
   { label: "Adjustments" },
 ];
-const TAB_TYPE: (MovementType | null)[] = [null, "Inbound", "Outbound", "Adjustment"];
+const TAB_TYPE: (MovementType | null)[] = [
+  null,
+  "Inbound",
+  "Outbound",
+  "Adjustment",
+];
 
 const STATUS_TONE: Record<string, TagTone> = {
   ACTIVE: "green",
@@ -36,16 +41,12 @@ const STATUS_TONE: Record<string, TagTone> = {
 const ACTIVITY_GRID =
   "grid grid-cols-[1.2fr_1fr_0.8fr_1.2fr_2fr] gap-3 items-center px-4";
 
-function Card({
-  title,
-  children,
-}: {
-  title?: string;
-  children: ReactNode;
-}) {
+function Card({ title, children }: { title?: string; children: ReactNode }) {
   return (
     <div className="bg-white rounded-lg shadow p-5">
-      {title && <h2 className="text-base font-semibold font-nunito mb-3">{title}</h2>}
+      {title && (
+        <h2 className="text-base font-semibold font-nunito mb-3">{title}</h2>
+      )}
       {children}
     </div>
   );
@@ -126,7 +127,10 @@ export default function ProductPage() {
     );
   }
 
-  const { variant, stock } = { variant: data.variant, stock: data.variant.stock };
+  const { variant, stock } = {
+    variant: data.variant,
+    stock: data.variant.stock,
+  };
 
   return (
     <div className="grid grid-cols-9 gap-3 w-full text-black mb-10 !overflow-x-hidden">
@@ -144,7 +148,9 @@ export default function ProductPage() {
               <path d="M13 8l-4 4l4 4" />
             </svg>
           </button>
-          <h1 className="text-2xl font-semibold font-nunito">{data.productName}</h1>
+          <h1 className="text-2xl font-semibold font-nunito">
+            {data.productName}
+          </h1>
           {data.variants.length > 1 && (
             <Select
               size="small"
@@ -166,7 +172,11 @@ export default function ProductPage() {
           )}
 
           <div className="ml-auto flex items-center gap-3">
-            <button type="button" aria-label="Document" className="!bg-transparent !p-0">
+            <button
+              type="button"
+              aria-label="Document"
+              className="!bg-transparent !p-0"
+            >
               <svg {...iconProps}>
                 <path d="M14 3v4a1 1 0 0 0 1 1h4" />
                 <path d="M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2z" />
@@ -174,7 +184,12 @@ export default function ProductPage() {
                 <path d="M9 17h6" />
               </svg>
             </button>
-            <button type="button" aria-label="Edit" className="!bg-transparent !p-0">
+            <button
+              type="button"
+              aria-label="Edit"
+              onClick={() => navigate(`/products/${variant.productVariantId}/edit`)}
+              className="!bg-transparent !p-0"
+            >
               <svg {...iconProps}>
                 <path d="M7 7h-1a2 2 0 0 0 -2 2v9a2 2 0 0 0 2 2h9a2 2 0 0 0 2 -2v-1" />
                 <path d="M20.385 6.585a2.1 2.1 0 0 0 -2.97 -2.97l-8.415 8.385v3h3l8.385 -8.415z" />
@@ -184,8 +199,8 @@ export default function ProductPage() {
           </div>
         </div>
         <p className="text-[#777B7C] text-sm">
-          Created {longDate(data.createdAt)} <span className="mx-2">|</span> Last
-          Updated {relativeDay(data.updatedAt)}
+          Created {longDate(data.createdAt)} <span className="mx-2">|</span>{" "}
+          Last Updated {relativeDay(data.updatedAt)}
         </p>
       </div>
 
@@ -214,7 +229,10 @@ export default function ProductPage() {
         <Card title="Pricing">
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
             <Stat label="Selling Price" value={rupiah(variant.sellingPrice)} />
-            <Stat label="Purchase Price" value={rupiahRange(variant.purchasePrice)} />
+            <Stat
+              label="Purchase Price"
+              value={rupiahRange(variant.purchasePrice)}
+            />
             <Stat label="Profit Margin" value={percentRange(variant.margin)} />
           </div>
         </Card>
@@ -222,15 +240,29 @@ export default function ProductPage() {
         <Card title="Stock">
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
             <Stat label="Available Qty" value={String(stock.available)} />
-            <Stat label="Reserved Qty" value={stock.reserved === null ? "—" : String(stock.reserved)} />
+            <Stat
+              label="Reserved Qty"
+              value={stock.reserved === null ? "—" : String(stock.reserved)}
+            />
             <Stat label="Sold Qty" value={String(stock.sold)} />
-            <Stat label="Stock Value" value={stock.value === null ? "—" : `Rp ${stock.value.toLocaleString("id-ID")},-`} />
+            <Stat
+              label="Stock Value"
+              value={
+                stock.value === null
+                  ? "—"
+                  : `Rp ${stock.value.toLocaleString("id-ID")},-`
+              }
+            />
           </div>
         </Card>
 
         <Card title="Activity">
           <div className="mb-4">
-            <FilterTabs tabs={TABS} activeTab={activeTab} onChange={setActiveTab} />
+            <FilterTabs
+              tabs={TABS}
+              activeTab={activeTab}
+              onChange={setActiveTab}
+            />
           </div>
 
           <div className="overflow-x-auto">
@@ -280,9 +312,7 @@ export default function ProductPage() {
           <Detail label="Barcode">{variant.barcode || "—"}</Detail>
           <Detail label="Category">{titleCase(data.category)}</Detail>
           <Detail label="Brand">{titleCase(data.brand)}</Detail>
-          <Detail label="Description">
-            {data.productDescription || "—"}
-          </Detail>
+          <Detail label="Description">{data.productDescription || "—"}</Detail>
         </Card>
       </div>
     </div>

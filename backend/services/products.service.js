@@ -270,4 +270,229 @@ const create = async (currentUser, input, imageUrls = {}) => {
   }
 };
 
-module.exports = { list, create, getByVariant };
+/* ---------------------------- edit product ---------------------------- */
+
+// Everything the edit form needs: the whole product with its live (non-discontinued) variants.
+const getFormByVariant = async (currentUser, variantId) => {
+  const { storeId } = currentUser;
+  if (!storeId) {
+    throw new HttpError(400, { error: "User does not belong to a store" });
+  }
+
+  const anchor = await prisma.productVariants.findFirst({
+    where: { productVariantId: variantId, storeId },
+    select: { productId: true },
+  });
+  if (!anchor) {
+    throw new HttpError(404, { error: "Product not found." });
+  }
+
+  const product = await prisma.products.findFirst({
+    where: { productId: anchor.productId, storeId },
+    include: {
+      variants: {
+        where: { NOT: { productStatus: "DISCONTINUED" } },
+        orderBy: { productVariantId: "asc" },
+        include: {
+          productVariantAttributes: {
+            orderBy: { productVariantAttributeId: "asc" },
+            include: { attributeValue: { include: { attribute: true } } },
+          },
+          productVariantSuppliers: {
+            orderBy: { productVariantSupplierId: "asc" },
+            include: { supplier: true },
+          },
+        },
+      },
+    },
+  });
+
+  return {
+    productId: product.productId,
+    productName: product.productName,
+    productDescription: product.productDescription,
+    category: product.category,
+    brand: product.brand,
+    productStatus: product.productStatus,
+    variants: product.variants.map((v) => ({
+      productVariantId: v.productVariantId,
+      sku: v.sku,
+      barcode: v.barcode,
+      sellingPrice: v.sellingPrice.toString(),
+      thresholdStock: v.thresholdStock,
+      productStatus: v.productStatus,
+      isDefault: v.isDefault,
+      image: v.image,
+      attributes: v.productVariantAttributes.map((a) => ({
+        name: a.attributeValue.attribute.name,
+        value: a.attributeValue.valueName,
+      })),
+      suppliers: v.productVariantSuppliers.map((s) => ({
+        supplierId: s.supplierId,
+        supplierName: s.supplier.name,
+        cost: s.cost.toString(),
+      })),
+    })),
+  };
+};
+
+/**
+ * Edits a product: its details, and per variant the SKU, barcode, price, threshold,
+ * status, image, attributes and suppliers. Stock is NEVER touched here; it only
+ * changes through stock movements.
+ *
+ * A payload variant is matched to an existing one by `productVariantId`, else by SKU.
+ * Existing variants that are not in the payload are kept for their history but set
+ * to DISCONTINUED. Payload variants that match nothing are created (with no stock).
+ */
+const update = async (currentUser, productId, input, imageUrls = {}) => {
+  const { storeId } = currentUser;
+
+  if (!storeId) {
+    throw new HttpError(400, { error: "User does not belong to a store" });
+  }
+  if (!can(currentUser, "product", "update")) {
+    throw new HttpError(403, { error: "You do not have permission to edit products." });
+  }
+
+  const flagged = input.variants.findIndex((v) => v.isDefault);
+  const defaultIndex = flagged === -1 ? 0 : flagged;
+
+  try {
+    return await prisma.$transaction(
+      async (tx) => {
+        const product = await tx.products.findFirst({
+          where: { productId, storeId },
+          include: { variants: true },
+        });
+        if (!product) {
+          throw new HttpError(404, { error: "Product not found." });
+        }
+
+        await tx.products.update({
+          where: { productId },
+          data: {
+            productName: input.productName,
+            productDescription: input.productDescription || null,
+            category: input.category,
+            brand: input.brand,
+            productStatus: input.productStatus,
+          },
+        });
+
+        // Resolve every distinct (attribute, value) pair once.
+        const valueIds = new Map();
+        for (const v of input.variants) {
+          for (const a of v.attributes) {
+            const key = pairKey(a.name, a.value);
+            if (!valueIds.has(key)) {
+              valueIds.set(key, await findOrCreateAttributeValue(tx, storeId, a.name, a.value));
+            }
+          }
+        }
+
+        const byId = new Map(product.variants.map((v) => [v.productVariantId, v]));
+        const bySku = new Map(product.variants.map((v) => [v.sku.toLowerCase(), v]));
+        const keptIds = new Set();
+
+        for (const [i, v] of input.variants.entries()) {
+          const current =
+            (v.productVariantId && byId.get(v.productVariantId)) ||
+            bySku.get(v.sku.trim().toLowerCase());
+
+          if (current && keptIds.has(current.productVariantId)) {
+            throw new HttpError(400, { error: `Variant "${v.sku}" is listed twice.` });
+          }
+
+          // Suppliers first, so a brand-new one exists before its link row.
+          const supplierRows = [];
+          for (const line of v.suppliers) {
+            const supplierId = await resolveSupplierId(tx, storeId, line);
+            supplierRows.push({ supplierId, cost: line.cost });
+          }
+
+          const fields = {
+            sku: v.sku,
+            barcode: v.barcode || null,
+            sellingPrice: v.sellingPrice,
+            thresholdStock: v.thresholdStock,
+            productStatus: v.productStatus,
+            isDefault: i === defaultIndex,
+            image: (v.imageRef && imageUrls[v.imageRef]) || v.imageUrl || null,
+          };
+          const attributeLinks = v.attributes.map((a) => ({
+            storeId,
+            attributeValuesId: valueIds.get(pairKey(a.name, a.value)),
+          }));
+
+          if (!current) {
+            const created = await tx.productVariants.create({
+              data: {
+                storeId,
+                productId,
+                ...fields,
+                productVariantAttributes: { create: attributeLinks },
+                productVariantSuppliers: {
+                  create: supplierRows.map((s) => ({ storeId, ...s })),
+                },
+              },
+            });
+            keptIds.add(created.productVariantId);
+            continue;
+          }
+
+          const id = current.productVariantId;
+          keptIds.add(id);
+
+          await tx.productVariants.update({ where: { productVariantId: id }, data: fields });
+
+          // attributes: replace the links
+          await tx.productVariantAttributes.deleteMany({ where: { productVariantsId: id } });
+          if (attributeLinks.length) {
+            await tx.productVariantAttributes.createMany({
+              data: attributeLinks.map((l) => ({ ...l, productVariantsId: id })),
+            });
+          }
+
+          // suppliers: drop the ones that are gone, add or update the rest
+          await tx.productVariantSuppliers.deleteMany({
+            where: {
+              productVariantId: id,
+              supplierId: { notIn: supplierRows.map((s) => s.supplierId) },
+            },
+          });
+          for (const row of supplierRows) {
+            await tx.productVariantSuppliers.upsert({
+              where: {
+                productVariantId_supplierId: {
+                  productVariantId: id,
+                  supplierId: row.supplierId,
+                },
+              },
+              create: { storeId, productVariantId: id, supplierId: row.supplierId, cost: row.cost },
+              update: { cost: row.cost },
+            });
+          }
+        }
+
+        // Variants the form no longer has: keep their history, take them out of use.
+        await tx.productVariants.updateMany({
+          where: { productId, storeId, productVariantId: { notIn: [...keptIds] } },
+          data: { productStatus: "DISCONTINUED", isDefault: false },
+        });
+
+        return { productId, variantIds: [...keptIds] };
+      },
+      { timeout: 20000 }
+    );
+  } catch (error) {
+    if (error.code === "P2002") {
+      throw new HttpError(409, {
+        error: "A SKU or supplier with the same name already exists in this store.",
+      });
+    }
+    throw error;
+  }
+};
+
+module.exports = { list, create, getByVariant, getFormByVariant, update };
