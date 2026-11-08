@@ -19,6 +19,7 @@ import {
   CreateOrderSale,
   AccessStatus,
   AuditLogs,
+  CreateAudit,
   InventoryMovement,
   Suppliers,
   PurchaseOrders,
@@ -211,6 +212,14 @@ function App() {
                     element={
                       <ProtectedRoute isAuthenticated={isAuthenticated}>
                         <AuditLogs />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/inventory/auditLogs/create-audit"
+                    element={
+                      <ProtectedRoute isAuthenticated={isAuthenticated}>
+                        <CreateAudit />
                       </ProtectedRoute>
                     }
                   />

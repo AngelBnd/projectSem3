@@ -427,6 +427,7 @@ model StockAudits {
   store           Stores @relation(fields: [storeId], references: [storeId])
   doneBy          Int
   doneByUser      Users @relation(fields: [doneBy], references: [userId])
+  auditName       String?
   status          StockAuditStatus
   auditDate       DateTime @default(now())
   difference      Int
@@ -448,7 +449,7 @@ model StockAdjustmentPerProduct {
   audit             StockAudits @relation(fields: [auditId], references: [auditId])
   physicalQuantity  Int
   systemQuantity    Int
-  reason            StockAdjustmentReason
+  reason            StockAdjustmentReason? // only needed when the count differs
 
   @@index([productVariantId])
   @@index([auditId])

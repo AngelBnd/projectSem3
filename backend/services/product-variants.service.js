@@ -45,8 +45,8 @@ const list = async (currentUser, pagination) => {
     const sortedAttributes = v.productVariantAttributes
       .sort((a, b) =>
         a.attributeValue.attribute.name.localeCompare(
-          b.attributeValue.attribute.name
-        )
+          b.attributeValue.attribute.name,
+        ),
       )
       .map((pva) => pva.attributeValue.valueName);
 

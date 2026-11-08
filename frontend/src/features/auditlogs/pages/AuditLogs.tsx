@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import type { GridColDef } from "@mui/x-data-grid";
 import SearchBar from "../../../components/globalComponents/SearchBar";
 import FilterDropdown from "../../../components/globalComponents/FilterButton";
@@ -108,6 +109,7 @@ const columns: GridColDef<AuditRow>[] = [
 ];
 
 export default function AuditLogs() {
+  const navigate = useNavigate();
   const [searchInput, setSearchInput] = useState("");
   const [activeTab, setActiveTab] = useState(0);
   const [performer, setPerformer] = useState("All");
@@ -172,7 +174,11 @@ export default function AuditLogs() {
           <Button onClick={() => {}} icon={ExportIcon} variant="white">
             Export
           </Button>
-          <Button onClick={() => {}} icon={PlusIcon} variant="primary">
+          <Button
+            onClick={() => navigate("/inventory/auditLogs/create-audit")}
+            icon={PlusIcon}
+            variant="primary"
+          >
             Add Stock Audit
           </Button>
         </div>

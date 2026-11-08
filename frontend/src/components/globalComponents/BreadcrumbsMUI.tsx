@@ -13,6 +13,8 @@ const BreadcrumbsMUI = () => {
     products: "Product",
     edit: "Edit Sales Order",
     "create-order-sales": "Create Sales Order",
+    auditLogs: "Audit Logs",
+    "create-audit": "Create Stock Audit",
   };
 
   return (

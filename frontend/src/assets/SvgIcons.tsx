@@ -279,7 +279,7 @@ export const ScanIcon: FC<IconProps> = () => (
     height="24"
     viewBox="0 0 24 24"
     fill="none"
-    stroke="#3376FC"
+    stroke="#FFFFFF"
     strokeWidth="2"
     strokeLinecap="round"
     strokeLinejoin="round"
